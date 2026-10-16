@@ -1,0 +1,75 @@
+"""Servidor de Caon (Vestidor Táctico).
+
+Sirve la página (frontend/) y una API pequeña de solo lectura sobre el modelo ya construido
+(model/model.json). La simulación corre en el navegador con frontend/engine.js.
+
+Arrancar:  uvicorn app.main:app --reload      →  http://127.0.0.1:8000
+Documentación interactiva de la API:          →  http://127.0.0.1:8000/docs
+"""
+import json
+from pathlib import Path
+
+from fastapi import FastAPI, HTTPException
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
+
+ROOT = Path(__file__).resolve().parents[1]
+FRONTEND = ROOT / 'frontend'
+MODEL_PATH = ROOT / 'model' / 'model.json'
+
+app = FastAPI(title='Caon · Vestidor Táctico', description='Estilos de juego de Liga MX y simulación de partidos con datos StatsBomb.')
+
+_cache = {'mtime': None, 'model': None}
+
+
+def load_model():
+    """Lee model/model.json y lo vuelve a leer solo si cambió (tras correr el pipeline)."""
+    if not MODEL_PATH.exists():
+        raise HTTPException(503, 'No existe model/model.json. Corre: python pipeline/run.py build')
+    mtime = MODEL_PATH.stat().st_mtime
+    if _cache['mtime'] != mtime:
+        _cache['model'] = json.loads(MODEL_PATH.read_text(encoding='utf-8'))
+        _cache['mtime'] = mtime
+    return _cache['model']
+
+
+def team_summary(e):
+    return {k: e.get(k) for k in ('id', 'label', 'team', 'coach', 'group', 'kind', 'n', 'd0', 'd1', 'official', 'formation')}
+
+
+@app.get('/api/health')
+def health():
+    m = load_model()
+    return {'ok': True, 'teams': len(m['entities']), 'built': m['meta'].get('built')}
+
+
+@app.get('/api/model')
+def model():
+    """El modelo completo que usa la página (agregados, sin eventos crudos)."""
+    return FileResponse(MODEL_PATH, media_type='application/json')
+
+
+@app.get('/api/teams')
+def teams():
+    """Lista de equipos-entrenador disponibles."""
+    return [team_summary(e) for e in load_model()['entities']]
+
+
+@app.get('/api/teams/{team_id}')
+def team(team_id: str):
+    """Plan de juego, once tipo, lanzadores y posición en el mapa de un equipo-entrenador."""
+    for e in load_model()['entities']:
+        if e['id'] == team_id:
+            out = team_summary(e)
+            out.update(style=e['style'], shape=e['shape'], roles=e.get('roles'), map=e.get('map'), note=e.get('note'))
+            return out
+    raise HTTPException(404, f'No existe el equipo {team_id}')
+
+
+@app.get('/')
+def index():
+    return FileResponse(FRONTEND / 'index.html')
+
+
+# engine.js y cualquier otro archivo estático del frontend
+app.mount('/', StaticFiles(directory=FRONTEND), name='frontend')

@@ -1,0 +1,313 @@
+<meta charset="utf-8">
+<title>Cómo funciona el Vestidor Táctico</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: documento técnico de una columna (68ch) con diagramas a todo el ancho del contenedor; mismo look oscuro que la demo. */
+:root {
+  color-scheme: dark;
+  --ground: #10141C;
+  --panel: #171D29;
+  --panel-2: #1D2534;
+  --line: #2A3448;
+  --ink: #E9EDF4;
+  --ink-2: #B7C0D1;
+  --muted: #8E99AE;
+  --home: #C0870E;
+  --home-ink: #F2C55C;
+  --away: #3D8FD6;
+  --away-ink: #8CC4F2;
+  --ok: #4FB286;
+  --grass: #1B3627;
+  --display: 'Barlow Condensed', 'Arial Narrow', sans-serif;
+  --body: 'Barlow', 'Segoe UI', system-ui, sans-serif;
+  --mono: 'JetBrains Mono', ui-monospace, monospace;
+}
+* { box-sizing: border-box; }
+html, body { background: var(--ground); color: var(--ink); }
+body { font-family: var(--body); font-size: 16.5px; line-height: 1.6; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 28px 64px; }
+.wrap { max-width: 1040px; margin: 0 auto; display: flex; flex-direction: column; gap: 44px; }
+h1, h2, h3 { font-family: var(--display); text-transform: uppercase; margin: 0; text-wrap: balance; letter-spacing: 0.3px; }
+h1 { font-size: clamp(36px, 6vw, 58px); font-weight: 800; line-height: 0.98; }
+h2 { font-size: 30px; font-weight: 700; }
+h3 { font-size: 19px; font-weight: 700; letter-spacing: 0.6px; }
+p { margin: 0; max-width: 68ch; color: var(--ink-2); }
+p b, li b { color: var(--ink); font-weight: 600; }
+a { color: var(--away-ink); }
+code, .mono { font-family: var(--mono); font-size: 0.86em; color: var(--home-ink); }
+.eyebrow { font-family: var(--display); font-size: 13px; letter-spacing: 2.4px; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+section { display: flex; flex-direction: column; gap: 16px; }
+.sec-head { display: flex; flex-direction: column; gap: 6px; border-top: 1px solid var(--line); padding-top: 22px; }
+.lede { font-size: 19px; color: var(--ink); max-width: 64ch; }
+.facts { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.fact { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; display: flex; flex-direction: column; gap: 2px; }
+.fact b { font-family: var(--display); font-size: 32px; line-height: 1; color: var(--home-ink); font-variant-numeric: tabular-nums; }
+.fact span { font-size: 14px; color: var(--ink-2); }
+.grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.card p { font-size: 15.5px; }
+.tbl { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; background: var(--panel); }
+table { border-collapse: collapse; width: 100%; font-size: 14.5px; }
+th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-family: var(--display); text-transform: uppercase; letter-spacing: 1px; font-size: 13px; color: var(--muted); font-weight: 600; background: var(--panel-2); }
+td.num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+tr:last-child td { border-bottom: none; }
+figure { margin: 0; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+figure svg { width: 100%; height: auto; display: block; }
+figcaption { font-size: 14px; color: var(--muted); max-width: 80ch; }
+.formula { font-family: var(--mono); font-size: clamp(14px, 2.4vw, 19px); color: var(--ink); background: var(--panel-2); border-radius: 10px; padding: 16px; text-align: center; overflow-x: auto; }
+.formula .a { color: var(--home-ink); } .formula .d { color: var(--away-ink); } .formula .l { color: var(--muted); }
+ol.steps { list-style: none; counter-reset: s; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+ol.steps li { counter-increment: s; display: grid; grid-template-columns: 34px minmax(0, 1fr); gap: 12px; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; color: var(--ink-2); }
+ol.steps li::before { content: counter(s); font-family: var(--display); font-size: 22px; font-weight: 800; color: var(--ground); background: var(--home-ink); border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; }
+pre { margin: 0; background: #0B0F14; border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; overflow-x: auto; font-family: var(--mono); font-size: 13.5px; color: var(--ink-2); line-height: 1.55; }
+ul.clean { margin: 0; padding-left: 20px; color: var(--ink-2); display: flex; flex-direction: column; gap: 6px; max-width: 72ch; }
+.pill { display: inline-block; font-size: 12.5px; padding: 2px 9px; border-radius: 999px; border: 1px solid var(--line); background: var(--panel-2); color: var(--ink-2); }
+.ok { color: var(--ok); font-weight: 700; }
+.toc { display: flex; flex-wrap: wrap; gap: 8px; }
+.toc a { text-decoration: none; font-size: 14px; padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--panel); color: var(--ink-2); }
+.toc a:hover { border-color: var(--muted); color: var(--ink); }
+:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+@media (max-width: 820px) { .facts, .grid2 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 560px) { .facts, .grid2 { grid-template-columns: minmax(0, 1fr); } }
+</style>
+
+<div class="wrap">
+  <header style="display:flex;flex-direction:column;gap:14px">
+    <div class="eyebrow">Vestidor Táctico · documentación</div>
+    <h1>Cómo funciona: de los eventos de StatsBomb a un partido simulado</h1>
+    <p class="lede">Descargamos eventos de partidos, los resumimos en una huella por equipo y entrenador, y con esa huella medimos su estilo, lo ubicamos en un mapa y lo hacemos jugar contra otro respetando el reglamento.</p>
+    <div class="facts">
+      <div class="fact"><b>1,799</b><span>partidos de Liga MX con estadísticas por equipo</span></div>
+      <div class="fact"><b>568</b><span>partidos con eventos completos (+68 del Barcelona, Open Data)</span></div>
+      <div class="fact"><b>24</b><span>equipos con su entrenador en la demo</span></div>
+      <div class="fact"><b>1.9 M</b><span>revisiones del árbitro automático, 0 infracciones</span></div>
+    </div>
+    <nav class="toc" aria-label="Contenido">
+      <a href="#datos">Datos</a><a href="#pipeline">Pipeline</a><a href="#framework">Framework</a><a href="#estilo">Estilo del entrenador</a><a href="#motor">Simulación</a><a href="#coreografia">Animación</a><a href="#reglas">Reglamento</a><a href="#validacion">Validación</a><a href="#nuevos">Agregar equipos</a><a href="#limites">Límites</a>
+    </nav>
+  </header>
+
+  <section id="datos">
+    <div class="sec-head"><div class="eyebrow">Fuentes</div><h2>De dónde salen los datos</h2></div>
+    <div class="grid2">
+      <div class="card">
+        <h3>StatsBomb API · Liga MX</h3>
+        <p>Usuario y contraseña del <code>.env</code> con autenticación básica. Cada respuesta se guarda en <code>data/cache/</code> y no se vuelve a pedir. Temporadas 2021/22 a 2026/27; la ventana oficial del reto es Apertura 2021–Clausura 2025.</p>
+        <ul class="clean">
+          <li><code>v6/…/matches</code>: partidos y <b>entrenador de cada equipo</b></li>
+          <li><code>v8/events</code>: eventos con ubicación, posesión, xG</li>
+          <li><code>v4/lineups</code>: apodos y dorsales</li>
+          <li><code>v1/matches/…/team-stats</code>: +150 métricas por equipo</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>StatsBomb Open Data · Barcelona 2009–11</h3>
+        <p>68 partidos de La Liga 2009/10 y 2010/11 desde el repositorio público de StatsBomb. No traen estadísticas agregadas, así que su estilo se calcula desde los eventos y se calibra a la escala de StatsBomb.</p>
+        <p><b>Uso de datos:</b> las bases permiten presentar resultados, no datos. La página solo lleva agregados (conteos y tasas por zona, percentiles, posiciones medias); ningún evento crudo.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="pipeline">
+    <div class="sec-head"><div class="eyebrow">Pipeline</div><h2>Cómo se consumen y transforman</h2></div>
+    <figure>
+      <svg viewBox="0 0 1000 250" role="img" aria-label="Pipeline: API y Open Data, caché, extracción por partido, modelo agregado, motor e interfaz">
+        <defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#8E99AE"/></marker></defs>
+        <g font-family="Barlow, sans-serif" font-size="13" fill="#E9EDF4">
+          <rect x="10" y="40" width="150" height="60" rx="8" fill="#1D2534" stroke="#2A3448"/><text x="85" y="66" text-anchor="middle" font-weight="700">StatsBomb API</text><text x="85" y="84" text-anchor="middle" fill="#B7C0D1">Liga MX</text>
+          <rect x="10" y="130" width="150" height="60" rx="8" fill="#1D2534" stroke="#2A3448"/><text x="85" y="156" text-anchor="middle" font-weight="700">Open Data</text><text x="85" y="174" text-anchor="middle" fill="#B7C0D1">Barcelona</text>
+          <rect x="200" y="85" width="130" height="60" rx="8" fill="#1D2534" stroke="#2A3448"/><text x="265" y="111" text-anchor="middle" font-weight="700">data/cache</text><text x="265" y="129" text-anchor="middle" fill="#B7C0D1">JSON crudo</text>
+          <rect x="370" y="70" width="160" height="90" rx="8" fill="#1D2534" stroke="#C0870E"/><text x="450" y="98" text-anchor="middle" font-weight="700">extract.py</text><text x="450" y="116" text-anchor="middle" fill="#B7C0D1">un resumen</text><text x="450" y="133" text-anchor="middle" fill="#B7C0D1">por partido y equipo</text><text x="450" y="150" text-anchor="middle" fill="#8E99AE" font-size="11.5">~8 s · 510 partidos</text>
+          <rect x="570" y="70" width="170" height="90" rx="8" fill="#1D2534" stroke="#C0870E"/><text x="655" y="98" text-anchor="middle" font-weight="700">build_model.py</text><text x="655" y="116" text-anchor="middle" fill="#B7C0D1">agrega por entrenador,</text><text x="655" y="133" text-anchor="middle" fill="#B7C0D1">estilo, calibración, mapa</text><text x="655" y="150" text-anchor="middle" fill="#8E99AE" font-size="11.5">→ model.json (480 KB)</text>
+          <rect x="780" y="20" width="210" height="60" rx="8" fill="#1D2534" stroke="#3D8FD6"/><text x="885" y="46" text-anchor="middle" font-weight="700">Plan de juego · Mapa</text><text x="885" y="64" text-anchor="middle" fill="#B7C0D1">percentiles y cuadrantes</text>
+          <rect x="780" y="100" width="210" height="60" rx="8" fill="#1D2534" stroke="#3D8FD6"/><text x="885" y="126" text-anchor="middle" font-weight="700">engine.js</text><text x="885" y="144" text-anchor="middle" fill="#B7C0D1">simular + coreografiar</text>
+          <rect x="780" y="180" width="210" height="60" rx="8" fill="#1D2534" stroke="#4FB286"/><text x="885" y="206" text-anchor="middle" font-weight="700">validate · referee</text><text x="885" y="224" text-anchor="middle" fill="#B7C0D1">calibración y reglamento</text>
+        </g>
+        <g stroke="#8E99AE" stroke-width="1.6" fill="none" marker-end="url(#ar)">
+          <path d="M160 70 L198 105"/><path d="M160 160 L198 125"/><path d="M330 115 L368 115"/><path d="M530 115 L568 115"/>
+          <path d="M740 100 L778 52"/><path d="M740 115 L778 130"/><path d="M740 135 L778 205"/>
+        </g>
+      </svg>
+      <figcaption>Dos etapas: la extracción resume cada partido (incremental, solo procesa partidos nuevos) y el modelo agrega por entrenador en ~2 s. El motor es un único archivo que corre en la página y en las pruebas de Node.</figcaption>
+    </figure>
+  </section>
+
+  <section id="framework">
+    <div class="sec-head"><div class="eyebrow">Framework analítico</div><h2>Los objetos de los que sale todo</h2></div>
+    <p>El reto pide definir los objetos antes de analizar. Estas definiciones alimentan por igual las métricas, el mapa y la simulación.</p>
+    <div class="grid2">
+      <figure>
+        <svg viewBox="0 0 360 250" role="img" aria-label="Cancha dividida en 6 por 3 zonas, orientada hacia la portería rival">
+          <rect x="10" y="10" width="340" height="226" rx="4" fill="#1B3627" stroke="rgba(232,244,236,0.5)"/>
+          <g stroke="rgba(232,244,236,0.35)" stroke-dasharray="4 4">
+            <line x1="66.7" y1="10" x2="66.7" y2="236"/><line x1="123.3" y1="10" x2="123.3" y2="236"/><line x1="180" y1="10" x2="180" y2="236"/><line x1="236.7" y1="10" x2="236.7" y2="236"/><line x1="293.3" y1="10" x2="293.3" y2="236"/>
+            <line x1="10" y1="85.3" x2="350" y2="85.3"/><line x1="10" y1="160.7" x2="350" y2="160.7"/>
+          </g>
+          <rect x="300" y="61" width="50" height="124" fill="none" stroke="rgba(232,244,236,0.5)"/>
+          <rect x="350" y="105" width="6" height="36" fill="rgba(255,255,255,0.25)"/>
+          <g font-family="JetBrains Mono, monospace" font-size="12" fill="#E9EDF4" text-anchor="middle">
+            <text x="38" y="52">0</text><text x="38" y="127">1</text><text x="38" y="202">2</text>
+            <text x="321" y="52">15</text><text x="321" y="127" fill="#F2C55C" font-weight="700">16</text><text x="321" y="202">17</text>
+            <text x="208" y="127">10</text>
+          </g>
+          <text x="180" y="248" text-anchor="middle" font-family="Barlow, sans-serif" font-size="12" fill="#8E99AE">ataque →  (120 × 80 yardas, zonas de 20 × 26.7)</text>
+        </svg>
+        <figcaption>18 zonas, siempre en la orientación del equipo que ataca. La 16 es el corazón del área.</figcaption>
+      </figure>
+      <div class="tbl"><table>
+        <thead><tr><th>Concepto</th><th>Definición</th></tr></thead>
+        <tbody>
+          <tr><td>Posesión</td><td>Eventos con el mismo <code>possession</code> de StatsBomb</td></tr>
+          <tr><td>Acción con balón</td><td>Pase, conducción, regate o tiro del equipo en posesión</td></tr>
+          <tr><td>Recuperación</td><td>Posesión de juego abierto que sigue a una del rival</td></tr>
+          <tr><td>Transición (T)</td><td>Primeros 10 s tras recuperar; lo demás es ataque establecido (E)</td></tr>
+          <tr><td>Balón parado peligroso</td><td>Córner, o falta cuya primera acción está a x ≥ 80</td></tr>
+          <tr><td>Desenlace de una acción</td><td>Pase o conducción a otra zona, tiro, córner, falta peligrosa, penal, falta recibida, saque de banda a favor, pérdida en juego, pérdida con balón muerto (banda, meta, falta propia)</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+  </section>
+
+  <section id="estilo">
+    <div class="sec-head"><div class="eyebrow">El estilo de cada entrenador</div><h2>Tres formas de medirlo</h2></div>
+    <p>Primero se aíslan sus partidos: el campo <code>managers</code> de cada partido dice quién dirigió, y una entidad junta solo esos partidos en el periodo elegido (por ejemplo, el tricampeonato de Jardine). Luego se mira con tres lentes.</p>
+    <div class="grid2">
+      <div class="card"><h3>1 · Plan de juego</h3><p>14 métricas de StatsBomb (posesión, verticalidad, ritmo, altura de línea, volumen de presión, PPDA, contrapresión, saque largo, centros, contragolpe, robos altos, xG, solidez, balón parado), promediadas por partido, encogidas hacia la liga con 8 pseudo-partidos y convertidas a percentil contra todos los equipo-temporada. De ahí salen las etiquetas tipo FC.</p></div>
+      <div class="card"><h3>2 · Mapa de estilos</h3><p>Con balón: ritmo de ataque contra posesión. Sin balón: altura de línea contra intensidad de presión. 159 equipo-temporadas como contexto, trayectoria por temporada del entrenador y los 3 estilos más parecidos de la liga.</p></div>
+      <div class="card"><h3>3 · Huella de cadena</h3><p>Para cada zona y fase: a dónde va el balón, cuántas veces se conduce, dónde se tira y con qué xG, dónde se pierde y dónde recupera el rival, cómo cobra córners y faltas y quién los cobra. Es lo que el motor usa para jugar "como él".</p></div>
+      <div class="card"><h3>Lo que aprendimos al agrupar</h3><p>K-means sobre equipo-temporadas da una separación débil (silhouette 0.15 ofensivo, 0.23 defensivo): los estilos de la Liga MX son un continuo. Por eso el producto usa un mapa con ejes y cuadrantes con nombre en lugar de cajas cerradas. El eje de intensidad sin balón explica 55% de la variación.</p></div>
+    </div>
+    <div class="tbl"><table>
+      <thead><tr><th>Ejemplo</th><th>Lo que muestran los datos</th></tr></thead>
+      <tbody>
+        <tr><td>Atlas · Cocca</td><td>PPDA en P94 pero volumen de presión en P19: no presiona, corta con duelos en bloque medio. Por eso PPDA y volumen de presión se muestran separados.</td></tr>
+        <tr><td>América · Jardine</td><td>Posesión P74 con presión baja en 23/24; en el mapa pasa a presionar en 24/25 y 25/26.</td></tr>
+        <tr><td>Barcelona 2009–11</td><td>Posesión P100, presión P97, contrapresión P80, velocidad hacia portería P2: tiki-taka, paciente con balón y asfixiante sin él.</td></tr>
+      </tbody>
+    </table></div>
+    <h3>Equipos sin estadísticas agregadas: calibración</h3>
+    <p>Para el Barcelona cada métrica se recalcula desde eventos y se ajusta con una regresión contra la de StatsBomb en 884 actuaciones de Liga MX. Solo se usan las que replican bien.</p>
+    <div class="tbl"><table>
+      <thead><tr><th>Métrica</th><th>R²</th><th>Métrica</th><th>R²</th></tr></thead>
+      <tbody>
+        <tr><td>Posesión</td><td class="num">1.00</td><td>Centros al área</td><td class="num">0.91</td></tr>
+        <tr><td>Volumen de presión</td><td class="num">1.00</td><td>PPDA</td><td class="num">0.89</td></tr>
+        <tr><td>xG a favor / en contra</td><td class="num">0.99</td><td>Contrapresión</td><td class="num">0.88</td></tr>
+        <tr><td>Tiros al contragolpe</td><td class="num">0.73</td><td>Velocidad hacia portería</td><td class="num">0.62</td></tr>
+        <tr><td>Altura de línea</td><td class="num">0.59</td><td>Balón parado</td><td class="num">0.52</td></tr>
+        <tr><td>Verticalidad · saque largo · robos altos</td><td class="num">&lt; 0.2</td><td colspan="2">No se usan: "s/d"</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <section id="motor">
+    <div class="sec-head"><div class="eyebrow">Simulación</div><h2>Cómo se enfrentan dos estilos</h2></div>
+    <p>Cada acción con balón ocurre en una zona y una fase. El motor sortea su desenlace con las probabilidades de ese equipo en esa zona, ajustadas por la defensa del rival:</p>
+    <div class="formula">logit p = <span class="a">logit p<sub>ataque A</sub></span> + <span class="d">logit p<sub>defensa D</sub></span> − <span class="l">logit p<sub>liga</sub></span></div>
+    <p>Si un equipo tira el doble que la liga en una zona y su rival concede la mitad, el efecto se compensa; si ambos empujan igual, se acumula. Las tasas de cada equipo se mezclan con la liga según su número de partidos (8 pseudo-partidos), así un entrenador con 3 partidos queda cerca del promedio.</p>
+    <div class="grid2">
+      <div class="card"><h3>El reloj</h3><p>Cada pase o conducción consume el tiempo medio por acción del equipo. Cada reanudación consume tiempo muerto: una unidad común de 29.7 s por un peso (banda 0.55, meta 1, falta 0.75, balón parado 1.3, gol 2, penal 2.5, tarjeta 0.6), calibrada para que un partido dure ~95 min de reloj con el número real de acciones.</p></div>
+      <div class="card"><h3>Faltas y tarjetas</h3><p>El infractor se elige entre quienes suelen estar en esa zona. Amarilla y roja con la tasa por falta de su equipo; un amonestado comete menos faltas; doble amarilla es roja. Con un expulsado el equipo pierde fuerza (tiros −0.2 y pérdidas +0.15 en escala logit por jugador de diferencia).</p></div>
+      <div class="card"><h3>Balón parado</h3><p>Córner corto o al área, técnica abierta/cerrada/recta, zona de caída (primer palo, área chica, segundo palo, punto penal, borde), remate y cabezazo, todo con las tasas del equipo. Faltas directas o centradas. Penal desde una falta en el área, con el lanzador real, el lado y la estirada del portero.</p></div>
+      <div class="card"><h3>Simulación rápida</h3><p>El mismo duelo 1,500 veces (≈1 s): ganar/empatar/perder, goles, xG, posesión, duración de las posesiones, tiros al contragolpe, robos altos, córners, faltas y tarjetas. Cada número de partido es una semilla: siempre da el mismo partido.</p></div>
+    </div>
+  </section>
+
+  <section id="coreografia">
+    <div class="sec-head"><div class="eyebrow">Animación</div><h2>Del evento al movimiento de 22 jugadores</h2></div>
+    <ul class="clean">
+      <li><b>Pases a un jugador real</b>: el receptor se elige por quién toca el balón en esa zona en los datos y por cercanía; nunca en fuera de juego.</li>
+      <li><b>Bloque</b>: con balón cada jugador va a su posición media con balón desplazada según la pelota; sin balón, a su posición sin balón según la altura de línea del equipo.</li>
+      <li><b>Presión</b>: el más cercano presiona si la pelota está a su alcance (depende de línea y volumen de presión); los equipos de presión alta mandan un segundo hombre.</li>
+      <li><b>Física</b>: 7.6 yd/s corriendo, 6.2 conduciendo, pase a 21 yd/s. Un equipo que pierde arriba queda desordenado y el contragolpe se ve.</li>
+      <li><b>Reanudaciones</b>: saque de meta con centrales abiertos y rival fuera del área; barrera a 10 yardas; córner con los rematadores del equipo en el área y centro con curva; penal con todos fuera del área y del arco.</li>
+      <li><b>Tarjetas</b>: se ven sobre el jugador; el expulsado sale del campo y su equipo juega con 10.</li>
+    </ul>
+  </section>
+
+  <section id="reglas">
+    <div class="sec-head"><div class="eyebrow">Reglamento</div><h2>Un árbitro automático revisa cada partido</h2></div>
+    <p><code>referee.js</code> simula 240 partidos entre 24 cruces y revisa cada situación relevante: <b>1,916,547 revisiones, <span class="ok">0 infracciones</span></b>.</p>
+    <div class="tbl"><table>
+      <thead><tr><th>Regla</th><th>Revisiones</th></tr></thead>
+      <tbody>
+        <tr><td>Reanudaciones con un pase (sin conducir ni tirar)</td><td class="num">22,451</td></tr>
+        <tr><td>Saque inicial: cada equipo en su campo y rival fuera del círculo</td><td class="num">39,124</td></tr>
+        <tr><td>Saque de meta: balón en el área y rivales fuera</td><td class="num">77,480</td></tr>
+        <tr><td>Tiros libres y córners: rivales a 10 yardas; córner desde la esquina</td><td class="num">98,575</td></tr>
+        <tr><td>Penal: portero en la línea, los demás fuera del área y del arco</td><td class="num">3,022</td></tr>
+        <tr><td>Saque de banda desde la línea</td><td class="num">9,275</td></tr>
+        <tr><td>Nadie recibe en fuera de juego · quien reanuda no se la pasa a sí mismo</td><td class="num">390,314</td></tr>
+        <tr><td>Expulsados no vuelven a jugar ni reciben tarjetas · doble amarilla coherente</td><td class="num">420,778</td></tr>
+        <tr><td>Velocidad humana (≤ 9.5 yd/s)</td><td class="num">491,376</td></tr>
+        <tr><td>Marcador, saque tras gol y del segundo tiempo · portero con las manos solo en su área · balón dentro del campo</td><td class="num">364,152</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <section id="validacion">
+    <div class="sec-head"><div class="eyebrow">Validación</div><h2>¿Se parece a la realidad y responde al estilo?</h2></div>
+    <div class="grid2">
+      <div class="tbl"><table>
+        <thead><tr><th>Por equipo y partido</th><th>Simulado</th><th>Real</th></tr></thead>
+        <tbody>
+          <tr><td>Tiros (sin penales)</td><td class="num">12.5</td><td class="num">13.2</td></tr>
+          <tr><td>Goles</td><td class="num">1.25</td><td class="num">1.33</td></tr>
+          <tr><td>Empates</td><td class="num">28%</td><td class="num">27%</td></tr>
+          <tr><td>Acciones por posesión</td><td class="num">8.0</td><td class="num">8.0</td></tr>
+          <tr><td>Faltas</td><td class="num">13.2</td><td class="num">13.1</td></tr>
+          <tr><td>Amarillas por faltas</td><td class="num">1.51</td><td class="num">1.50</td></tr>
+          <tr><td>Córners</td><td class="num">4.3</td><td class="num">4.9</td></tr>
+          <tr><td>Penales</td><td class="num">0.23</td><td class="num">0.21</td></tr>
+        </tbody>
+      </table></div>
+      <div class="tbl"><table>
+        <thead><tr><th>Contra la liga promedio</th><th>Posesión</th><th>Acc./pos.</th><th>Tiros al contragolpe</th></tr></thead>
+        <tbody>
+          <tr><td>Liga promedio</td><td class="num">50%</td><td class="num">8.0</td><td class="num">18%</td></tr>
+          <tr><td>Barcelona 2009–11</td><td class="num">68%</td><td class="num">13.9</td><td class="num">11%</td></tr>
+          <tr><td>Autobús y contra</td><td class="num">43%</td><td class="num">6.4</td><td class="num">37%</td></tr>
+          <tr><td>América · Jardine</td><td class="num">53%</td><td class="num">9.6</td><td class="num">14%</td></tr>
+          <tr><td>Atlas · Cocca</td><td class="num">49%</td><td class="num">6.6</td><td class="num">19%</td></tr>
+          <tr><td>Toluca · Mohamed</td><td class="num">55%</td><td class="num">9.2</td><td class="num">19%</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+    <p>Cada equipo de Liga MX reproduce sus tiros, xG y posesión reales (por ejemplo Toluca: 55% de posesión simulada contra 55% real). Tablas completas en <code>pipeline/validation_table.md</code>.</p>
+  </section>
+
+  <section id="nuevos">
+    <div class="sec-head"><div class="eyebrow">Replicarlo</div><h2>Cómo agregar equipos y entrenadores nuevos</h2></div>
+    <h3>Un entrenador de Liga MX que ya aparece en los datos</h3>
+    <ol class="steps">
+      <li><div>Agrega una línea a <code>SPECIAL</code> en <code>pipeline/entities.py</code>: id, etiqueta, nombre del equipo como en StatsBomb, texto del entrenador en <code>managers</code>, desde, hasta y grupo.<pre>('pac_almada', 'Pachuca · Almada', 'Pachuca', 'Almada', '2022-01-01', '2025-06-30', 'Histórico'),</pre></div></li>
+      <li><div>Descarga lo que falte (solo baja lo nuevo).<pre>cd pipeline
+python3 -I download.py && python3 -I download_lineups.py</pre></div></li>
+      <li><div>Extrae y construye el modelo (~10 s).<pre>python3 -I extract.py && python3 -I build_model.py</pre></div></li>
+      <li><div>Valida contra sus datos reales y pasa el árbitro.<pre>python3 -I targets.py && node validate.js 600 pac && node referee.js 3</pre></div></li>
+      <li><div>Arranca el servidor (<code>uvicorn app.main:app --reload</code>): el equipo aparece en el selector, en el mapa y en la simulación.</div></li>
+    </ol>
+    <div class="grid2">
+      <div class="card"><h3>Entrenadores actuales</h3><p>Se detectan solos: el último DT de cada club en la temporada en curso. Si un club cambia de entrenador, basta con descargar y reconstruir.</p></div>
+      <div class="card"><h3>Recién llegado con pocos partidos</h3><p>El encogimiento lo acerca a la liga y lo marca "Muestra pequeña". Para darle forma desde el inicio, crea también la entidad de su club anterior (Almada en Pachuca tiene 138 partidos) o usa esa etapa como previo en lugar de la liga.</p></div>
+      <div class="card"><h3>Otra competición</h3><p>Si está en la API, agrega sus temporadas y entidades. Si viene de Open Data, copia <code>download_opendata.py</code> y crea la entidad como la del Barcelona; su estilo se calcula con las métricas calibradas. Cruzarla con Liga MX es hipotético.</p></div>
+      <div class="card"><h3>Un estilo configurado</h3><p>Copia el diccionario <code>ATLETI</code> de <code>build_model.py</code> y cambia multiplicadores por fase y zona, su once y sus percentiles. Revisa con <code>validate.js</code> que la firma salga como esperas y que no supere en fuerza a los equipos reales sin quererlo.</p></div>
+    </div>
+  </section>
+
+  <section id="limites">
+    <div class="sec-head"><div class="eyebrow">Límites</div><h2>Lo que hay que tener presente</h2></div>
+    <ul class="clean">
+      <li>No hay tracking: los jugadores sin balón se reconstruyen con posiciones medias y reglas.</li>
+      <li>El 360 ve ~13 de 22 jugadores por evento; se exploró y quedó fuera.</li>
+      <li>La cadena recuerda zona y fase, no la jugada completa.</li>
+      <li>El modelo mezcla estilo y calidad del plantel: la simulación explica cómo chocan dos estilos, no predice resultados.</li>
+      <li>Barcelona se mide contra La Liga y el arquetipo está configurado: sirven para validar, no forman parte del análisis de Liga MX.</li>
+      <li>Los córners simulados quedan un poco por debajo de los reales (4.3 contra 4.9).</li>
+    </ul>
+    <p>Documento técnico completo en el repositorio: <code>docs/DOCUMENTACION.md</code>. Demo: <a href="https://claude.ai/artifact/5BFGG5xVxLiNJAoHytdXiT">Vestidor Táctico</a>.</p>
+  </section>
+</div>

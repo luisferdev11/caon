@@ -1,0 +1,233 @@
+{
+ "league": {
+  "goals": 1.335,
+  "np_xg": 1.13,
+  "np_xg_conceded": 1.13,
+  "possession": 0.5,
+  "np_shots": 13.226,
+  "np_shots_conceded": 13.226,
+  "sp_xg": 0.26,
+  "goals_conceded": 1.376,
+  "draw_rate": 0.273
+ },
+ "ame_jardine": {
+  "goals": 1.757,
+  "np_xg": 1.478,
+  "np_xg_conceded": 0.862,
+  "possession": 0.535,
+  "np_shots": 13.129,
+  "np_shots_conceded": 11.714,
+  "sp_xg": 0.277,
+  "goals_conceded": 0.886
+ },
+ "ame_almada": {
+  "goals": 2.2,
+  "np_xg": 1.471,
+  "np_xg_conceded": 1.203,
+  "possession": 0.557,
+  "np_shots": 19.2,
+  "np_shots_conceded": 12.1,
+  "sp_xg": 0.443,
+  "goals_conceded": 1.1
+ },
+ "gdl_paunovic": {
+  "goals": 1.286,
+  "np_xg": 0.974,
+  "np_xg_conceded": 1.024,
+  "possession": 0.482,
+  "np_shots": 12.643,
+  "np_shots_conceded": 14.19,
+  "sp_xg": 0.198,
+  "goals_conceded": 1.167
+ },
+ "gdl_gago": {
+  "goals": 1.219,
+  "np_xg": 1.08,
+  "np_xg_conceded": 0.903,
+  "possession": 0.526,
+  "np_shots": 12.969,
+  "np_shots_conceded": 11.438,
+  "sp_xg": 0.201,
+  "goals_conceded": 0.906
+ },
+ "gdl_milito": {
+  "goals": 1.686,
+  "np_xg": 1.545,
+  "np_xg_conceded": 0.852,
+  "possession": 0.568,
+  "np_shots": 15.647,
+  "np_shots_conceded": 10.412,
+  "sp_xg": 0.344,
+  "goals_conceded": 1.176
+ },
+ "atl_cocca": {
+  "goals": 1.196,
+  "np_xg": 0.9,
+  "np_xg_conceded": 0.903,
+  "possession": 0.488,
+  "np_shots": 11.935,
+  "np_shots_conceded": 11.87,
+  "sp_xg": 0.251,
+  "goals_conceded": 0.826
+ },
+ "atlante_herrera": {
+  "goals": 1.091,
+  "np_xg": 1.134,
+  "np_xg_conceded": 1.144,
+  "possession": 0.436,
+  "np_shots": 14.545,
+  "np_shots_conceded": 14.636,
+  "sp_xg": 0.182,
+  "goals_conceded": 1.545
+ },
+ "atlas_crespo": {
+  "goals": 1.3,
+  "np_xg": 1.138,
+  "np_xg_conceded": 1.278,
+  "possession": 0.517,
+  "np_shots": 12.5,
+  "np_shots_conceded": 13,
+  "sp_xg": 0.395,
+  "goals_conceded": 1.6
+ },
+ "sanluis_mejia": {
+  "goals": 1.273,
+  "np_xg": 1.137,
+  "np_xg_conceded": 1.259,
+  "possession": 0.525,
+  "np_shots": 12.455,
+  "np_shots_conceded": 15.909,
+  "sp_xg": 0.202,
+  "goals_conceded": 1.818
+ },
+ "cruzazul_huiqui": {
+  "goals": 1.944,
+  "np_xg": 1.428,
+  "np_xg_conceded": 1.078,
+  "possession": 0.532,
+  "np_shots": 17.944,
+  "np_shots_conceded": 12.889,
+  "sp_xg": 0.201,
+  "goals_conceded": 1.556
+ },
+ "juarez_lema": {
+  "goals": 1,
+  "np_xg": 1.055,
+  "np_xg_conceded": 1.412,
+  "possession": 0.486,
+  "np_shots": 10,
+  "np_shots_conceded": 14,
+  "sp_xg": 0.291,
+  "goals_conceded": 1.4
+ },
+ "leon_gandolfi": {
+  "goals": 1.471,
+  "np_xg": 1.204,
+  "np_xg_conceded": 1.02,
+  "possession": 0.531,
+  "np_shots": 14.647,
+  "np_shots_conceded": 13.471,
+  "sp_xg": 0.176,
+  "goals_conceded": 1.235
+ },
+ "monterrey_almeyda": {
+  "goals": 1.7,
+  "np_xg": 1.347,
+  "np_xg_conceded": 1.361,
+  "possession": 0.551,
+  "np_shots": 16.7,
+  "np_shots_conceded": 10.7,
+  "sp_xg": 0.469,
+  "goals_conceded": 1.5
+ },
+ "necaxa_reynoso": {
+  "goals": 2,
+  "np_xg": 1.583,
+  "np_xg_conceded": 1.735,
+  "possession": 0.45,
+  "np_shots": 13,
+  "np_shots_conceded": 16,
+  "sp_xg": 0.161,
+  "goals_conceded": 3.333
+ },
+ "pachuca_mora": {
+  "goals": 1.636,
+  "np_xg": 1.364,
+  "np_xg_conceded": 1.368,
+  "possession": 0.483,
+  "np_shots": 15.727,
+  "np_shots_conceded": 14.636,
+  "sp_xg": 0.338,
+  "goals_conceded": 1.273
+ },
+ "puebla_espinoza": {
+  "goals": 1.091,
+  "np_xg": 0.803,
+  "np_xg_conceded": 1.22,
+  "possession": 0.431,
+  "np_shots": 13.182,
+  "np_shots_conceded": 15.091,
+  "sp_xg": 0.293,
+  "goals_conceded": 1.182
+ },
+ "pumas_esolari": {
+  "goals": 1.545,
+  "np_xg": 0.973,
+  "np_xg_conceded": 1.171,
+  "possession": 0.468,
+  "np_shots": 12.273,
+  "np_shots_conceded": 13.818,
+  "sp_xg": 0.243,
+  "goals_conceded": 1.727
+ },
+ "queretaro_gonzalez": {
+  "goals": 1.148,
+  "np_xg": 1.279,
+  "np_xg_conceded": 1.234,
+  "possession": 0.387,
+  "np_shots": 13.481,
+  "np_shots_conceded": 15.741,
+  "sp_xg": 0.272,
+  "goals_conceded": 1.074
+ },
+ "santos_paiva": {
+  "goals": 1,
+  "np_xg": 1.397,
+  "np_xg_conceded": 1.307,
+  "possession": 0.498,
+  "np_shots": 14.545,
+  "np_shots_conceded": 16.091,
+  "sp_xg": 0.239,
+  "goals_conceded": 1.455
+ },
+ "tigres_vucetich": {
+  "goals": 1,
+  "np_xg": 1.205,
+  "np_xg_conceded": 1.168,
+  "possession": 0.501,
+  "np_shots": 14.714,
+  "np_shots_conceded": 14.571,
+  "sp_xg": 0.346,
+  "goals_conceded": 0.714
+ },
+ "tijuana_abreu": {
+  "goals": 1.383,
+  "np_xg": 0.977,
+  "np_xg_conceded": 1.238,
+  "possession": 0.463,
+  "np_shots": 11.511,
+  "np_shots_conceded": 13.383,
+  "sp_xg": 0.25,
+  "goals_conceded": 1.277
+ },
+ "toluca_mohamed": {
+  "goals": 1.895,
+  "np_xg": 1.6,
+  "np_xg_conceded": 0.904,
+  "possession": 0.554,
+  "np_shots": 16.355,
+  "np_shots_conceded": 11.105,
+  "sp_xg": 0.391,
+  "goals_conceded": 1.118
+ }
+}

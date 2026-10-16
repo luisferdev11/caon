@@ -1,0 +1,26 @@
+Árbitro automático · 24 cruces × 10 partidos = 240 partidos
+
+OK  Las reanudaciones (saque inicial, de meta, de banda, tiro libre) se juegan con un pase   22451 revisiones  0 faltas
+OK  Saque inicial: cada equipo en su campo                                                   26064 revisiones  0 faltas
+OK  Saque inicial: el rival fuera del círculo central                                        13060 revisiones  0 faltas
+OK  Saque de meta: el balón se patea desde dentro del área                                    6525 revisiones  0 faltas
+OK  Saque de meta: los rivales fuera del área                                                70955 revisiones  0 faltas
+OK  Tiro libre: los rivales a 10 yardas del balón                                            72301 revisiones  0 faltas
+OK  Córner: el balón en la esquina                                                            2219 revisiones  0 faltas
+OK  Córner: los rivales a 10 yardas                                                          24055 revisiones  0 faltas
+OK  Saque de banda: el balón sale desde la línea                                              9275 revisiones  0 faltas
+OK  Un expulsado no vuelve a tocar el balón                                                 418096 revisiones  0 faltas
+OK  Nadie recibe un pase en fuera de juego                                                  195157 revisiones  0 faltas
+OK  Quien reanuda no se la pasa a sí mismo                                                  195157 revisiones  0 faltas
+OK  Ningún jugador corre más rápido que un humano (≤ 9.5 yd/s)                              491376 revisiones  0 faltas
+OK  La crónica y el marcador coinciden                                                         240 revisiones  0 faltas
+OK  Tras un gol saca el equipo que lo recibió                                                  718 revisiones  0 faltas
+OK  El segundo tiempo lo saca el equipo que no sacó el primero                                 240 revisiones  0 faltas
+OK  El portero solo usa las manos dentro de su área                                           2704 revisiones  0 faltas
+OK  Durante pases y conducciones el balón está dentro del campo                             360250 revisiones  0 faltas
+OK  Penal: el portero sobre la línea de gol                                                    146 revisiones  0 faltas
+OK  Penal: los demás fuera del área y del arco                                                2876 revisiones  0 faltas
+OK  Nadie recibe tarjeta después de ser expulsado                                             1389 revisiones  0 faltas
+OK  La segunda amarilla llega solo tras una primera                                           1293 revisiones  0 faltas
+
+Total: 1916547 revisiones, 0 infracciones

@@ -1,0 +1,6 @@
+fastapi>=0.110
+uvicorn>=0.29
+requests>=2.31
+numpy>=1.26
+pandas>=1.5          # solo para research/
+scikit-learn>=1.2    # solo para research/clusters.py
