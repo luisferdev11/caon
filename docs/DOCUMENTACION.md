@@ -66,7 +66,7 @@ Las bases dicen que los datos solo se usan para la competencia y se pueden prese
 ## 3. Entidades: equipo + entrenador + periodo
 
 `entities.py` define cada entidad como (equipo StatsBomb, texto del entrenador, desde, hasta, grupo):
-- **Especiales** (lista `SPECIAL`): América de Jardine (tricampeonato, jul-2023→dic-2024), América de Almada, Chivas de Paunović, Gago y Milito, Atlas de Cocca (bicampeonato, jul-2021→jun-2022).
+- **Especiales** (lista `SPECIAL`): América de Jardine (tricampeonato, Apertura 2023→Apertura 2025), América de Almada, Chivas de Paunović, Gago y Milito, Atlas de Cocca (bicampeonato, jul-2021→jun-2022).
 - **Entrenador actual de cada equipo**: el último entrenador que aparece en la temporada 2026/27; su tramo continuo hacia atrás (hasta que aparece otro DT) define el periodo.
 - Partidos de una entidad = partidos del equipo cuyo campo `managers` contiene el entrenador dentro del periodo.
 - Validación: Barcelona 2009–11 (Open Data) y el arquetipo "Autobús y contra" (configurado).

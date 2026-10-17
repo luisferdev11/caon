@@ -188,15 +188,57 @@ canvas { display: block; width: 100%; max-width: 100%; border-radius: 8px; }
 .method b { color: var(--ink); }
 .status { color: var(--muted); font-size: 14px; }
 
+/* jugadas insignia por entrenador */
+.dt-pick { display: flex; flex-direction: column; gap: 6px; min-width: min(100%, 340px); }
+.dt-pick label { font-family: var(--font-display); font-size: 13px; letter-spacing: 2px; text-transform: uppercase; font-weight: 600; color: var(--ink-2); }
+.dt-pick select.team { border-left: 4px solid var(--home-ink); }
+.dt-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; background: linear-gradient(90deg, #232C3D, rgba(29, 37, 52, 0.35)); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; }
+.dt-head h3 { font-size: 24px; }
+.dt-head .sub { color: var(--ink-2); font-size: 14px; margin-top: 2px; }
+.dt-head .chips { margin-top: 6px; }
+.dt-head .acts { display: flex; gap: 8px; flex-wrap: wrap; }
+.dt { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 18px; }
+.dt-col { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.dt-col > h3 { font-size: 18px; color: var(--ink-2); }
+.dt-col .hint { font-size: 12.5px; color: var(--muted); margin: -4px 0 0; }
+.plays { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; counter-reset: play; }
+.play { position: relative; background: var(--panel-2); border: 1px solid transparent; border-radius: 10px; padding: 10px 12px 10px 50px; display: flex; flex-direction: column; gap: 6px; animation: playIn 380ms ease both; transition: border-color 160ms ease, transform 160ms ease; }
+.play:hover { border-color: var(--line); transform: translateY(-1px); }
+.play::before { counter-increment: play; content: counter(play); position: absolute; left: 12px; top: 10px; width: 26px; height: 26px; border-radius: 8px; display: grid; place-items: center; font-family: var(--font-display); font-weight: 800; font-size: 16px; background: #232C3D; color: var(--ink-2); }
+.play.hot::before { background: var(--home); color: #1A1204; }
+.play .t { display: flex; justify-content: space-between; gap: 8px; align-items: center; flex-wrap: wrap; }
+.play .t b { font-size: 15.5px; }
+.play .t small { display: block; font-size: 13px; color: var(--ink-2); font-weight: 500; }
+.play .meter { height: 6px; border-radius: 3px; background: #232C3D; overflow: hidden; }
+.play .meter i { display: block; height: 100%; width: 0; border-radius: 3px; background: linear-gradient(90deg, var(--away), var(--away-ink)); transition: width 700ms cubic-bezier(0.2, 0.8, 0.2, 1); }
+.play.hot .meter i { background: linear-gradient(90deg, var(--home), var(--home-ink)); }
+.play .stats { display: flex; gap: 6px; flex-wrap: wrap; font-size: 12.5px; color: var(--ink-2); }
+.play .stats span { padding: 1px 7px; border-radius: 6px; background: #232C3D; }
+.play .stats .up { color: var(--home-ink); }
+.play .stats .down { color: var(--muted); }
+.badge { font-family: var(--font-display); font-size: 12px; letter-spacing: 1.2px; text-transform: uppercase; padding: 2px 8px; border-radius: 999px; background: color-mix(in srgb, var(--home) 22%, transparent); color: var(--home-ink); border: 1px solid color-mix(in srgb, var(--home) 55%, transparent); white-space: nowrap; }
+@keyframes playIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.takers { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.taker { background: var(--panel-2); border-radius: 10px; padding: 10px; display: flex; flex-direction: column; gap: 4px; align-items: flex-start; min-width: 0; animation: playIn 380ms ease both; }
+.taker svg { width: 22px; height: 22px; color: var(--home-ink); }
+.taker .k { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+.taker .p { font-weight: 600; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
+.taker .p b { display: inline-grid; place-items: center; min-width: 22px; height: 22px; padding: 0 4px; border-radius: 11px; background: var(--home); color: #1A1204; font-size: 12px; margin-right: 4px; }
+.aerial { font-size: 13.5px; color: var(--ink-2); background: var(--panel-2); border-radius: 10px; padding: 10px 12px; }
+.aerial b { color: var(--ink); }
+.sp-kv { background: var(--panel-2); border-radius: 10px; padding: 10px 12px; }
+.sp-kv .muted { color: var(--muted); font-weight: 500; }
+.dt-empty { color: var(--muted); font-size: 14px; background: var(--panel-2); border-radius: 10px; padding: 12px; }
+
 @media (max-width: 960px) {
-  .plan, .match, .quick, .method, .maps, .mapread { grid-template-columns: minmax(0, 1fr); }
+  .plan, .match, .quick, .method, .maps, .mapread, .dt { grid-template-columns: minmax(0, 1fr); }
 }
 @media (max-width: 620px) {
   .matchup { grid-template-columns: minmax(0, 1fr); }
   .side.away { text-align: left; align-items: stretch; }
   .side.away .chips { justify-content: flex-start; }
   .vs { flex-direction: row; padding-top: 0; justify-content: center; }
-  .idcards, .heats, .keys { grid-template-columns: minmax(0, 1fr); }
+  .idcards, .heats, .keys, .takers { grid-template-columns: minmax(0, 1fr); }
   .scoreboard .sc { font-size: 30px; }
   .scoreboard .n { font-size: 16px; }
 }
@@ -260,6 +302,32 @@ canvas { display: block; width: 100%; max-width: 100%; border-radius: 8px; }
         </div>
         <canvas id="tcanvas" width="600" height="400" role="img" aria-label="Posición media de cada puesto del once tipo"></canvas>
         <p class="note" id="tnote"></p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="h-dt">
+    <div class="section-head">
+      <div>
+        <div class="eyebrow">Jugadas insignia</div>
+        <h2 id="h-dt">Lo que más repite cada entrenador</h2>
+        <p>Posesiones de juego abierto agrupadas por cómo empiezan, por dónde entran y cómo se definen, comparadas con lo que hace la Liga MX en promedio. Marcamos como insignia las que el equipo usa claramente más que la liga.</p>
+      </div>
+      <div class="dt-pick">
+        <label for="selDT">Entrenador</label>
+        <select id="selDT" class="team"></select>
+      </div>
+    </div>
+    <div class="dt-head" id="dtHead"></div>
+    <div class="dt">
+      <div class="dt-col">
+        <h3>Juego abierto</h3>
+        <p class="hint">Barra = parte de sus posesiones. «×1.4» = la usa 1.4 veces más que la liga.</p>
+        <ol class="plays" id="dtPlays"></ol>
+      </div>
+      <div class="dt-col">
+        <h3>Balón parado</h3>
+        <div id="dtSP" style="display: flex; flex-direction: column; gap: 10px"></div>
       </div>
     </div>
   </section>
@@ -474,6 +542,99 @@ canvas { display: block; width: 100%; max-width: 100%; border-radius: 8px; }
         <span class="v a num ${has(b) ? '' : 'na'}">${has(b) ? 'P' + b : 's/d'}</span></div>`;
     }).join('');
     drawTactical();
+  }
+
+  /* ---------- jugadas insignia por entrenador ---------- */
+  const PLAY_INICIO = { robo_alto: 'Robo alto', robo_bajo: 'Recuperación en campo propio', salida_portero: 'Salida desde el portero',
+    saque_banda: 'Saque de banda', tiro_libre: 'Tiro libre jugado', continuidad: 'Contragolpe', otro: 'Otro inicio' };
+  const PLAY_LANE = { centro: 'por el centro', izquierda: 'por la izquierda', derecha: 'por la derecha' };
+  const PLAY_DEF = { centro: 'termina en centro', pase_profundo: 'termina en pase en profundidad', combinacion: 'termina en combinación',
+    conduccion: 'termina en conducción', individual: 'jugada individual' };
+  const CORNER_TECH = ['Cerrado', 'Abierto', 'Recto'];
+  const CORNER_ZONE = ['En corto', 'Primer palo', 'Centro del área chica', 'Segundo palo', 'Punto penal', 'Fuera del área'];
+  const PEN_SIDE = ['Izquierda', 'Centro', 'Derecha'];
+  const ICON = {
+    corner: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 21V3l9 4-9 4"/><path d="M5 21h14"/></svg>',
+    fk: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="6" cy="18" r="3"/><path d="M9 16c4-6 8-9 12-10"/><path d="M14 4v6M17 4v6"/></svg>',
+    pen: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 6h18v10H3z"/><circle cx="12" cy="20" r="2"/></svg>'
+  };
+  const sumv = (a) => (a || []).reduce((s, v) => s + v, 0);
+
+  function signaturePlays(e, max) {
+    const po = (e.att && e.att.plays_open) || {}, lo = (MODEL.league && MODEL.league.plays_open) || {};
+    const tot = sumv(Object.values(po).map((v) => v[0])), ltot = sumv(Object.values(lo).map((v) => v[0]));
+    if (!tot) return [];
+    const m = Math.max((e.att && e.att.matches) || e.n || 1, 1);
+    return Object.entries(po).filter(([, v]) => v[0] > 0).map(([k, v]) => {
+      const share = v[0] / tot, l = lo[k], lshare = l && ltot ? l[0] / ltot : 0;
+      return { k, n: v[0], pm: v[0] / m, share, lift: lshare ? share / lshare : null, xg10: 10 * v[1] / v[0], goals: v[2] };
+    }).sort((a, b) => b.n * Math.sqrt(b.lift || 1) - a.n * Math.sqrt(a.lift || 1)).slice(0, max);
+  }
+
+  function setPieceHTML(e) {
+    const r = e.roles || {}, sh = e.shape || [], a = e.att || {};
+    const m = Math.max(a.matches || e.n || 1, 1);
+    const who = (i) => (i != null && sh[i] ? `<b class="num">${sh[i].num ?? '?'}</b>${sh[i].name}` : '—');
+    const pct = (x, y) => (y && x != null ? Math.round(100 * x / y) + '%' : '—');
+    const top = (arr, names) => {
+      const t = sumv(arr); if (!t) return '—';
+      const i = arr.indexOf(Math.max(...arr));
+      return `${names[i]} <span class="muted">(${Math.round(100 * arr[i] / t)}%)</span>`;
+    };
+    const takers = [['corner', 'Córners', r.corner], ['fk', 'Faltas', r.fk], ['pen', 'Penales', r.pen]]
+      .map(([ic, k, i], j) => `<div class="taker" style="animation-delay:${j * 60}ms">${ICON[ic]}<span class="k">${k}</span><span class="p" title="${i != null && sh[i] ? sh[i].name : ''}">${who(i)}</span></div>`).join('');
+    const aer = (r.aerial || []).filter((i) => sh[i]).map((i) => `<b>${sh[i].num ?? ''}</b> ${sh[i].name}`).join(' · ');
+    const rows = [
+      ['Córners por partido', a.corners != null ? fmt1(a.corners / m) : '—'],
+      ['Córner en corto', pct(a.corners_short, a.corners)],
+      ['Técnica más usada', top(a.corner_tech, CORNER_TECH)],
+      ['Zona de caída favorita', top(a.corner_target, CORNER_ZONE)],
+      ['Córners que acaban en tiro', pct(a.corner_shots, a.corners)],
+      ['Remates de cabeza', pct(a.corner_headers, a.corner_shots)],
+      ['Faltas a portería directa', pct(a.fk_direct, a.fk)],
+      ['Lado del penal (vista del lanzador)', top(a.pen_place, PEN_SIDE)],
+      ['Penales convertidos', a.pens ? `${a.pens_scored ?? 0} de ${a.pens}` : '—']
+    ];
+    return `<div class="takers">${takers}</div>
+      ${aer ? `<div class="aerial">Rematadores a balón parado: ${aer}</div>` : ''}
+      <dl class="kv sp-kv">${rows.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join('')}</dl>`;
+  }
+
+  function renderDT() {
+    const e = MODEL.entities.find((x) => x.id === $('selDT').value);
+    if (!e) return;
+    const coach = e.coach || (e.label.includes('(') ? e.label.split('(')[1].replace(')', '') : e.label);
+    $('dtHead').innerHTML = `<div>
+        <h3>${coach}</h3>
+        <div class="sub">${e.label}</div>
+        <div class="chips">${chips(e)}</div>
+      </div>
+      <div class="acts">
+        <button class="btn sm" type="button" id="dtToA">Usar como local</button>
+        <button class="btn sm" type="button" id="dtToB">Usar como visitante</button>
+      </div>`;
+    $('dtToA').onclick = () => { $('selA').value = e.id; choose(); };
+    $('dtToB').onclick = () => { $('selB').value = e.id; choose(); };
+
+    const plays = signaturePlays(e, 6);
+    if (!plays.length) {
+      $('dtPlays').innerHTML = `<li class="dt-empty">${e.kind === 'synthetic' ? 'Este arquetipo está configurado a mano y no tiene posesiones reales que clasificar.' : 'Sin datos de jugadas para este entrenador. Vuelve a correr el pipeline (extract y build) para generarlos.'}</li>`;
+    } else {
+      const maxShare = Math.max(...plays.map((p) => p.share));
+      $('dtPlays').innerHTML = plays.map((p, i) => {
+        const [ini, lane, def] = p.k.split('|');
+        const hot = p.lift != null && p.lift >= 1.25 && p.share >= 0.02;
+        const liftTxt = p.lift == null ? '' : `<span class="${p.lift >= 1.1 ? 'up' : p.lift <= 0.9 ? 'down' : ''}">×${fmt2(p.lift)} vs liga</span>`;
+        return `<li class="play${hot ? ' hot' : ''}" style="animation-delay:${i * 60}ms">
+          <div class="t"><div><b>${PLAY_INICIO[ini] || ini} ${PLAY_LANE[lane] || lane}</b><small>${PLAY_DEF[def] || def}</small></div>${hot ? '<span class="badge">Insignia</span>' : ''}</div>
+          <div class="meter"><i data-w="${Math.round(100 * p.share / maxShare)}"></i></div>
+          <div class="stats num"><span>${pctf(p.share)} de sus posesiones</span><span>${fmt1(p.pm)} por partido</span>${liftTxt}<span>${fmt2(p.xg10)} xG cada 10</span><span>${p.goals} goles</span></div>
+        </li>`;
+      }).join('');
+      // anima las barras después de pintar
+      requestAnimationFrame(() => document.querySelectorAll('#dtPlays .meter i').forEach((b) => { b.style.width = b.dataset.w + '%'; }));
+    }
+    $('dtSP').innerHTML = setPieceHTML(e);
   }
 
   /* ---------- dibujo de cancha (compartido) ---------- */
@@ -1006,6 +1167,7 @@ canvas { display: block; width: 100%; max-width: 100%; border-radius: 8px; }
     renderPlan(); renderMaps(); newMatch(); runQuick();
   }
   $('selA').onchange = choose; $('selB').onchange = choose;
+  $('selDT').onchange = renderDT;
   $('swap').onclick = () => { const a = $('selA').value; $('selA').value = $('selB').value; $('selB').value = a; choose(); };
   let rz; window.addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => { drawTactical(); if (!playing) renderFrame(); }, 120); });
 
@@ -1013,8 +1175,9 @@ canvas { display: block; width: 100%; max-width: 100%; border-radius: 8px; }
   setPlayIcon();
   fetch('/api/model').then((r) => r.json()).then((m) => {
     MODEL = m;
-    fillSelect($('selA'), 'ame_jardine'); fillSelect($('selB'), 'atl_cocca');
+    fillSelect($('selA'), 'ame_jardine'); fillSelect($('selB'), 'atl_cocca'); fillSelect($('selDT'), 'ame_jardine');
     choose();
+    renderDT();
     window.__vt = { getT: () => gameT, setT: (t) => { gameT = t; renderFrame(); }, sim: () => sim, ch: () => ch, pick: (a, b) => { $('selA').value = a; $('selB').value = b; choose(); }, seed: (s) => { seed = s; newMatch(); } };
   }).catch((err) => { $('qstatus').textContent = 'No se pudo cargar el modelo. Arranca el servidor con: uvicorn app.main:app --reload'; console.error(err); });
 })();
