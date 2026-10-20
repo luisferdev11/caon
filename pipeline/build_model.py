@@ -13,6 +13,7 @@ Tipos de equipo: 'real' (Liga MX, API StatsBomb), 'opendata' (Barcelona 2009-11,
 import sys, json, math, pathlib, collections, unicodedata
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 from entities import *
+from dangerous import dangerous_for_entity
 import numpy as np
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
@@ -310,6 +311,7 @@ def signature_plays(team_acc, league_acc, n_matches):
 # ---------------------------------------------------------------- main
 def main():
     ents, ms = build_entities()
+    match_by_id = {m['match_id']: m for m in ms}
     LEAGUE = Acc()
     mx_ids = sorted({x['mid'] for e in ents for x in e['matches']})
     EXT = {mid: load('mx', mid) for mid in mx_ids}
@@ -447,7 +449,8 @@ def main():
             dates = [x['date'] for x in e['matches']]
             out_ents.append(dict(id=ascii_id(did), label=dlabel, team=e['team'], coach=coach, group=e['group'], kind='real',
                                  d0=min(dates), d1=max(dates), n=len(rs), official=max(dates) <= '2025-06-30', formation=form,
-                                 style=s, raw=raw, shape=shape, actors=act, roles=roles, att=att.to(True), dfn=dfn.to(False)))
+                                 style=s, raw=raw, shape=shape, actors=act, roles=roles, att=att.to(True), dfn=dfn.to(False),
+                                 dangerous_plays=dangerous_for_entity(e, match_by_id)))
 
         # Barcelona 2009-11 (StatsBomb Open Data)
         od_ids = sorted(int(p.stem.split('_')[1]) for p in EX.glob('od_*.json'))
@@ -484,7 +487,7 @@ def main():
     model = dict(map=model_map, meta=dict(nx=NX, ny=NY, k_matches=K_MATCHES, built='2026-10-15', t_window=10,
                            style_labels={k: lab for k, _, _, lab in STY},
                            calibration={c: round(CAL[c][2], 2) for c in CAL},
-                           note='Parámetros agregados derivados de datos de eventos Hudl StatsBomb. Sin eventos crudos.'),
+                           note='Parámetros agregados y secuencias peligrosas compactas derivadas de eventos Hudl StatsBomb. No se exponen eventos crudos completos.'),
                  league=LEAGUE.to(True), entities=out_ents)
     json.dump(model, open(OUT / 'model.json', 'w', encoding='utf-8'), ensure_ascii=False, separators=(',', ':'))
     print('\nwrote', OUT / 'model.json', (OUT / 'model.json').stat().st_size // 1024, 'KB')

@@ -1,0 +1,680 @@
+DOCUMENTACION TECNICA COMPLETA
+Proyecto: Caon - Vestidor Tactico
+Fecha de inspeccion: 2026-10-18
+Estado de evidencia: VERIFIED significa comprobado en codigo o artefacto local; INFERRED significa deducido de implementacion; UNVERIFIED significa mencionado pero no ejecutado en esta inspeccion; NOT_FOUND significa que no fue encontrado en el alcance revisado; NOT_ACCESSIBLE significa que no se pudo inspeccionar.
+
+================================================================================
+SECCION 1. IDENTIFICACION Y DESCRIPCION DEL PROYECTO
+================================================================================
+
+Caon es una aplicacion web para explorar estilos de juego de equipos-entrenador
+de Liga MX y simular partidos jugada a jugada. Usa agregados derivados de
+eventos Hudl StatsBomb, no eventos crudos en la aplicacion publicada.
+
+Funcionalidades verificadas:
+1. Plan de juego: percentiles de catorce metricas y etiquetas tipo FC.
+2. Mapa de estilos: coordenadas con y sin balon, temporadas, trayectorias y
+   equipos parecidos.
+3. Simulacion completa: dos equipos, posesiones, pases, conducciones, tiros,
+   goles, faltas, tarjetas, corners, tiros libres, penales y expulsiones.
+4. Laboratorio tactico: la interfaz permite describir/reproducir jugadas; la
+   implementacion visual esta principalmente en frontend/index.html.
+5. Simulacion rapida: agregacion de multiples simulaciones mediante
+   engine.simulateMany.
+
+Actores observados: usuario del navegador, servidor FastAPI, pipeline de
+construccion y servicios StatsBomb. No se encontro autenticacion de usuario ni
+roles de aplicacion.
+
+Entradas principales: solicitudes HTTP, seleccion de entidades en la interfaz,
+modelo JSON local y, para reconstruccion, respuestas de StatsBomb y archivos
+Open Data. Salidas: HTML/JS, respuestas JSON, logs de pipeline, model.json,
+reportes de validacion y referee.
+
+Tecnologias verificadas:
+{
+  "backend": ["Python", "FastAPI", "Uvicorn"],
+  "frontend": ["HTML", "CSS", "JavaScript sin framework"],
+  "pipeline": ["Python", "requests", "numpy"],
+  "research": ["pandas", "scikit-learn"],
+  "validation": ["Node.js", "CommonJS"],
+  "storage": ["JSON y archivos de texto"]
+}
+
+El README exige Python 3.9+, aunque el entorno local inspeccionado contiene
+Python 3.14 en .venv. No se encontro un pyproject.toml, package.json, esquema de
+base de datos ni servicio de persistencia externo. [REF: README.md :: Arrancar
+en 2 minutos :: lineas aproximadas 9-25] [REF: requirements.txt :: contenido]
+
+================================================================================
+SECCION 2. ESTRUCTURA COMPLETA DEL REPOSITORIO
+================================================================================
+
+Archivos relevantes (los directorios .venv, __pycache__ y archivos generados no
+son parte de la logica del producto):
+
+{
+  "file_path": "app/main.py",
+  "file_type": "python",
+  "responsibility": "Servidor FastAPI y API de solo lectura sobre model/model.json",
+  "contains": ["load_model", "team_summary", "health", "model", "teams", "team", "index"],
+  "imports": ["json", "pathlib", "fastapi"],
+  "used_by": ["uvicorn"],
+  "execution_role": "entry_point",
+  "status": "verified"
+}
+{
+  "file_path": "frontend/index.html",
+  "file_type": "html/javascript",
+  "responsibility": "Interfaz visual, estilos, laboratorio tactico y consumo de API",
+  "contains": ["HTML", "CSS", "JavaScript embebido"],
+  "imports": ["engine.js", "API relativa"],
+  "used_by": ["navegador"],
+  "execution_role": "presentation",
+  "status": "verified"
+}
+{
+  "file_path": "frontend/engine.js",
+  "file_type": "javascript",
+  "responsibility": "Motor compartido de simulacion y coreografia",
+  "contains": ["simulate", "simulateMany", "choreograph", "matchup", "rates"],
+  "imports": [],
+  "used_by": ["frontend/index.html", "pipeline/validate.js", "pipeline/referee.js"],
+  "execution_role": "core_module",
+  "status": "verified"
+}
+{
+  "file_path": "model/model.json",
+  "file_type": "json",
+  "responsibility": "Modelo agregado que alimenta API y motor",
+  "contains": ["meta", "league", "entities", "map"],
+  "imports": [],
+  "used_by": ["app/main.py", "frontend/index.html", "engine.js", "scripts Node"],
+  "execution_role": "configuration",
+  "status": "verified"
+}
+{
+  "file_path": "pipeline/entities.py",
+  "file_type": "python",
+  "responsibility": "Define entidades equipo-entrenador-periodo y sus partidos",
+  "contains": ["SPECIAL", "all_matches", "team_coach", "build_entities"],
+  "imports": ["pipeline.statsbomb"],
+  "used_by": ["extract.py", "build_model.py"],
+  "execution_role": "core_module",
+  "status": "verified"
+}
+{
+  "file_path": "pipeline/statsbomb.py",
+  "file_type": "python",
+  "responsibility": "Cliente HTTP autenticado y cache local",
+  "contains": ["get", "matches", "SEASONS", "SEASONS_ALL"],
+  "imports": ["requests"],
+  "used_by": ["download.py", "entities.py"],
+  "execution_role": "utility",
+  "status": "verified"
+}
+{
+  "file_path": "pipeline/extract.py",
+  "file_type": "python",
+  "responsibility": "Resume eventos por partido, equipo, zona y fase",
+  "contains": ["zone", "is_admin", "is_sp", "classify_open", "new_team", "process"],
+  "imports": ["json", "collections", "multiprocessing"],
+  "used_by": ["pipeline/run.py", "build_model.py"],
+  "execution_role": "core_module",
+  "status": "verified"
+}
+{
+  "file_path": "pipeline/build_model.py",
+  "file_type": "python",
+  "responsibility": "Agrega extractos, calcula estilos, formas, mapas y modelo final",
+  "contains": ["Acc", "build_shape", "my_metrics", "synth", "signature_plays", "main"],
+  "imports": ["numpy", "pipeline.entities"],
+  "used_by": ["pipeline/run.py"],
+  "execution_role": "core_module",
+  "status": "verified"
+}
+{
+  "file_path": "pipeline/run.py",
+  "file_type": "python",
+  "responsibility": "Orquestador secuencial de download, extract, build, validate y referee",
+  "contains": ["STEPS", "ORDER", "main"],
+  "imports": ["subprocess"],
+  "used_by": ["operador"],
+  "execution_role": "entry_point",
+  "status": "verified"
+}
+{
+  "file_path": "pipeline/validate.js",
+  "file_type": "javascript",
+  "responsibility": "Compara resultados de simulacion con targets reales",
+  "contains": ["row", "simulateMany"],
+  "imports": ["engine.js", "model.json", "targets.json"],
+  "used_by": ["pipeline/run.py"],
+  "execution_role": "test",
+  "status": "verified"
+}
+{
+  "file_path": "pipeline/referee.js",
+  "file_type": "javascript",
+  "responsibility": "Ejecuta comprobaciones reglamentarias sobre coreografias",
+  "contains": ["rule", "check", "pairs"],
+  "imports": ["engine.js", "model.json"],
+  "used_by": ["pipeline/run.py"],
+  "execution_role": "test",
+  "status": "verified"
+}
+{
+  "file_path": "research/*.py",
+  "file_type": "python",
+  "responsibility": "Exploraciones y laboratorios no requeridos para servir la demo",
+  "contains": ["poc.py", "metric_lab.py", "clusters.py", "sliders.py", "dl.py"],
+  "imports": ["pandas", "scikit-learn en clusters.py"],
+  "used_by": [],
+  "execution_role": "other",
+  "status": "verified"
+}
+
+No se documentan como componentes de ejecucion los binarios, caches de Python ni
+los archivos bajo .venv. data/ se genera localmente, esta ignorado por Git y no
+forma parte del snapshot distribuido.
+
+================================================================================
+SECCION 3. ARQUITECTURA Y RELACIONES
+================================================================================
+
+La arquitectura real es un pipeline offline mas un servidor de lectura:
+
+StatsBomb API / Open Data
+  -> data/cache o data/opendata
+  -> pipeline/extract.py
+  -> data/extract/<fuente>_<match>.json
+  -> pipeline/build_model.py
+  -> model/model.json
+  -> app/main.py y frontend/index.html
+  -> frontend/engine.js
+  -> visualizacion y resultados de simulacion
+
+Capas observadas:
+- Adquisicion: statsbomb.py, download.py, download_lineups.py y
+  download_opendata.py.
+- Procesamiento: extract.py resume eventos; build_model.py agrega y calibra.
+- Servicio: app/main.py carga el JSON bajo demanda y lo expone.
+- Presentacion/simulacion: index.html y engine.js.
+- Verificacion: validate.js, targets.py y referee.js.
+
+No hay llamadas del backend a engine.js: la simulacion ocurre en navegador o
+Node. El backend sirve archivos estaticos y el JSON.
+
+================================================================================
+SECCION 4. ENTORNO DE EJECUCION E INICIALIZACION
+================================================================================
+
+Servidor:
+  python -m venv .venv
+  pip install -r requirements.txt
+  uvicorn app.main:app --reload
+  navegador: http://127.0.0.1:8000
+  documentacion FastAPI: http://127.0.0.1:8000/docs
+
+Pipeline:
+  python pipeline/run.py download
+  python pipeline/run.py extract
+  python pipeline/run.py build
+  python pipeline/run.py validate
+  python pipeline/run.py referee
+  python pipeline/run.py all
+
+run.py ejecuta los subprocesos con el interprete actual y flag -I para Python.
+validate/referee requieren Node. download requiere credenciales StatsBomb.
+
+Variables sensibles identificadas (sus valores no se reproducen):
+{
+  "USER_STATSBOMB": "usuario de StatsBomb",
+  "PSWD_STATSBOMB": "contraseña de StatsBomb"
+}
+
+statsbomb.py carga .env si existe, pero tambien acepta variables ya presentes en
+el entorno. app.main resuelve ROOT desde la ubicacion de main.py y no requiere
+variables de entorno para servir model.json.
+
+================================================================================
+SECCION 5. ORIGEN Y ADQUISICION DE DATOS
+================================================================================
+
+1. StatsBomb API para Liga MX.
+   - Base: https://data.statsbomb.com/api.
+   - Competicion: 73.
+   - Temporadas: 108, 235, 281 y 317 son la ventana oficial; 318 y 351 estan
+     en SEASONS_ALL para datos posteriores.
+   - matches(): v6/competitions/73/seasons/{sid}/matches.
+   - Eventos: v8/events/{match}; alineaciones: v4/lineups/{match}; team-stats:
+     endpoints usados por download.py.
+   - Autenticacion: HTTP Basic con USER_STATSBOMB/PSWD_STATSBOMB.
+   - Cache: data/cache/<ruta_normalizada>.json. Un cache valido se lee; uno
+     corrupto se elimina y se vuelve a descargar.
+   - Evidencia: [REF: pipeline/statsbomb.py :: get :: lineas 22-62].
+
+2. StatsBomb Open Data.
+   - Descarga para Barcelona 2009-11, La Liga competicion 11, temporadas 21 y
+     22, en data/opendata.
+   - Se usan eventos y alineaciones; no hay team-stats equivalentes observados.
+   - Evidencia: [REF: pipeline/download_opendata.py :: get :: lineas 1-7] y
+     [REF: docs/DOCUMENTACION.md :: seccion 2.2].
+
+3. Entrada de configuracion.
+   - SPECIAL en entities.py contiene entidades manuales con id, etiqueta,
+     equipo, entrenador, fecha inicial, fecha final y grupo.
+   - Los equipos actuales restantes se detectan desde temporada 351.
+
+4. Modelo local.
+   - model/model.json es la entrada del servidor y del motor; contiene
+     agregados, no eventos crudos.
+   - pipeline/targets.json contiene objetivos usados por validate.js.
+
+================================================================================
+SECCION 6. ESQUEMAS Y ESTRUCTURAS DE DATOS
+================================================================================
+
+Esquema superior observado en model.json:
+{
+  "map": {"units": "puntos de mapa y trayectorias"},
+  "meta": {"nx": 6, "ny": 3, "k_matches": 8, "t_window": 10, "style_labels": {}, "calibration": {}},
+  "league": "agregado con las mismas claves de cadena y estadisticas",
+  "entities": ["entidades equipo-entrenador"]
+}
+
+Entidad:
+{
+  "id": "string",
+  "label": "string",
+  "team": "string",
+  "coach": "string",
+  "group": "Actual | Historico | Validacion | null",
+  "kind": "real | opendata | synthetic",
+  "d0": "YYYY-MM-DD",
+  "d1": "YYYY-MM-DD",
+  "n": "integer",
+  "official": "boolean",
+  "formation": "string | null",
+  "style": "objeto de 14 percentiles",
+  "shape": "lista de puestos y posiciones",
+  "actors": "zona -> puesto -> proporcion",
+  "roles": "ids de lanzadores/rematadores",
+  "att": "agregado atacante",
+  "dfn": "agregado de rivales",
+  "map": "coordenadas y parecidos"
+}
+
+Las matrices de cadena tienen 2 fases por 18 zonas. Las zonas son 6 columnas x
+3 carriles sobre coordenadas StatsBomb 120 x 80. move/mv y mvC son matrices
+18 x 18 por fase. ltoO/ltoXT/ltoXG/ltoXF/ltoKF/ltoKT son matrices de origen a
+destino para reinicios. tau es tiempo medio entre acciones por fase.
+
+PH_KEYS: n, shot, xg, spC, spF, pen, keepF, keepT, lossO, lossXT, lossXG,
+lossXF. Estadisticas escalares: poss, poss_regain, sp_poss, sp_shots, sp_xg,
+sp_after_shot, pens, pens_scored, corners, corners_short, corner_shots,
+corner_xg, corner_headers, fk, fk_direct, fk_direct_xg, fk_cross_shots,
+fk_cross_xg, fouls, yellow, second_yellow, red, bb_yellow, bb_red, matches.
+
+================================================================================
+SECCION 7. NORMALIZACION Y TRANSFORMACION DE DATOS
+================================================================================
+
+{
+  "operation_name": "zone",
+  "source_location": {"file": "pipeline/extract.py", "function": "zone", "class": null},
+  "input": {"structure": "location [x,y]", "fields": ["x", "y"]},
+  "transformation": "Acota x a [0,120) e y a [0,80), calcula columna x//20 y carril y//(80/3), y devuelve columna*3+carril",
+  "output": {"structure": "integer", "fields": ["zone 0..17"]},
+  "downstream_consumers": ["process", "build_model", "engine"],
+  "evidence_status": "VERIFIED"
+}
+{
+  "operation_name": "phase_classification",
+  "source_location": {"file": "pipeline/extract.py", "function": "process", "class": null},
+  "input": {"structure": "posesion StatsBomb", "fields": ["play_pattern", "timestamp", "location", "possession_team"]},
+  "transformation": "Marca T si la posesion empieza tras recuperar al rival y la accion ocurre dentro de 10 segundos; en otro caso marca E",
+  "output": {"structure": "conteos por fase y zona", "fields": ["n", "shot", "xg", "desenlaces"]},
+  "downstream_consumers": ["build_model", "engine.rates"],
+  "evidence_status": "VERIFIED"
+}
+{
+  "operation_name": "action_filter",
+  "source_location": {"file": "pipeline/extract.py", "function": "process", "class": null},
+  "input": {"structure": "eventos", "fields": ["type", "team", "location"]},
+  "transformation": "Conserva Pass, Carry, Dribble y Shot con location; excluye penales de la cadena de acciones pero los acumula por separado",
+  "output": {"structure": "acciones con balon y estadisticas de penales", "fields": ["acts", "pens", "pens_scored"]},
+  "downstream_consumers": ["extract JSON"],
+  "evidence_status": "VERIFIED"
+}
+{
+  "operation_name": "aggregation_and_shrinkage",
+  "source_location": {"file": "pipeline/build_model.py", "function": "Acc.to", "class": "Acc"},
+  "input": {"structure": "extract JSON por partido", "fields": ["cadena", "estadisticas"]},
+  "transformation": "Suma partidos por entidad y liga; engine.rates incorpora K=8 pseudo-partidos de la liga para encoger tasas pequeñas",
+  "output": {"structure": "att, dfn y league", "fields": ["tasas", "matrices", "metricas"]},
+  "downstream_consumers": ["model.json", "engine.matchup"],
+  "evidence_status": "VERIFIED"
+}
+
+Tambien se normalizan nombres para ids ASCII, se selecciona un once tipo por
+formacion mas usada, se calculan percentiles contra entidades con suficiente
+numero de partidos y se transforman metricas de eventos para Barcelona mediante
+calibracion lineal documentada. No se encontro reduccion dimensional en la
+construccion final; clusters.py es investigacion separada.
+
+================================================================================
+SECCION 8. PROCESOS INTERNOS Y LOGICA DE NEGOCIO
+================================================================================
+
+PROCESO P1 - Construccion de entidades.
+1. all_matches recorre SEASONS_ALL y descarta partidos no disponibles.
+2. SPECIAL se agrega primero.
+3. build_entities detecta el entrenador mas reciente por equipo de temporada
+   351 y retrocede hasta el cambio de entrenador.
+4. Cada partido se asigna si equipo, substring de entrenador y fechas coinciden.
+5. Resultado: lista de entidades con matches {mid, side, date}.
+Referencia: [REF: pipeline/entities.py :: build_entities :: lineas 29-59].
+
+PROCESO P2 - Extraccion de un partido.
+1. process carga eventos MX desde cache u Open Data desde data/opendata.
+2. Conserva periodos <=4, agrupa eventos por possession y crea acumuladores por
+   equipo.
+3. Identifica acciones, penales, reinicios administrativos, recuperaciones y
+   balon parado.
+4. Clasifica cada accion por zona/fase y registra desenlace: movimiento, tiro,
+   perdida, falta, corner o penal.
+5. Acumula disciplina, xG, lanzadores, posiciones, actores y metricas.
+6. Escribe un JSON compacto en data/extract.
+Referencia: [REF: pipeline/extract.py :: process :: lineas 152-351].
+
+PROCESO P3 - Construccion del modelo.
+1. Acc.add suma CHAIN_KEYS y SCALAR_KEYS.
+2. build_model produce att del equipo y dfn a partir del rival.
+3. build_shape elige formacion, puestos y jugadores representativos.
+4. Se calculan metricas, percentiles, etiquetas, coordenadas de mapa y roles.
+5. Se agregan league y entidades real/opendata/synthetic.
+6. Se escribe model/model.json.
+Referencia: [REF: pipeline/build_model.py :: Acc, build_shape y main ::
+lineas 39-115 y 311-497].
+
+PROCESO P4 - Servicio.
+load_model verifica existencia, lee JSON y cachea por mtime. Si no existe
+devuelve HTTP 503. team busca id exacto y devuelve HTTP 404 si no existe.
+Referencia: [REF: app/main.py :: load_model y team :: lineas 25-67].
+
+PROCESO P5 - Simulacion.
+1. matchup calcula rates de ataque A y defensa D, combinados con la liga.
+2. Cada accion muestrea desenlace en la zona y fase actual.
+3. move cambia zona; lossO inicia posesion rival y transicion; reinicios crean
+   corner, tiro libre, saque, saque de meta o penal.
+4. tiros generan xG y resultado aleatorio; goles y tiempo muerto actualizan
+   estado.
+5. tarjetas/rojas modifican probabilidades mediante ajustes logit.
+6. simulate devuelve score, posesion, tilt, stats, log y params.
+7. simulateMany repite N semillas deterministas derivadas de seed y promedia.
+Referencia: [REF: frontend/engine.js :: rates, matchup, simulate y
+simulateMany :: lineas aproximadas 40-180, 600-900].
+
+PROCESO P6 - Coreografia.
+choreograph transforma eventos de simulacion en posiciones de 22 jugadores y
+balon, aplicando reinicios, fuera de juego, distancias reglamentarias, areas,
+circulo central y expulsados. Su contrato exacto se encuentra en
+frontend/engine.js y es consumido por la animacion de index.html.
+
+================================================================================
+SECCION 9. FLUJOS COMPLETOS DE DATOS
+================================================================================
+
+FLOW_001 - Arranque de la demo:
+GET / -> app.index -> frontend/index.html -> fetch de model/API -> seleccion de
+entidad -> engine.matchup/simulate -> canvas/DOM.
+Estado: VERIFIED para servidor y engine; detalles finos de UI: VERIFIED por
+codigo pero no ejecutados visualmente en esta inspeccion.
+
+FLOW_002 - Reconstruccion:
+credenciales -> StatsBomb -> data/cache -> extract.py -> data/extract ->
+build_model.py -> model/model.json -> servidor/frontend.
+Estado: VERIFIED por scripts; ejecucion completa no realizada en esta inspeccion.
+
+FLOW_003 - Validacion:
+model.json + targets.json -> validate.js -> simulateMany por liga y entidades
+-> imprime goles, xG, tiros, posesion y probabilidades W/D/L.
+
+FLOW_004 - Reglamento:
+model.json -> referee.js -> pares de entidades -> choreograph/simulacion ->
+reglas check -> pipeline/referee_report.txt.
+
+Ruta de error: falta model.json produce 503; id desconocido produce 404; falta
+credencial produce SystemExit; cache corrupto se borra y se vuelve a solicitar;
+archivo extract corrupto en build_model se convierte en estructura vacia para
+poder omitirlo.
+
+================================================================================
+SECCION 10. INTERFACES, API Y COMUNICACION
+================================================================================
+
+{
+  "GET /api/health": {
+    "response": {"ok": "boolean", "teams": "integer", "built": "string|null"},
+    "errors": ["503 si falta model.json"],
+    "handler": "app.main.health"
+  },
+  "GET /api/model": {
+    "response": "model/model.json completo",
+    "errors": ["error de archivo si no existe"],
+    "handler": "app.main.model"
+  },
+  "GET /api/teams": {
+    "response": "lista de team_summary: id,label,team,coach,group,kind,n,d0,d1,official,formation",
+    "handler": "app.main.teams"
+  },
+  "GET /api/teams/{team_id}": {
+    "response": "summary mas style, shape, roles, map y note",
+    "errors": ["404 si id no coincide"],
+    "handler": "app.main.team"
+  },
+  "GET /": {
+    "response": "frontend/index.html",
+    "handler": "app.main.index"
+  }
+}
+
+No se observaron POST, PUT, PATCH, DELETE ni endpoints de autenticacion. La
+comunicacion de modulo frontend-engine es import/require local; backend-engine
+no existe.
+
+================================================================================
+SECCION 11. ALGORITMOS, MODELOS Y CALCULOS
+================================================================================
+
+El algoritmo central es una cadena de Markov discreta por zona y fase. Para cada
+desenlace se combina ataque, defensa y liga:
+  logit(p) = logit(p_ataque) + logit(p_defensa) - logit(p_liga)
+La salida se acota y se renormaliza cuando la suma excede 0.97. xG se combina
+multiplicativamente y se acota a [0.005, 0.9].
+
+La zona es una cuadricula 6x3. La fase T dura 10 segundos desde recuperacion
+en juego abierto; la fase E es el resto. Se usan pesos de tiempo muerto por
+tipo de reanudacion y una unidad calibrada contra frecuencia de eventos.
+
+El motor usa mulberry32 para aleatoriedad reproducible. simulateMany agrega
+goles, xG, tiros, posesion, recuperaciones, faltas, tarjetas, corners,
+fuera de juego y distribucion de marcadores.
+
+Metricas de estilo incluyen posesion, verticalidad, ritmo hacia porteria,
+altura defensiva, volumen de presion, PPDA, contrapresion, saque largo,
+centros, contragolpe, tiros tras robo alto, xG, solidez y xG de balon parado.
+Los valores visibles son percentiles, no predicciones.
+
+No se encontro un modelo de aprendizaje entrenado para inferencia durante el
+servido. scikit-learn aparece solo como dependencia de research/clusters.py.
+
+================================================================================
+SECCION 12. PERSISTENCIA, ARCHIVOS Y EFECTOS SECUNDARIOS
+================================================================================
+
+Archivos creados o modificados por pipeline:
+- data/cache/*.json: respuestas HTTP cacheadas.
+- data/opendata/*.json: eventos/alineaciones Open Data.
+- data/extract/*.json: resumen por partido.
+- model/model.json: salida agregada servida por la app.
+- pipeline/targets.json: objetivos de validacion.
+- pipeline/referee_report.txt: reporte de comprobaciones si se ejecuta referee.
+
+El servidor solo lee model.json y sirve estaticos. No escribe datos de usuarios,
+no usa base de datos y no mantiene sesiones persistentes. La cache de modelo en
+memoria se invalida por mtime.
+
+================================================================================
+SECCION 13. CONFIGURACION, DEPENDENCIAS Y SEGURIDAD
+================================================================================
+
+Dependencias directas verificadas en requirements.txt:
+fastapi>=0.110, uvicorn>=0.29, requests>=2.31, numpy>=1.26,
+pandas>=1.5 y scikit-learn>=1.2.
+
+Controles verificados:
+- .env y data/ estan en .gitignore.
+- Los valores de credenciales no se incluyen en model.json ni en este archivo.
+- La API web expone solo lecturas.
+- requests usa timeout=120 y raise_for_status.
+- Cache invalido se detecta antes de json.loads funcional.
+
+Riesgos/recomendaciones, no afirmaciones de vulnerabilidad confirmada:
+- CORS, autenticacion y limites de solicitudes no se configuran en main.py.
+- El servidor expone model.json completo a cualquier consumidor que alcance el
+  proceso.
+- .env se parsea manualmente, sin validacion de formato adicional.
+- El pipeline depende de datos/credenciales externos y de versiones compatibles.
+
+================================================================================
+SECCION 14. ERRORES, RESTRICCIONES Y CASOS LIMITE
+================================================================================
+
+- Sin model.json: HTTP 503 con instruccion de ejecutar build.
+- Entidad inexistente: HTTP 404.
+- Sin credenciales: termina con mensaje de configuracion.
+- Respuesta API vacia: ValueError.
+- Cache no UTF-8: intenta cp1252.
+- Cache JSON corrupto: elimina y descarga de nuevo.
+- Extracto corrupto o ausente al cargar: build_model retorna teams vacio; esto
+  permite continuar pero puede omitir datos silenciosamente.
+- Eventos sin primera accion o sin location se saltan en varias ramas.
+- Posesiones administrativas se saltan al buscar el siguiente estado.
+- Periodos mayores que 4 se excluyen.
+- Penales se excluyen de la cadena normal y se modelan aparte.
+- Muestras pequenas se acercan a liga con K=8, limitacion estadistica inherente.
+- simulateMany limita claves de marcador a 5 mediante min(a,5)/min(b,5).
+- No se encontro mecanismo de persistencia transaccional ni concurrencia de
+  escritura; el servicio esta disenado para lectura.
+
+================================================================================
+SECCION 15. PRUEBAS Y VERIFICACION
+================================================================================
+
+No se encontraron tests unitarios Python ni configuracion pytest. Las
+verificaciones disponibles son scripts ejecutables:
+
+node pipeline/validate.js [N] [filtro]
+Compara liga contra liga y cada entidad contra targets.json; imprime goles,
+xG, tiros, posesion y resultados W/D/L.
+
+node pipeline/referee.js [N]
+Genera simulaciones y valida reglas de posiciones, reinicios, distancias,
+areas, expulsiones y secuencias; guarda/usa pipeline/referee_report.txt.
+
+La documentacion existente reporta validacion y revision de reglas, pero esta
+inspeccion no ejecuta esos comandos ni debe atribuirles un resultado nuevo.
+Estado de esos resultados historicos: UNVERIFIED en esta ejecucion.
+
+================================================================================
+SECCION 16. MATRIZ DE TRAZABILIDAD
+================================================================================
+
+| Funcionalidad | Componente | Funcion | Datos | Salida |
+| Plan de juego | build_model.py | my_metrics/main | team-stats/eventos | entity.style |
+| Mapa de estilos | build_model.py | main | style y temporadas | model.map, entity.map |
+| Entidades | entities.py | build_entities | matches managers | entity.matches |
+| Resumen partido | extract.py | process | eventos/alineaciones | data/extract |
+| API equipos | app/main.py | teams/team | model.entities | JSON HTTP |
+| Simulacion | engine.js | simulate/matchup | att/dfn/league | score/stats/log |
+| Simulacion masiva | engine.js | simulateMany | simulate | promedios |
+| Animacion | engine.js/index.html | choreograph | log | posiciones visuales |
+| Validacion | validate.js | row | targets/model | consola |
+| Reglamento | referee.js | check | coreografia | reporte |
+
+================================================================================
+SECCION 17. GLOSARIO TECNICO
+================================================================================
+
+Entidad: combinacion de equipo, entrenador y ventana temporal.
+Att: agregado de acciones del propio equipo con balon.
+Dfn: agregado de acciones del rival cuando ataca a la entidad.
+E: ataque establecido.
+T: transicion durante los primeros 10 segundos tras recuperacion.
+SP/BP: balon parado peligroso.
+LTO: matriz que indica donde comienza la siguiente posesion.
+XG: expected goals provisto por StatsBomb.
+PPDA: acciones defensivas por pase rival.
+Shape: once tipo y posiciones medias con/sin balon.
+Actors: distribucion de acciones por puesto y zona.
+K: numero de pseudo-partidos de regularizacion hacia la liga.
+League: acumulado de referencia usado para tasas y percentiles.
+Coreografia: conversion de eventos abstractos a jugadores, balon y posiciones.
+
+================================================================================
+SECCION 18. ASPECTOS NO DETERMINADOS Y DEUDA TECNICA
+================================================================================
+
+1. No se pudo verificar la operacion actual de la API StatsBomb sin credenciales
+   validas y sin descargar datos. Archivos: statsbomb.py, download*.py.
+   Verificacion recomendada: ejecutar download en un entorno autorizado.
+2. No se pudo verificar visualmente cada pantalla del frontend en un navegador.
+   Archivos: index.html, engine.js. Verificacion: levantar Uvicorn y probar
+   los flujos de UI.
+3. No existe contrato formal para cada campo de model.json fuera del codigo que
+   lo produce. Verificacion: generar modelo desde datos limpios y validar JSON.
+4. No hay suite automatizada de regresion descubierta. Recomendacion: agregar
+   tests para load_model, zona, tasas, endpoints y casos de modelo ausente.
+5. La carga de extractos corruptos puede continuar con teams vacio; esto evita
+   un crash pero puede ocultar perdida de datos. Recomendacion: registrar y
+   fallar explicitamente en modo de reconstruccion.
+6. La documentacion menciona volumenes y resultados historicos de validacion;
+   no se reprodujeron en esta inspeccion y se marcan UNVERIFIED.
+7. El archivo .env local existe en el snapshot, pero sus valores no se
+   inspeccionaron ni se reproducen aqui. Debe tratarse como secreto.
+
+================================================================================
+SECCION 19. GUIA DE LECTURA PARA OTRA INTELIGENCIA ARTIFICIAL
+================================================================================
+
+Orden recomendado:
+1. Leer README.md para objetivo, comandos y limites de distribucion.
+2. Leer app/main.py para contrato HTTP y carga del modelo.
+3. Leer model/model.json para estructura concreta y entidades disponibles.
+4. Leer extract.py para semantica de zonas, fases y desenlaces.
+5. Leer build_model.py para agregacion, estilos, formas y mapas.
+6. Leer engine.js para la simulacion y coreografia.
+7. Leer validate.js/referee.js para verificaciones y restricciones.
+8. Leer docs/DOCUMENTACION.md para contexto metodologico y decisiones.
+
+Puntos de entrada: uvicorn app.main:app, pipeline/run.py y require de
+frontend/engine.js en Node. Fuentes: StatsBomb API, Open Data y model.json.
+Transformaciones esenciales: zone, clasificacion T/E, agregacion att/dfn,
+regularizacion K y combinacion logit.
+
+Convenciones:
+- Las coordenadas y zonas siempre deben interpretarse en orientacion del equipo
+  que ataca; mirrorZ adapta la orientacion rival.
+- JSON con null significa dato ausente; una clave no presente significa que el
+  productor no la incluyo.
+- VERIFIED/INFERRED/UNVERIFIED/NOT_FOUND/NOT_ACCESSIBLE indican certeza y no
+  deben confundirse.
+- Una cifra historica de docs no equivale a una prueba ejecutada ahora.
+
+La documentacion permite responder "donde" mediante las referencias REF y
+permite reconstruir "que ocurre despues" siguiendo los flujos P1-P6. Antes de
+afirmar que el sistema funciona con datos nuevos, una IA debe distinguir la
+implementacion comprobada del modelo preconstruido y ejecutar download,
+extract, build, validate y referee en un entorno con credenciales y Node.
