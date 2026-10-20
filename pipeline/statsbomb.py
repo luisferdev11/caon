@@ -25,14 +25,22 @@ def _auth():
     except KeyError:
         raise SystemExit('Faltan USER_STATSBOMB / PSWD_STATSBOMB: copia .env.example a .env y llena tus credenciales.')
 
+def _read_json(path):
+    raw = pathlib.Path(path).read_bytes()
+    try:
+        text = raw.decode('utf-8')
+    except UnicodeDecodeError:
+        text = raw.decode('cp1252')
+    return json.loads(text)
+
 def get(path):
     """GET a la API con caché en disco."""
     f = CACHE / (path.strip('/').replace('/', '_') + '.json')
     if f.exists():
-        return json.load(open(f))
+        return _read_json(f)
     r = requests.get(f'{API}/{path}', auth=_auth(), timeout=120)
     r.raise_for_status()
-    f.write_text(r.text)
+    f.write_text(r.text, encoding='utf-8')
     return r.json()
 
 # Liga MX (competición 73). Ventana oficial del reto: Apertura 2021 – Clausura 2025.

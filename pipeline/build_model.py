@@ -39,11 +39,16 @@ def add_into(a, b):
 class Acc:
     def __init__(self):
         self.c = None; self.s = collections.Counter(); self.matches = 0
+        self.context = {k: collections.defaultdict(lambda: collections.Counter()) for k in ('score_state', 'venue')}
     def add(self, t):
         if self.c is None: self.c = {k: zeros_like(t[k]) for k in CHAIN_KEYS}
         for k in CHAIN_KEYS: add_into(self.c[k], t[k])
         for k in SCALAR_KEYS: self.s[k] += t[k]
         self.matches += 1
+        for dimension in self.context:
+            for key, values in (t.get('context', {}).get(dimension, {}) or {}).items():
+                for metric, value in values.items():
+                    self.context[dimension][key][metric] += value
     def to(self, moves=True):
         c = self.c
         d = {k: c[k] for k in PH_OUT + LTO_KEYS + ('corner_tech', 'corner_target', 'pen_place')}
@@ -52,14 +57,51 @@ class Acc:
         d['tau'] = [round(c['dt'][p] / max(c['dtn'][p], 1), 3) for p in (0, 1)]
         d.update({k: (round(v, 3) if isinstance(v, float) else v) for k, v in self.s.items()})
         d['matches'] = self.matches
+        d['context'] = context_summary(self.context)
         return d
 
-def load(src, mid): return json.load(open(EX / f'{src}_{mid}.json'))
+def load(src, mid):
+    path = EX / f'{src}_{mid}.json'
+    raw = path.read_bytes()
+    try:
+        text = raw.decode('utf-8')
+    except UnicodeDecodeError:
+        text = raw.decode('cp1252')
+    return json.loads(text)
 
 def short_name(nm):
     parts = [p for p in nm.split() if p.lower() not in ('da', 'de', 'del', 'dos', 'i', 'la', 'van', 'von', 'y')]
     if len(parts) <= 2: return nm
     return parts[0][0] + '. ' + (parts[-2] if len(parts) >= 4 else parts[1])
+
+def context_summary(context):
+    """Convert context counters to rates while preserving sample sizes."""
+    out = {}
+    for dimension, buckets in context.items():
+        out[dimension] = {}
+        for key, c in buckets.items():
+            possessions = c.get('possessions', 0)
+            passes = c.get('passes', 0)
+            defensive = c.get('ppda_def_actions', 0)
+            pass_distance = c.get('pass_distance', 0)
+            out[dimension][key] = {
+                'seconds': round(c.get('seconds', 0), 2),
+                'minutes': round(c.get('seconds', 0) / 60, 2),
+                'possessions': possessions,
+                'actions': c.get('actions', 0),
+                'passes': passes,
+                'forward_pass_rate': round(c.get('forward_passes', 0) / passes, 4) if passes else None,
+                'shots': c.get('shots', 0),
+                'xg': round(c.get('xg', 0), 4),
+                'xga': round(c.get('xga', 0), 4),
+                'pressures': c.get('pressures', 0),
+                'ppda': round(c.get('ppda_passes', 0) / defensive, 4) if defensive else None,
+                'recoveries': c.get('recoveries', 0),
+                'transition_shots': c.get('transition_shots', 0),
+                'directness': round(c.get('forward_distance', 0) / pass_distance, 4) if pass_distance else None,
+                'sufficient_sample': possessions >= 5,
+            }
+    return out
 
 def ascii_id(s): return unicodedata.normalize('NFKD', s).encode('ascii', 'ignore').decode()
 
@@ -232,6 +274,8 @@ def synth(L, cfg_E, cfg_T, sp_cfg, n_matches, moves=True):
 
 def roles_for(shape, tk):
     """Lanzador de córners, faltas y penales y rematadores de balón parado: el jugador del once tipo que más lo hizo."""
+    if not shape:
+        return dict(corner=None, fk=None, pen=None, aerial=[])
     pid2slot = {s.get('pid'): i for i, s in enumerate(shape)}
     def best(counter, fallback):
         for pid, _ in counter.most_common():
@@ -259,7 +303,12 @@ def main():
     for m in ms:
         f = CACHE / f"v1_matches_{m['match_id']}_team-stats.json"
         if not f.exists(): continue
-        for r in json.load(open(f)):
+        raw = f.read_bytes()
+        try:
+            text = raw.decode('utf-8')
+        except UnicodeDecodeError:
+            text = raw.decode('cp1252')
+        for r in json.loads(text):
             r['_mid'] = m['match_id']
             if r.get('team_match_pressures') is not None and r.get('team_match_possession'):
                 r['team_match_pressures_adj'] = r['team_match_pressures'] / (1 - r['team_match_possession'])
@@ -305,12 +354,15 @@ def main():
         return {c: sum(v) / len(v) for c, v in vals.items()}
     def style_from_means(means, n):
         s, raw = {}, {}
+        unavailable = {}
         for key, c, inv, lab in STY:
             v = means.get(c)
-            if v is None: continue
+            if v is None:
+                unavailable[key] = 'sin datos suficientes o sin calibración válida'
+                continue
             vs = (n * v + K_MATCHES * league_mean[c]) / (n + K_MATCHES)
             s[key] = pct(c, vs, inv); raw[key] = round(v, 3)
-        return s, raw
+        return s, raw, unavailable
     def entity_from_matches(src, mids, team_name):
         att, dfn = Acc(), Acc(); xis = []; avg = collections.defaultdict(lambda: [0.0] * 6); actors = collections.defaultdict(lambda: [0] * NZ); mlist = []
         tk = {k: collections.Counter() for k in ('corner', 'fk', 'pen', 'sp_shooter')}
@@ -336,17 +388,32 @@ def main():
         att, dfn, shape, act, form, mlist, roles = entity_from_matches('mx', mids, e['team'])
         did, dlabel, coach = display(e)
         rs = [r for r in rows if r['_mid'] in set(mids) and r['team_name'] == e['team']]
-        s, raw = style_from_means({c: mean(rs, c) for _, c, _, _ in STY}, len(rs))
+        event_means = from_events(mlist)
+        means = {}
+        sources = {}
+        for _, c, _, _ in STY:
+            observed = mean(rs, c)
+            if observed is not None:
+                means[c] = observed
+                sources[c] = 'team-stats'
+            elif c in event_means:
+                means[c] = event_means[c]
+                sources[c] = 'eventos_calibrados'
+        s, raw, unavailable = style_from_means(means, len(mlist))
         dates = [x['date'] for x in e['matches']]
         out_ents.append(dict(id=ascii_id(did), label=dlabel, team=e['team'], coach=coach, group=e['group'], kind='real',
-                             d0=min(dates), d1=max(dates), n=len(rs), official=max(dates) <= '2025-06-30', formation=form,
-                             style=s, raw=raw, shape=shape, actors=act, roles=roles, att=att.to(True), dfn=dfn.to(False)))
+                             d0=min(dates) if dates else e['d0'], d1=max(dates) if dates else e['d1'], n=att.matches,
+                             official=bool(dates) and max(dates) <= '2025-06-30', formation=form,
+                             style=s, raw=raw, style_status=dict(sources=sources, unavailable=unavailable),
+                             shape=shape, actors=act, roles=roles, context=context_summary(att.context),
+                             att=att.to(True), dfn=dfn.to(False)))
     # Barcelona 2009-11 (StatsBomb Open Data)
     od_ids = sorted(int(p.stem.split('_')[1]) for p in EX.glob('od_*.json'))
     att, dfn, shape, act, form, mlist, roles = entity_from_matches('od', od_ids, 'Barcelona')
-    s, raw = style_from_means(from_events(mlist), len(mlist))
+    s, raw, unavailable = style_from_means(from_events(mlist), len(mlist))
     out_ents.append(dict(id='barca_guardiola', label='Barcelona 2009–11 (Guardiola)', team='Barcelona', coach='Pep Guardiola', group='Validación', kind='opendata',
                          d0='2009-08-29', d1='2011-05-21', n=att.matches, official=False, formation=form, style=s, raw=raw, shape=shape, actors=act, roles=roles,
+                         context=context_summary(att.context), style_status=dict(sources={k: 'eventos_calibrados' for k in raw}, unavailable=unavailable),
                          att=att.to(True), dfn=dfn.to(False),
                          note='La Liga 2009/10 y 2010/11, StatsBomb Open Data. Estilo con métricas propias de eventos calibradas a la escala StatsBomb.'))
     # Arquetipo sintético
@@ -387,7 +454,7 @@ def main():
     units = []
     for (team, full, nick, season), rs in sorted(urows.items(), key=lambda kv: (kv[0][0], kv[0][3])):
         if len(rs) < 8: continue
-        st_, _ = style_from_means({c: mean(rs, c) for _, c, _, _ in STY}, len(rs))
+        st_, _, _ = style_from_means({c: mean(rs, c) for _, c, _, _ in STY}, len(rs))
         off, dfn = map_point(st_)
         if off is None or dfn is None: continue
         units.append(dict(team=short_team(team), team_full=team, coach=nick or surname(full), coach_full=full, season=season, n=len(rs), off=off, dfn=dfn))
@@ -405,10 +472,12 @@ def main():
                            calibration={c: round(CAL[c][2], 2) for c in CAL},
                            note='Parámetros agregados derivados de datos de eventos Hudl StatsBomb. Sin eventos crudos.'),
                  league=LEAGUE.to(True), entities=out_ents)
-    json.dump(model, open(OUT / 'model.json', 'w'), ensure_ascii=False, separators=(',', ':'))
+    (OUT / 'model.json').write_text(json.dumps(model, ensure_ascii=False, separators=(',', ':')), encoding='utf-8')
     print('\nwrote', OUT / 'model.json', (OUT / 'model.json').stat().st_size // 1024, 'KB')
     for e in out_ents:
         print(f"  {e['id']:20s} {e['label']:45s} n={e['n']:3d} {e['formation']}  " + ' '.join(f"{s['num']}:{s['name']}" for s in e['shape']))
 
 if __name__ == '__main__':
+    if hasattr(sys.stdout, 'reconfigure'):
+        sys.stdout.reconfigure(encoding='utf-8', errors='replace')
     main()

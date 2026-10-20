@@ -4,6 +4,7 @@ Estilos de juego de entrenadores de la Liga MX medidos con datos de Hudl StatsBo
 
 Qué hace la app:
 - **Plan de juego**: 14 métricas de cada equipo-entrenador en percentil contra la liga, con etiquetas tipo FC.
+- **Contexto táctico**: comparación descriptiva por estado del marcador y localía, conservando minutos, posesiones y advertencias de muestra.
 - **Mapa de estilos**: cada equipo-temporada de la liga en dos mapas (con y sin balón), trayectorias por temporada y estilos más parecidos.
 - **Simular partido**: partido animado con 22 jugadores, faltas, tarjetas, córners, tiros libres y penales; modo resumen y partido completo.
 - **Simulación rápida**: el mismo duelo 1,500 veces.
@@ -46,7 +47,7 @@ StatsBomb API / Open Data → data/cache → pipeline/extract.py → data/extrac
 |---|---|
 | `GET /api/health` | Estado y número de equipos |
 | `GET /api/teams` | Lista de equipos-entrenador |
-| `GET /api/teams/{id}` | Plan de juego, once tipo, lanzadores y posición en el mapa |
+| `GET /api/teams/{id}` | Plan de juego, contexto, once tipo, lanzadores y posición en el mapa |
 | `GET /api/model` | El modelo completo que usa la página |
 
 ## Reconstruir el modelo (necesita credenciales de StatsBomb)
@@ -58,6 +59,7 @@ StatsBomb API / Open Data → data/cache → pipeline/extract.py → data/extrac
 python pipeline/run.py download   # baja eventos, alineaciones y estadísticas (~2.7 GB, con caché)
 python pipeline/run.py extract    # resume cada partido (~10 s)
 python pipeline/run.py build      # construye model/model.json (~2 s)
+python pipeline/check_model.py    # comprueba invariantes del modelo generado
 python pipeline/run.py validate   # compara la simulación con los datos reales (requiere Node 18+)
 python pipeline/run.py referee    # árbitro automático: revisa el reglamento (requiere Node 18+)
 python pipeline/run.py all        # todo en orden

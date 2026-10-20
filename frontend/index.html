@@ -264,6 +264,18 @@ canvas { display: block; width: 100%; max-width: 100%; border-radius: 8px; }
     </div>
   </section>
 
+  <section class="section" aria-labelledby="h-context">
+    <div class="section-head">
+      <div>
+        <div class="eyebrow">Contexto observado</div>
+        <h2 id="h-context">Cómo cambia el comportamiento</h2>
+        <p>Comparación descriptiva por estado del marcador y localía. Los minutos y posesiones observados se muestran para evitar interpretar diferencias con muestras insuficientes.</p>
+      </div>
+    </div>
+    <div class="quick" id="contextA"></div>
+    <div class="quick" id="contextB"></div>
+  </section>
+
   <section class="section" aria-labelledby="h-map">
     <div class="section-head">
       <div>
@@ -680,6 +692,26 @@ canvas { display: block; width: 100%; max-width: 100%; border-radius: 8px; }
         <div>Estilos más parecidos en la liga:</div>
         <ol>${sim.map((u) => `<li>${unitName(u)}</li>`).join('')}</ol></div>`;
     }).join('');
+    renderContext(A, 'contextA'); renderContext(B, 'contextB');
+  }
+  function renderContext(entity, target) {
+    const context = entity.context || {};
+    const state = context.score_state || {}, venue = context.venue || {};
+    const labels = { winning: 'Ganando', drawing: 'Empatando', losing: 'Perdiendo', home: 'Local', away: 'Visitante' };
+    const bucket = (key, value) => {
+      const x = value || {};
+      const sample = x.sufficient_sample ? '' : ' · muestra insuficiente';
+      const ppda = x.ppda == null ? 's/d' : x.ppda.toFixed(2);
+      const directness = x.directness == null ? 's/d' : x.directness.toFixed(2);
+      return `<div class="idcard"><h3>${labels[key] || key}</h3>
+        <dl class="kv"><dt>Observación</dt><dd class="num">${(x.minutes || 0).toFixed(1)} min · ${x.possessions || 0} posesiones${sample}</dd>
+        <dt>Pases / progresión</dt><dd>${x.passes || 0} · ${x.forward_pass_rate == null ? 's/d' : Math.round(x.forward_pass_rate * 100) + '%'}</dd>
+        <dt>Tiros / xG</dt><dd class="num">${x.shots || 0} · ${(x.xg || 0).toFixed(2)}</dd>
+        <dt>xG concedido / PPDA</dt><dd class="num">${(x.xga || 0).toFixed(2)} · ${ppda}</dd>
+        <dt>Directness observada</dt><dd class="num">${directness}</dd></dl></div>`;
+    };
+    const groups = Object.keys(state).map((k) => bucket(k, state[k])).concat(Object.keys(venue).map((k) => bucket(k, venue[k])));
+    $(target).innerHTML = `<div><h3>${entity.label}</h3><div class="idcards">${groups.join('')}</div></div>`;
   }
 
   /* ================= partido animado ================= */

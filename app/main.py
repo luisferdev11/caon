@@ -61,7 +61,8 @@ def team(team_id: str):
     for e in load_model()['entities']:
         if e['id'] == team_id:
             out = team_summary(e)
-            out.update(style=e['style'], shape=e['shape'], roles=e.get('roles'), map=e.get('map'), note=e.get('note'))
+            out.update(style=e['style'], style_status=e.get('style_status'), shape=e['shape'],
+                       roles=e.get('roles'), context=e.get('context'), map=e.get('map'), note=e.get('note'))
             return out
     raise HTTPException(404, f'No existe el equipo {team_id}')
 

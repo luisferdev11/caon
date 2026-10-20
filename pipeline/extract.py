@@ -39,6 +39,53 @@ CORNER_TARGETS = ('corto', 'primer palo', 'área chica', 'segundo palo', 'punto 
 PH_KEYS = ('n', 'shot', 'xg', 'spC', 'spF', 'pen', 'keepF', 'keepT', 'lossO', 'lossXT', 'lossXG', 'lossXF')
 LTO_KEYS = ('ltoO', 'ltoXT', 'ltoXG', 'ltoXF', 'ltoKF', 'ltoKT')
 
+def _read_json_file(path):
+    raw = pathlib.Path(path).read_bytes()
+    try:
+        text = raw.decode('utf-8')
+    except UnicodeDecodeError:
+        text = raw.decode('cp1252')
+    return json.loads(text)
+
+def _match_metadata(mid):
+    """Return match metadata from the cached competition match lists."""
+    for path in CACHE.glob('v6_competitions_73_seasons_*_matches.json'):
+        try:
+            matches = _read_json_file(path)
+        except (OSError, UnicodeDecodeError, json.JSONDecodeError):
+            continue
+        match = next((m for m in matches if m.get('match_id') == mid), None)
+        if match:
+            return match
+    return None
+
+def _score_context(events):
+    """Map each event index to the score state before that event."""
+    score = collections.defaultdict(int)
+    state = {}
+    for event in sorted(events, key=lambda e: e.get('index', 0)):
+        state[event.get('index', 0)] = dict(score)
+        kind = event.get('type', {}).get('name')
+        if kind == 'Shot' and (event.get('shot') or {}).get('outcome', {}).get('name') == 'Goal':
+            score[event.get('team', {}).get('id')] += 1
+        elif kind == 'Own Goal For':
+            score[event.get('team', {}).get('id')] += 1
+    return state
+
+def _state_for(scores, team_id):
+    values = list(scores.values())
+    diff = scores.get(team_id, 0) - max((v for tid, v in scores.items() if tid != team_id), default=0)
+    return 'winning' if diff > 0 else ('losing' if diff < 0 else 'drawing')
+
+def _new_context():
+    return dict(seconds=0.0, possessions=0, actions=0, passes=0, forward_passes=0,
+                shots=0, xg=0.0, xga=0.0, pressures=0, ppda_passes=0,
+                ppda_def_actions=0, recoveries=0, losses=0, transition_shots=0,
+                forward_distance=0.0, pass_distance=0.0)
+
+def _context_bucket(team, context, state, venue):
+    return team['context'][context][state if context == 'score_state' else venue]
+
 def zone(loc):
     x = min(max(loc[0], 0), 119.999); y = min(max(loc[1], 0), 79.999)
     return int(x // 20) * NY + int(y // (80 / 3))
@@ -92,7 +139,9 @@ def new_team():
              fouls=0, yellow=0, second_yellow=0, red=0, bb_yellow=0, bb_red=0,
              actors=collections.defaultdict(lambda: [0] * NZ), avgpos=collections.defaultdict(lambda: [0.0, 0.0, 0, 0.0, 0.0, 0]),
              takers=dict(corner=collections.Counter(), fk=collections.Counter(), pen=collections.Counter(), sp_shooter=collections.Counter()),
-             m=collections.Counter())
+             m=collections.Counter(),
+             context=dict(score_state={k: _new_context() for k in ('winning', 'drawing', 'losing')},
+                           venue={k: _new_context() for k in ('home', 'away')}))
     for k in LTO_KEYS: d[k] = [[0] * NZ for _ in range(NZ)]
     return d
 
@@ -101,15 +150,22 @@ def process(args):
     out = OUT / f'{src}_{mid}.json'
     if out.exists(): return str(out)
     if src == 'mx':
-        E = json.load(open(CACHE / f'v8_events_{mid}.json')); L = json.load(open(CACHE / f'v4_lineups_{mid}.json'))
+        E = _read_json_file(CACHE / f'v8_events_{mid}.json'); L = _read_json_file(CACHE / f'v4_lineups_{mid}.json')
     else:
-        E = json.load(open(OD / f'events_{mid}.json')); L = json.load(open(OD / f'lineups_{mid}.json'))
+        E = _read_json_file(OD / f'events_{mid}.json')
+        try:
+            L = _read_json_file(OD / f'lineups_{mid}.json')
+        except (OSError, UnicodeError, json.JSONDecodeError):
+            L = []
     nick = {}
     for t in L:
         for p in t['lineup']: nick[p['player_id']] = (p.get('player_nickname') or p['player_name'], p.get('jersey_number'))
     E = [e for e in E if e['period'] <= 4]
     teams = {}
     for e in E: teams.setdefault(e['team']['id'], e['team']['name'])
+    metadata = _match_metadata(mid) if src == 'mx' else None
+    home_id = (metadata or {}).get('home_team', {}).get('home_team_id')
+    scores_before = _score_context(E)
     T = {tid: new_team() for tid in teams}
     xi = {}
     for e in E:
@@ -119,9 +175,41 @@ def process(args):
                                                     name=nick.get(p['player']['id'], (p['player']['name'], None))[0],
                                                     jersey=p.get('jersey_number') or nick.get(p['player']['id'], (None, None))[1]) for p in e['tactics']['lineup']])
     other = {a: b for a in teams for b in teams if a != b}
-    # ---------- posiciones medias, métricas, faltas y tarjetas ----------
-    for e in E:
+    # ---------- posiciones medias, métricas, faltas, tarjetas y contexto ----------
+    for event_index, e in enumerate(E):
         tid = e['team']['id']; A = T[tid]; t = e['type']['name']
+        score = scores_before.get(e.get('index', event_index), {})
+        state = _state_for(score, tid)
+        venue = 'home' if home_id is not None and tid == home_id else 'away'
+        for context_name, context_key in (('score_state', state), ('venue', venue)):
+            c = A['context'][context_name][context_key]
+            c['actions'] += 1
+            if t == 'Pass':
+                c['passes'] += 1
+                if e.get('pass', {}).get('end_location', [0])[0] > e.get('location', [0])[0]:
+                    c['forward_passes'] += 1
+                    c['forward_distance'] += max(0, e.get('pass', {}).get('end_location', [0])[0] - e.get('location', [0])[0])
+                c['pass_distance'] += e.get('pass', {}).get('length', 0) or 0
+            if t == 'Shot':
+                c['shots'] += 1
+                c['xg'] += (e.get('shot') or {}).get('statsbomb_xg', 0) or 0
+            if t == 'Pressure': c['pressures'] += 1
+            if t == 'Ball Recovery': c['recoveries'] += 1
+            if t in ('Interception', 'Duel', 'Foul Committed') and e.get('location', [0])[0] >= 48:
+                c['ppda_def_actions'] += 1
+        if t == 'Pass' and e.get('location', [0])[0] < 72:
+            for defender_id, defender in T.items():
+                if defender_id == tid:
+                    continue
+                defender_state = _state_for(score, defender_id)
+                defender_venue = 'home' if home_id is not None and defender_id == home_id else 'away'
+                defender['context']['score_state'][defender_state]['ppda_passes'] += 1
+                defender['context']['venue'][defender_venue]['ppda_passes'] += 1
+        # Opponent shots contribute to the team's defensive context.
+        for context_name, context_key in (('score_state', state), ('venue', venue)):
+            c = A['context'][context_name][context_key]
+            if t == 'Shot' and e['team']['id'] != tid:
+                c['xga'] += (e.get('shot') or {}).get('statsbomb_xg', 0) or 0
         if 'location' in e and 'position' in e:
             a = A['avgpos'][e['position']['name']]
             if e['possession_team']['id'] == tid: a[0] += e['location'][0]; a[1] += e['location'][1]; a[2] += 1
@@ -159,6 +247,42 @@ def process(args):
     poss = collections.OrderedDict()
     for e in E: poss.setdefault(e['possession'], []).append(e)
     P = list(poss.values())
+    for current, following in zip(E, E[1:]):
+        if current.get('period') != following.get('period'):
+            continue
+        delta = max(0.0, ts(following) - ts(current))
+        if delta > 30:
+            continue
+        score = scores_before.get(current.get('index', 0), {})
+        for tid in T:
+            state = _state_for(score, tid)
+            venue = 'home' if home_id is not None and tid == home_id else 'away'
+            T[tid]['context']['score_state'][state]['seconds'] += delta
+            T[tid]['context']['venue'][venue]['seconds'] += delta
+    for pe in P:
+        tid = pe[0]['possession_team']['id']
+        if tid not in T:
+            continue
+        first = pe[0]
+        score = scores_before.get(first.get('index', 0), {})
+        state = _state_for(score, tid)
+        venue = 'home' if home_id is not None and tid == home_id else 'away'
+        for context_name, context_key in (('score_state', state), ('venue', venue)):
+            T[tid]['context'][context_name][context_key]['possessions'] += 1
+        for e in pe:
+            if e.get('type', {}).get('name') == 'Shot':
+                for opponent_id, opponent in T.items():
+                    if opponent_id == tid:
+                        continue
+                    opp_score = scores_before.get(e.get('index', 0), {})
+                    opp_state = _state_for(opp_score, opponent_id)
+                    opp_venue = 'home' if home_id is not None and opponent_id == home_id else 'away'
+                    xg = (e.get('shot') or {}).get('statsbomb_xg', 0) or 0
+                    opponent['context']['score_state'][opp_state]['xga'] += xg
+                    opponent['context']['venue'][opp_venue]['xga'] += xg
+        if any(e.get('type', {}).get('name') == 'Shot' for e in pe) and pe[0].get('play_pattern', {}).get('name') == 'From Counter':
+            for context_name, context_key in (('score_state', state), ('venue', venue)):
+                T[tid]['context'][context_name][context_key]['transition_shots'] += 1
     for i, pe in enumerate(P):
         tid = pe[0]['possession_team']['id']
         if tid not in T: continue
@@ -276,7 +400,7 @@ def process(args):
         d['name'] = teams[tid]; d['xi'] = xi.get(tid)
         d['xg'] = [[round(v, 4) for v in row] for row in d['xg']]
         res['teams'][str(tid)] = d
-    out.write_text(json.dumps(res, separators=(',', ':'), ensure_ascii=False))
+    out.write_text(json.dumps(res, separators=(',', ':'), ensure_ascii=False), encoding='utf-8')
     return str(out)
 
 def jobs():
