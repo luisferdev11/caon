@@ -8,7 +8,16 @@ for m in ms:
     if f.exists():
         for r in json.load(open(f)): r['_mid'] = m['match_id']; rows.append(r)
 C = ['team_match_goals', 'team_match_np_xg', 'team_match_np_xg_conceded', 'team_match_possession', 'team_match_np_shots', 'team_match_np_shots_conceded', 'team_match_sp_xg', 'team_match_goals_conceded']
-def agg(rs): return {c.replace('team_match_', ''): round(st.mean(r[c] for r in rs if r.get(c) is not None), 3) for c in C}
+def agg(rs):
+    result = {}
+    for c in C:
+        values = [r[c] for r in rs if r.get(c) is not None]
+        key = c.replace('team_match_', '')
+        if values:
+            result[key] = round(st.mean(values), 3)
+        else:
+            result[key] = None
+    return result
 out = {'league': agg(rows)}
 # empates de liga
 by = {}
