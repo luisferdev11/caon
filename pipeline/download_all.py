@@ -28,6 +28,7 @@ P2_ENTITIES = ('slp_jardine',)
 P4_ENTITIES = ('san_almada',)
 PROGRESS_EVERY = 25
 STUB_MAX_BYTES = 4096
+MISSING_REASON = 'FileNotFoundError'
 
 
 def _teams(m: dict) -> tuple:
@@ -140,7 +141,7 @@ def coverage_markdown(rows: list, stamp: str) -> str:
 
 
 def stale_stubs(ext: pathlib.Path, cache: pathlib.Path) -> list:
-    """mx_ inválidos cuyo evento o lineup falta en caché (extract los saltaría para siempre)."""
+    """mx_ inválidos por archivo faltante (en caché o al extraer); extract los saltaría para siempre."""
     out = []
     for f in sorted(ext.glob('mx_*.json')):
         if f.stat().st_size > STUB_MAX_BYTES:
@@ -148,7 +149,7 @@ def stale_stubs(ext: pathlib.Path, cache: pathlib.Path) -> list:
         d = json.loads(f.read_text(encoding='utf-8'))
         mid = f.stem.split('_')[1]
         missing = not all((cache / cache_name(PATHS[k].format(mid))).exists() for k in ('events', 'lineups'))
-        if d.get('status') == 'invalid' and missing:
+        if d.get('status') == 'invalid' and (missing or str(d.get('reason', '')).startswith(MISSING_REASON)):
             out.append(f)
     return out
 

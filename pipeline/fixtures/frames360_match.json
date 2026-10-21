@@ -1,0 +1,589 @@
+{
+ "mid": 1,
+ "events": [
+  {
+   "id": "a1",
+   "index": 1,
+   "period": 1,
+   "timestamp": "00:00:10.000",
+   "minute": 0,
+   "second": 10,
+   "type": {
+    "name": "Pass"
+   },
+   "possession": 1,
+   "possession_team": {
+    "id": 10
+   },
+   "play_pattern": {
+    "name": "Regular Play"
+   },
+   "team": {
+    "id": 10
+   },
+   "player": {
+    "id": 1001
+   },
+   "location": [
+    30.0,
+    40.0
+   ],
+   "pass": {
+    "end_location": [
+     50.0,
+     40.0
+    ],
+    "pass_success_probability": 0.95
+   }
+  },
+  {
+   "id": "a2",
+   "index": 2,
+   "period": 1,
+   "timestamp": "00:00:12.000",
+   "minute": 0,
+   "second": 12,
+   "type": {
+    "name": "Pass"
+   },
+   "possession": 1,
+   "possession_team": {
+    "id": 10
+   },
+   "play_pattern": {
+    "name": "Regular Play"
+   },
+   "team": {
+    "id": 10
+   },
+   "player": {
+    "id": 1002
+   },
+   "location": [
+    50.0,
+    40.0
+   ],
+   "under_pressure": true,
+   "pass": {
+    "end_location": [
+     70.0,
+     40.0
+    ],
+    "pass_success_probability": 0.85,
+    "outcome": {
+     "name": "Incomplete"
+    }
+   }
+  },
+  {
+   "id": "b1",
+   "index": 3,
+   "period": 1,
+   "timestamp": "00:00:13.000",
+   "minute": 0,
+   "second": 13,
+   "type": {
+    "name": "Ball Recovery"
+   },
+   "possession": 2,
+   "possession_team": {
+    "id": 20
+   },
+   "play_pattern": {
+    "name": "Regular Play"
+   },
+   "team": {
+    "id": 20
+   },
+   "player": {
+    "id": 2003
+   },
+   "location": [
+    50.0,
+    40.0
+   ]
+  },
+  {
+   "id": "b2",
+   "index": 4,
+   "period": 1,
+   "timestamp": "00:00:18.000",
+   "minute": 0,
+   "second": 18,
+   "type": {
+    "name": "Pass"
+   },
+   "possession": 2,
+   "possession_team": {
+    "id": 20
+   },
+   "play_pattern": {
+    "name": "Regular Play"
+   },
+   "team": {
+    "id": 20
+   },
+   "player": {
+    "id": 2004
+   },
+   "location": [
+    90.0,
+    40.0
+   ],
+   "pass": {
+    "end_location": [
+     105.0,
+     40.0
+    ],
+    "pass_success_probability": 0.6,
+    "shot_assist": true
+   }
+  },
+  {
+   "id": "b3",
+   "index": 5,
+   "period": 1,
+   "timestamp": "00:00:20.000",
+   "minute": 0,
+   "second": 20,
+   "type": {
+    "name": "Shot"
+   },
+   "possession": 2,
+   "possession_team": {
+    "id": 20
+   },
+   "play_pattern": {
+    "name": "Regular Play"
+   },
+   "team": {
+    "id": 20
+   },
+   "player": {
+    "id": 2005
+   },
+   "location": [
+    105.0,
+    40.0
+   ],
+   "shot": {
+    "statsbomb_xg": 0.1,
+    "outcome": {
+     "name": "Off T"
+    },
+    "key_pass_id": "b2",
+    "type": {
+     "name": "Open Play"
+    },
+    "freeze_frame": [
+     {
+      "location": [
+       110.0,
+       40.0
+      ],
+      "teammate": false,
+      "position": {
+       "name": "Goalkeeper"
+      }
+     },
+     {
+      "location": [
+       100.0,
+       42.0
+      ],
+      "teammate": true,
+      "position": {
+       "name": "Center Forward"
+      }
+     }
+    ]
+   }
+  },
+  {
+   "id": "c1",
+   "index": 6,
+   "period": 1,
+   "timestamp": "00:00:40.000",
+   "minute": 0,
+   "second": 40,
+   "type": {
+    "name": "Pass"
+   },
+   "possession": 3,
+   "possession_team": {
+    "id": 10
+   },
+   "play_pattern": {
+    "name": "From Goal Kick"
+   },
+   "team": {
+    "id": 10
+   },
+   "player": {
+    "id": 1006
+   },
+   "location": [
+    6.0,
+    40.0
+   ],
+   "pass": {
+    "end_location": [
+     40.0,
+     40.0
+    ],
+    "pass_success_probability": 0.7,
+    "type": {
+     "name": "Goal Kick"
+    }
+   }
+  }
+ ],
+ "frames": [
+  {
+   "event_uuid": "a1",
+   "visible_area": [
+    0.0,
+    0.0,
+    120.0,
+    0.0,
+    120.0,
+    80.0,
+    0.0,
+    80.0,
+    0.0,
+    0.0
+   ],
+   "freeze_frame": [
+    {
+     "teammate": true,
+     "actor": true,
+     "keeper": false,
+     "location": [
+      30,
+      40
+     ]
+    },
+    {
+     "teammate": true,
+     "actor": false,
+     "keeper": false,
+     "location": [
+      20,
+      10
+     ]
+    },
+    {
+     "teammate": true,
+     "actor": false,
+     "keeper": false,
+     "location": [
+      22,
+      30
+     ]
+    },
+    {
+     "teammate": true,
+     "actor": false,
+     "keeper": false,
+     "location": [
+      21,
+      50
+     ]
+    },
+    {
+     "teammate": true,
+     "actor": false,
+     "keeper": false,
+     "location": [
+      19,
+      70
+     ]
+    },
+    {
+     "teammate": true,
+     "actor": false,
+     "keeper": false,
+     "location": [
+      40,
+      20
+     ]
+    },
+    {
+     "teammate": true,
+     "actor": false,
+     "keeper": false,
+     "location": [
+      42,
+      60
+     ]
+    },
+    {
+     "teammate": true,
+     "actor": false,
+     "keeper": false,
+     "location": [
+      45,
+      40
+     ]
+    },
+    {
+     "teammate": false,
+     "actor": false,
+     "keeper": false,
+     "location": [
+      45,
+      35
+     ]
+    },
+    {
+     "teammate": false,
+     "actor": false,
+     "keeper": false,
+     "location": [
+      55,
+      45
+     ]
+    },
+    {
+     "teammate": false,
+     "actor": false,
+     "keeper": false,
+     "location": [
+      80,
+      40
+     ]
+    }
+   ]
+  },
+  {
+   "event_uuid": "a2",
+   "visible_area": [
+    0.0,
+    0.0,
+    120.0,
+    0.0,
+    120.0,
+    80.0,
+    0.0,
+    80.0,
+    0.0,
+    0.0
+   ],
+   "freeze_frame": [
+    {
+     "teammate": true,
+     "actor": true,
+     "keeper": false,
+     "location": [
+      50,
+      40
+     ]
+    },
+    {
+     "teammate": true,
+     "actor": false,
+     "keeper": false,
+     "location": [
+      65,
+      60
+     ]
+    },
+    {
+     "teammate": false,
+     "actor": false,
+     "keeper": false,
+     "location": [
+      51.5,
+      41
+     ]
+    },
+    {
+     "teammate": false,
+     "actor": false,
+     "keeper": false,
+     "location": [
+      60,
+      30
+     ]
+    }
+   ]
+  },
+  {
+   "event_uuid": "b1",
+   "visible_area": [
+    0.0,
+    0.0,
+    120.0,
+    0.0,
+    120.0,
+    80.0,
+    0.0,
+    80.0,
+    0.0,
+    0.0
+   ],
+   "freeze_frame": [
+    {
+     "teammate": true,
+     "actor": true,
+     "keeper": false,
+     "location": [
+      50,
+      40
+     ]
+    },
+    {
+     "teammate": true,
+     "actor": false,
+     "keeper": false,
+     "location": [
+      45,
+      50
+     ]
+    },
+    {
+     "teammate": false,
+     "actor": false,
+     "keeper": false,
+     "location": [
+      60,
+      40
+     ]
+    },
+    {
+     "teammate": false,
+     "actor": false,
+     "keeper": false,
+     "location": [
+      80,
+      30
+     ]
+    },
+    {
+     "teammate": false,
+     "actor": false,
+     "keeper": false,
+     "location": [
+      30,
+      40
+     ]
+    }
+   ]
+  },
+  {
+   "event_uuid": "b2",
+   "visible_area": [
+    0.0,
+    0.0,
+    120.0,
+    0.0,
+    120.0,
+    80.0,
+    0.0,
+    80.0,
+    0.0,
+    0.0
+   ],
+   "freeze_frame": [
+    {
+     "teammate": true,
+     "actor": true,
+     "keeper": false,
+     "location": [
+      90,
+      40
+     ]
+    },
+    {
+     "teammate": true,
+     "actor": false,
+     "keeper": false,
+     "location": [
+      100,
+      45
+     ]
+    },
+    {
+     "teammate": false,
+     "actor": false,
+     "keeper": false,
+     "location": [
+      95,
+      40
+     ]
+    },
+    {
+     "teammate": false,
+     "actor": false,
+     "keeper": true,
+     "location": [
+      112,
+      40
+     ]
+    }
+   ]
+  },
+  {
+   "event_uuid": "c1",
+   "visible_area": [
+    0.0,
+    0.0,
+    120.0,
+    0.0,
+    120.0,
+    80.0,
+    0.0,
+    80.0,
+    0.0,
+    0.0
+   ],
+   "freeze_frame": [
+    {
+     "teammate": true,
+     "actor": true,
+     "keeper": false,
+     "location": [
+      6,
+      40
+     ]
+    },
+    {
+     "teammate": true,
+     "actor": false,
+     "keeper": false,
+     "location": [
+      15,
+      20
+     ]
+    },
+    {
+     "teammate": true,
+     "actor": false,
+     "keeper": false,
+     "location": [
+      20,
+      60
+     ]
+    },
+    {
+     "teammate": false,
+     "actor": false,
+     "keeper": false,
+     "location": [
+      30,
+      40
+     ]
+    },
+    {
+     "teammate": false,
+     "actor": false,
+     "keeper": false,
+     "location": [
+      35,
+      20
+     ]
+    }
+   ]
+  }
+ ]
+}

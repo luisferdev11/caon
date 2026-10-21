@@ -1,11 +1,15 @@
-import sys
 import pathlib
+import sys
+
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 import unittest
 from unittest.mock import patch
+
 from fastapi.testclient import TestClient
-from app.main import app
 from targets import agg
+
+from app.main import app
 
 
 class APITests(unittest.TestCase):
@@ -28,6 +32,15 @@ class APITests(unittest.TestCase):
             self.assertEqual(model.status_code, 200)
             self.assertEqual(model.json()['entities'][0]['team'], 'América')
             self.assertEqual(client.get('/context_view.js').status_code, 200)
+
+    def test_real_model_is_slim_once_split(self):
+        path = pathlib.Path(__file__).resolve().parents[1] / 'model' / 'model.json'
+        with TestClient(app) as client:
+            model = client.get('/api/model').json()
+        if 'window' not in model['entities'][0]:
+            self.skipTest('model.json aún no está dividido (falta correr pipeline/run.py build)')
+        self.assertLessEqual(path.stat().st_size, 4 * 1024 * 1024)
+        self.assertNotIn('personnel', model['entities'][0])
 
     def test_empty_targets_and_nonfinite_data(self):
         self.assertIsNone(agg([])['goals'])

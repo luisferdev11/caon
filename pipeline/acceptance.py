@@ -142,7 +142,7 @@ def entity(model: dict | None, eid: str) -> dict | None:
 # ---------------------------------------------------------------- baseline (AC-05 input, extract regression)
 LABEL_JS = r"""
 const fs = require('fs'), vm = require('vm');
-const html = fs.readFileSync(process.argv[1] + '/frontend/index.html', 'utf8');
+const html = fs.readFileSync(process.argv[1] + '/frontend/lab.html', 'utf8');
 const js = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(x => x[1]).join('\n');
 const cut = (a, b) => js.slice(js.indexOf(a), js.indexOf(b, js.indexOf(a)));
 const code = cut('  function fcLabels(', '  /* ---------- selector') + cut('  const MAPS = {', '  function renderMap(');
@@ -158,7 +158,7 @@ process.stdout.write(JSON.stringify(c.rows));
 
 
 def frontend_label_rows(root: Path) -> list[dict]:
-    """Evaluate the current inline label functions of frontend/index.html for every entity and map unit."""
+    """Evaluate the current inline label functions of frontend/lab.html for every entity and map unit."""
     proc = subprocess.run(['node', '-e', LABEL_JS, str(root)], capture_output=True, text=True, check=True)
     return json.loads(proc.stdout)
 
@@ -167,7 +167,7 @@ def write_baseline(root: Path) -> None:
     out = root / 'data' / 'out' / 'baseline'
     rows = frontend_label_rows(root)
     found = [c for r in rows for c in label_contradictions(r)]
-    dump = {'fuente': 'frontend/index.html fcLabels/tags/quadName', 'filas': rows, 'contradicciones': found}
+    dump = {'fuente': 'frontend/lab.html fcLabels/tags/quadName', 'filas': rows, 'contradicciones': found}
     (out / 'label_contradictions.json').write_text(json.dumps(dump, ensure_ascii=False, allow_nan=False, indent=1), encoding='utf-8')
     hashes = {f.name: extract_digest(json.loads(f.read_text(encoding='utf-8')))
               for f in sorted((root / 'data' / 'extract').glob('mx_*.json'))}

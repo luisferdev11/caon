@@ -18,10 +18,10 @@ git clone https://github.com/luisferdev11/caon.git
 cd caon
 python3 -m venv .venv && source .venv/bin/activate   # en Windows: .venv\Scripts\activate
 pip install -r requirements.txt
-uvicorn app.main:app --reload
+uvicorn app.main:app --port 8010
 ```
 
-Abre http://127.0.0.1:8000. La API está documentada en http://127.0.0.1:8000/docs.
+Abre http://127.0.0.1:8010 (portal) o http://127.0.0.1:8010/lab.html (laboratorio). La API está documentada en http://127.0.0.1:8010/docs.
 
 ## Estructura
 
@@ -62,7 +62,7 @@ StatsBomb API / Open Data → data/cache → pipeline/extract.py → data/extrac
 ```bash
 python pipeline/run.py download   # baja eventos, alineaciones y estadísticas (~2.7 GB, con caché)
 python pipeline/run.py extract    # resume cada partido (~10 s)
-python pipeline/run.py build      # construye y valida model/model.json (incluye jugadores y contextos)
+python pipeline/run.py build      # model/model.json ligero + model/entities/ + model/analysis/ (CAON_LEAGUE_SCOPE=legacy: liga anterior)
 python pipeline/check_model.py    # comprueba invariantes del modelo generado
 python pipeline/run.py validate   # compara la simulación con los datos reales (requiere Node 18+)
 python pipeline/run.py referee    # árbitro automático: revisa el reglamento (requiere Node 18+)

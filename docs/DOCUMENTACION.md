@@ -28,10 +28,12 @@ StatsBomb Open Data ─────┘   (crudo)      (etapa 1)      (por partid
 | `pipeline/entities.py` | Define las entidades equipo-entrenador-periodo y sus partidos. |
 | `pipeline/download.py`, `download_lineups.py`, `download_opendata.py` | Descarga eventos, alineaciones, estadísticas por partido y Open Data. |
 | `pipeline/extract.py` | **Etapa 1.** Resume cada partido en conteos (un JSON por partido en `data/extract/`). |
-| `pipeline/dangerous.py` | Extrae posesiones rivales que terminan en remate y conserva acciones/coordenadas observadas, con ranking de amenaza. |
-| `pipeline/build_model.py` | **Etapa 2.** Agrega por entidad, calcula estilo, calibra métricas, construye arquetipo, mapa y Top 5 de jugadas peligrosas → `model/model.json`. |
+| `pipeline/build_model.py` | **Etapa 2.** Agrega por entidad, calcula estilo, calibra métricas, construye arquetipo y mapa → `model/model.json` (ligero) + `model/entities/<id>.json` (detalle). |
+| `pipeline/model_split.py` | Divide el modelo: lo que usa el simulador queda en `model.json`; temporal, personal, contexto, cobertura y crudos van a `model/entities/<id>.json`. Define la ventana de cada entidad y el alcance de la referencia de liga (`CAON_LEAGUE_SCOPE`). |
+| `pipeline/build_analysis.py` | **Etapa 3.** Corre los módulos de `pipeline/analytics/` por entidad → `model/analysis/<id>.json` (≤ 400 KB c/u), `model/explorer.json`, `model/xg_grid.json`, y la auditoría de coherencia si existe. |
+| `pipeline/framework.py` | Marco analítico: constantes con nombre y registro `DEFINITIONS` (lo sirve `/api/framework`). |
 | `frontend/engine.js` | Motor: parámetros, cruce, simulación, coreografía. El mismo archivo corre en el navegador y en Node. |
-| `frontend/index.html` | Interfaz. |
+| `frontend/index.html`, `frontend/lab.html` | Portal (historia, explorador, partidos) y laboratorio de simulación. |
 | `pipeline/validate.js`, `targets.py` | Validación contra estadísticas reales. |
 | `pipeline/referee.js` | Árbitro automático (reglamento). |
 | `pipeline/metric_lab.py`, `clusters.py` | Laboratorio de métricas y exploración de agrupamiento. |
@@ -60,7 +62,7 @@ Volumen descargado: 1,799 partidos con estadísticas, 568 con eventos completos 
 `https://raw.githubusercontent.com/statsbomb/open-data/master/data/` · La Liga (competición 11) temporadas 21 (2009/10) y 22 (2010/11): 68 partidos del Barcelona con eventos y alineaciones (`data/opendata/`). Licencia abierta con atribución. No trae estadísticas agregadas, por eso su estilo se calcula desde eventos (sección 7.5).
 
 ### 2.3 Uso de datos
-Las bases dicen que los datos solo se usan para la competencia y se pueden presentar resultados, no datos. Por eso `model.json` contiene **agregados** y secuencias compactas seleccionadas (conteos, tasas por zona, percentiles, posiciones medias y eventos relevantes de las cinco jugadas peligrosas); no se exponen los eventos crudos completos. `data/` y `.env` están en `.gitignore`.
+Las bases dicen que los datos solo se usan para la competencia y se pueden presentar resultados, no datos. Por eso `model.json` contiene **agregados** y secuencias compactas seleccionadas (conteos, tasas por zona, percentiles, posiciones medias ); no se exponen los eventos crudos completos. `data/` y `.env` están en `.gitignore`.
 
 ---
 
@@ -201,21 +203,18 @@ Para cada equipo-entrenador-temporada de la liga con ≥8 partidos (159 puntos) 
 - **Trayectoria**: puntos por temporada del mismo entrenador en el mismo club.
 - **Estilos más parecidos**: los 3 equipo-temporada más cercanos en las 4 coordenadas, sin contar al propio entrenador.
 
-### 7.8 Salida: `model.json` (≈480 KB)
-`meta` (etiquetas, calibración, K), `league` (conteos de la liga), `map.units` (puntos del mapa) y `entities[]` con: `id`, `label`, `kind` (real/opendata/synthetic), `n`, fechas, `formation`, `style` (percentiles), `shape` (once con dorsal, nombre, posición con/sin balón), `actors`, `roles`, `att`, `dfn`, `dangerous_plays`, `map`.
+### 7.8 Salida: `model/` dividido
+- `model/model.json` (≤ 4 MB, lo descarga el simulador vía `/api/model`): `meta` (etiquetas, calibración, K, `league_scope`), `league` (conteos de la liga), `map.units` (puntos del mapa) y `entities[]` con `id`, `label`, `team`, `coach`, `group`, `kind` (real/opendata/synthetic), `n`, fechas, `official`, `window`, `formation`, `style` (percentiles), `style_status`, `shape`, `actors`, `roles`, `att`, `dfn`, `map`, `note` e `identity` (cuando existe el motor de etiquetas).
+- `model/entities/<id>.json`: `temporal`, `personnel`, `context`, `context_comparisons`, `context_status`, `coverage`, `raw`. Las rutas `/api/teams/{id}`, `/context`, `/temporal`, `/personnel`, `/lineups` y `/substitutions` los unen al vuelo.
+- `model/analysis/<id>.json`: analítica por entidad (un tema por módulo registrado en `pipeline/analytics/`, p. ej. `replay`), con `meta.windows` (partidos por ventana) y `meta.advertencias` si algún tema se omitió por tamaño.
+- `model/explorer.json`, `model/xg_grid.json`, `model/story/<nombre>.json`.
 
-### 7.9 Jugadas peligrosas rivales
-`pipeline/dangerous.py` analiza cada posesión de StatsBomb del rival que termina en `Shot` contra la entidad. Conserva los eventos relevantes de la misma posesión (`Pass`, `Carry`, `Dribble`, `Shot` y acciones defensivas registradas), sus coordenadas, jugadores, minuto, rival, marcador, xG y resultado. No reconstruye posiciones ausentes, no interpola trayectorias y no usa datos 360 en esta versión.
+**Ventana** (`window`): `oficial` si todos los partidos son ≤ 2025-06-30 (Ap2021–Cl2025); `epilogo` para Jardine 2025/26 (`ame_jardine_epi`); `temprano` para el resto de Liga MX (p. ej. Almada en América); `null` para Open Data y arquetipos. `ame_jardine` (91 partidos) es oficial; `ame_jardine_epi` (38) no.
 
-La puntuación configurable es:
+**Referencia de liga**: `model.league` suma todos los partidos de todas las entidades. Al agregar las entidades de *Comparación* (Pachuca, Santos y San Luis de Almada/Jardine, América de Solari/Ortiz) esa referencia cambia y la simulación puede derivar aunque `engine.js` no cambie. `CAON_LEAGUE_SCOPE=legacy python pipeline/run.py build` restaura el conjunto anterior (excluye los partidos que solo aportan esas entidades).
 
-```text
-danger_score = 100 × gol + 10 × xG + min(max(x_del_remate − 80, 0), 40)
-```
-
-El primer término garantiza que cualquier gol queda antes que un remate sin gol. Después se prioriza el valor xG y, finalmente, la cercanía horizontal del remate a la portería (StatsBomb usa 120 × 80). Es una ordenación de amenaza, no una probabilidad de gol. La interfaz muestra como hechos los eventos y coordenadas registrados; cualquier lectura táctica se limita a conteos del Top 5 y se marca como insuficiente cuando no hay muestras.
-
-La API `GET /api/teams/{id}/dangerous-plays` devuelve el Top 5 compacto y el criterio. La sección `Jugadas peligrosas` de la página permite seleccionar cada secuencia, ver pases/conducciones/remate sobre una cancha 2D y consultar el contexto defensivo observado (presiones, duelos, intercepciones y recuperaciones). Si faltan eventos o hay menos de cinco remates, se muestran solo los disponibles.
+### 7.9 API
+`/api/health`, `/api/model`, `/api/teams[/{id}[/context|temporal|personnel|lineups|substitutions]]`, `/api/framework`, `/api/entities`, `/api/entities/{id}/analysis`, `/api/explorer/{teams|coaches}`, `/api/explorer/{team|coach}/{clave}`, `/api/story/{nombre}`, `/api/replay/{id}`, `/api/matches/{id}` y, si está instalado, el laboratorio de jugadas por texto (`/api/play/*`). Los errores 404 llevan mensaje en español; los archivos se releen cuando cambia su fecha. Las jugadas peligrosas en contra se reconstruirán con implementación propia en `pipeline/analytics/` (el módulo anterior `dangerous.py` venía de un trabajo descartado y no se usa).
 
 ---
 

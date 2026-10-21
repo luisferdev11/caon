@@ -166,4 +166,17 @@ La "ventana oficial" es hasta el 30 de junio de 2025 (Apertura 2021 a Clausura 2
 
 ## Después
 
-⏳ Pendiente: la escribe el agente de cierre con las mismas pruebas tras la reconstrucción final.
+### Después (G1) — 21 oct 2026, 07:31
+
+Reconstrucción con `build_model` (alcance de liga: todas las entidades, 748 partidos `mx_`; antes 442) y modelo dividido (`model.json` 1.16 MB + `model/entities/`).
+
+| Prueba | Antes | Después (G1) |
+|---|---|---|
+| Prueba dorada del motor (`test_golden_engine.js`) | pasa | pasa (2/2); `engine.js` sin cambios contra `main` |
+| `check_model.py` | 0 errores | 0 errores, 1 advertencia (barca_guardiola sin 3 métricas de estilo) |
+| `validate.js 100` | — | 31 evaluadas, 25 correctas, 6 advertencias (referencia real ausente en entidades nuevas), 0 errores |
+| `referee.js 2` | — | 478,429 revisiones, 0 infracciones |
+| América · Jardine (Tricampeonato) | n=70, sim 1.56–1.11 goles | n=91, sim 1.56–1.17 goles, xG 1.52–1.10, posesión 55% |
+| Auditoría de coherencia | — | 0 conflictos en 58 payloads |
+
+Advertencias: (1) los 442 extractos `mx_` antiguos difieren de los hashes de la línea base porque se regeneraron con `extract_version` 2 (ver `data/out/requests/A1.md`); la salida actual es reproducible. (2) `model.league` ahora incluye partidos de las entidades de Comparación; `CAON_LEAGUE_SCOPE=legacy` permite comparar con el alcance anterior (no se ejecutó en G1). (3) La descarga P5–P6 seguía en curso.

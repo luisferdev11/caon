@@ -9,6 +9,26 @@ import sys
 from pathlib import Path
 
 MODEL = Path(__file__).resolve().parents[1] / 'model' / 'model.json'
+MODEL_SIZE_LIMIT = 4 * 1024 * 1024  # /api/model debe pesar <= 4 MB (AC-16)
+
+
+def load_full_model(path):
+    """Lee model.json y le une los detalles de model/entities/<id>.json cuando existen."""
+    model = json.loads(path.read_text(encoding='utf-8'))
+    folder = path.parent / 'entities'
+    for entity in model.get('entities') or []:
+        detail_path = folder / f"{entity.get('id')}.json" if isinstance(entity, dict) else None
+        if detail_path is not None and detail_path.exists():
+            detail = json.loads(detail_path.read_text(encoding='utf-8'))
+            for key, value in detail.items():
+                entity.setdefault(key, value)
+    return model
+
+
+def size_errors(path, limit=MODEL_SIZE_LIMIT):
+    """Errores de tamaño del modelo ligero."""
+    size = path.stat().st_size
+    return [f'model.json pesa {size} bytes (> {limit})'] if size > limit else []
 
 
 def _finite(value):
@@ -144,11 +164,12 @@ def main():
         print(f'ERROR: no existe {MODEL}')
         return 1
     try:
-        model = json.loads(MODEL.read_text(encoding='utf-8'))
+        model = load_full_model(MODEL)
     except (OSError, UnicodeError, json.JSONDecodeError) as exc:
         print(f'ERROR: no se pudo leer model.json: {exc}')
         return 1
     errors, warnings = validate(model)
+    errors += size_errors(MODEL)
     print(f'entidades: {len(model.get("entities", []))}')
     print(f'advertencias: {len(warnings)}')
     print(f'errores: {len(errors)}')

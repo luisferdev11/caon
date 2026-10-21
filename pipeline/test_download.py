@@ -169,13 +169,20 @@ class TestStubs(unittest.TestCase):
             ext.mkdir()
             bad = {'status': 'invalid', 'reason': 'FileNotFoundError: x', 'extract_version': 2}
             (ext / 'mx_1.json').write_text(json.dumps(bad))
-            (ext / 'mx_2.json').write_text(json.dumps(bad))
+            (ext / 'mx_2.json').write_text(json.dumps({'status': 'invalid', 'reason': 'OSError: y'}))
             (cache / 'v8_events_2.json').write_text('[]')
             (cache / 'v4_lineups_2.json').write_text('[]')
             (ext / 'mx_3.json').write_text(json.dumps({'extract_version': 2, 'teams': {}}))
             (ext / 'od_4.json').write_text(json.dumps(bad))
+            (ext / 'mx_5.json').write_text(json.dumps(bad))
+            (cache / 'v8_events_5.json').write_text('[]')
+            (cache / 'v4_lineups_5.json').write_text('[]')
+            other = {'status': 'invalid', 'reason': 'KeyError: x', 'extract_version': 2}
+            (ext / 'mx_6.json').write_text(json.dumps(other))
+            (cache / 'v8_events_6.json').write_text('[]')
+            (cache / 'v4_lineups_6.json').write_text('[]')
             got = A.stale_stubs(ext, cache)
-        self.assertEqual([p.name for p in got], ['mx_1.json'])
+        self.assertEqual([p.name for p in got], ['mx_1.json', 'mx_5.json'])
 
 
 if __name__ == '__main__':
