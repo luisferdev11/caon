@@ -19,7 +19,8 @@ ADMIN = {'Foul Committed', 'Foul Won', 'Bad Behaviour', 'Injury Stoppage', 'Subs
 ORIGIN_BY_PATTERN = {'From Goal Kick': 'gk', 'From Throw In': 'throw', 'From Free Kick': 'fk',
                      'From Corner': 'corner', 'From Kick Off': 'kickoff', 'From Keeper': 'keeper'}
 OPEN_PATTERNS = {'Regular Play', 'From Counter'}
-LOSS_BY_PATTERN = {'From Throw In': 'lossXT', 'From Goal Kick': 'lossXG', 'From Free Kick': 'lossXF'}
+LOSS_OPEN_PATTERNS = {'Regular Play', 'From Counter', 'From Keeper'}  # = extract.OPEN_RESTARTS
+LOSS_BY_PATTERN = {'From Throw In': 'lossXT', 'From Goal Kick': 'lossXG'}  # resto de balón muerto: lossXF
 SP_KIND = {'From Corner': 'corner', 'From Free Kick': 'fk', 'From Throw In': 'throw'}
 REGAIN_TYPES = {'Ball Recovery', 'Interception'}
 FAILED = {'Incomplete', 'Out', 'Unknown', 'Pass Offside', 'Lost', 'Lost In Play', 'Lost Out', 'Fail'}
@@ -61,6 +62,15 @@ def _is_prog(e: Event) -> bool:
     return x0 >= fw.PROG_MIN_START_X and gain >= fw.PROG_MIN_YARDS and gain >= fw.PROG_MIN_REDUCTION * d0
 
 
+def _reach(e: Event) -> Optional[list[float]]:
+    """Destino de un pase o conducción completados (None si falló o no es pase/conducción)."""
+    kind = e['type']['name'].lower()
+    body = e.get(kind) or {}
+    if kind not in ('pass', 'carry') or not body.get('end_location'):
+        return None
+    return None if (body.get('outcome') or {}).get('name') in FAILED else body['end_location']
+
+
 def _shot(e: Event) -> dict[str, Any]:
     s = e['shot']
     return {'id': e['id'], 'x': e['location'][0], 'y': e['location'][1], 'xg': s.get('statsbomb_xg') or 0.0,
@@ -86,11 +96,13 @@ def _origin(pe: list[Event], tid: int, prev_team: Optional[int]) -> dict[str, An
 
 
 def _loss(last: Event, nxt: Optional[list[Event]]) -> Optional[dict[str, Any]]:
-    """Registro de pérdida si la siguiente posesión no administrativa es rival."""
-    if nxt is None or nxt[0]['possession_team']['id'] == last['team']['id']:
+    """Registro de pérdida si la siguiente posesión no administrativa es rival (como extract: tras tiro no hay)."""
+    if nxt is None or nxt[0]['possession_team']['id'] == last['team']['id'] or last['type']['name'] == 'Shot':
         return None
     body = last.get('pass') or {}
-    return {'kind': LOSS_BY_PATTERN.get(nxt[0]['play_pattern']['name'], 'lossO'),
+    pattern = nxt[0]['play_pattern']['name']
+    kind = 'lossO' if pattern in LOSS_OPEN_PATTERNS else LOSS_BY_PATTERN.get(pattern, 'lossXF')
+    return {'kind': kind,
             'xpass': body.get('pass_success_probability'), 'under_pressure': bool(last.get('under_pressure')),
             'player': (last.get('player') or {}).get('id'), 'event_id': last['id'], 'type': last['type']['name'],
             'costly': False, 'lethal': False}
@@ -105,8 +117,8 @@ def _record(pe: list[Event], ctx: dict[str, Any], nxt: Optional[list[Event]]) ->
     origin = _origin(pe, tid, ctx['prev_team'])
     transition = origin['type'] == 'regain_open'
     first_shot_t = next((ts(e) for e in ob if e['type']['name'] == 'Shot'), None)
-    max_x = max(max(e['location'][0], ((e.get(e['type']['name'].lower()) or {}).get('end_location') or [0])[0])
-                for e in ob)
+    reach = [r for r in (_reach(e) for e in ob) if r]
+    max_x = max([e['location'][0] for e in ob] + [r[0] for r in reach])
     loss = _loss(ob[-1], nxt)
     end_type = 'shot' if ob[-1]['type']['name'] == 'Shot' else ('loss' if loss else 'fin')
     pattern = pe[0]['play_pattern']['name']
@@ -122,8 +134,7 @@ def _record(pe: list[Event], ctx: dict[str, Any], nxt: Optional[list[Event]]) ->
         'obv': round(sum(e.get('obv_total_net') or 0.0 for e in pe if e['team']['id'] == tid), 4),
         'n_passes': sum(e['type']['name'] == 'Pass' for e in ob), 'n_prog': sum(_is_prog(e) for e in ob),
         'n_final_third': sum(e['location'][0] >= fw.THIRD_FINAL_MIN_X for e in ob), 'max_x': max_x,
-        'box_entry': any(fw.in_box((e.get('pass') or e.get('carry') or {}).get('end_location') or e['location'])
-                         for e in ob) or bool(shots),
+        'box_entry': any(fw.in_box(r) for r in reach) or any(fw.in_box(e['location']) for e in ob) or bool(shots),
         'transition': transition,
         'counter': bool(transition and origin['loc'] and origin['loc'][0] < fw.REC_CAMPO_RIVAL_X
                         and first_shot_t is not None and first_shot_t - t0 <= fw.OUTCOME_WINDOW_S),
@@ -153,8 +164,11 @@ def _goals_in(pe: list[Event]) -> list[int]:
 
 
 def build_possessions(events: list[Event], metadata: dict[str, Any]) -> dict[str, Any]:
-    """Posesiones del contrato + listas ligeras de eventos (presiones, robos, pérdidas, cambios)."""
-    evs = sorted(events, key=lambda e: e['index'])
+    """Posesiones del contrato + listas ligeras de eventos (presiones, robos, pérdidas, cambios).
+
+    La tanda de penales (``period`` ≥ SHOOTOUT_PERIOD) queda fuera de todo análisis.
+    """
+    evs = sorted((e for e in events if e.get('period', 1) < fw.SHOOTOUT_PERIOD), key=lambda e: e['index'])
     groups = [list(g) for _, g in groupby(evs, key=lambda e: (e['period'], e['possession']))]
     live = [g for g in groups if _onball(g, g[0]['possession_team']['id'])]
     ctx = {'home': (metadata.get('home_team') or {}).get('home_team_id'), 'goals': {}, 'prev_team': None}

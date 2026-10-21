@@ -1,44 +1,174 @@
-/* Explorador: rendimiento por equipo y por DT con valores encogidos al prior, intervalo 80% y confianza. */
-const KINDS = { equipos: { path: '/api/explorer/teams', title: 'Por equipo' }, dts: { path: '/api/explorer/coaches', title: 'Por entrenador' } };
+/* Explorador: rendimiento por equipo y por DT con valores encogidos hacia su referencia previa (prior),
+   intervalo al 80% y confianza. Aficionado: identidad en palabras y ≤3 números por tarjeta.
+   DT: tabla completa (valor ajustado, intervalo, bruto, prior, percentil) y percentiles contra la liga.
+   Rutas: #explorador/{equipos|dts}[/<clave>] y el alias #equipo/<clave>. Los datos vienen de /api/explorer/*. */
+import { filterUnits, identityChips, metricRows, seasonsOf, traits, unitsOf } from '../js/explorer_data.js';
+import { windowBadge } from '../js/cards.js';
+import { dotPlot } from '../js/charts.js';
 
-/** Normaliza la respuesta (lista o {items|teams|coaches}) a una lista de unidades. */
-export function unitsOf(payload) {
-  if (Array.isArray(payload)) return payload;
-  if (!payload || typeof payload !== 'object') return [];
-  return payload.items || payload.teams || payload.coaches || [];
+const KINDS = {
+  equipos: { list: '/api/explorer/teams', detail: '/api/explorer/team/', title: 'Por equipo', noun: 'equipo', plural: 'equipos',
+    related: 'Entrenadores', seasons: 'Detalle por temporada', back: '← Todos los equipos' },
+  dts: { list: '/api/explorer/coaches', detail: '/api/explorer/coach/', title: 'Por entrenador', noun: 'entrenador', plural: 'entrenadores',
+    related: 'Clubes', seasons: 'Detalle por equipo y etapa', back: '← Todos los entrenadores' },
+};
+const LIST_DT_METRICS = ['xg', 'xga', 'posesion', 'presion']; // tabla corta de la tarjeta de lista (modo DT)
+const FAN_TRAITS = 2;
+
+/** {kind, key} desde los parámetros: #explorador/dts/<clave>, #explorador/equipos, alias #equipo/<clave>. */
+export function routeOf(params) {
+  const [a, b] = params || [];
+  if (KINDS[a]) return { kind: a, key: b || null };
+  return { kind: 'equipos', key: a || null };
 }
-function metricsOf(u) {
-  const m = u.metrics || [];
-  return Array.isArray(m) ? m : Object.entries(m).map(([id, v]) => ({ id, ...(typeof v === 'object' ? v : { value: v }) }));
-}
-function card(u, kind, ctx) {
+
+const hrefOf = (kind, key) => `#explorador/${kind}${key ? '/' + encodeURIComponent(key) : ''}`;
+
+function badgesHTML(u, ctx) {
   const { fmt } = ctx;
-  const key = u.key || u.id || '';
-  const name = u.label || u.name || key;
-  const small = u.small_sample || (Number.isFinite(u.n) && u.n < 10);
-  const metrics = metricsOf(u).slice(0, ctx.mode === 'dt' ? 8 : 3);
-  const rows = metrics.map((m) => `<tr><th>${fmt.esc(m.nombre || m.label || m.id)}</th>
-    <td class="num">${fmt.num(m.shrunk ?? m.value)}</td>
-    ${ctx.mode === 'dt' ? `<td class="num muted">${fmt.interval(m.ci || m.interval)}</td><td class="num muted">${fmt.num(m.raw)}</td>` : ''}</tr>`).join('');
-  const head = ctx.mode === 'dt' ? '<tr><th>Métrica</th><th>Valor ajustado</th><th>Intervalo 80%</th><th>Crudo</th></tr>' : '';
-  const link = kind === 'dts' ? `<a href="#dt/${encodeURIComponent(key)}">Ver ficha del DT →</a>` : `<a href="#equipo/${encodeURIComponent(key)}">Ver equipo →</a>`;
-  const identity = u.identity ? `<p>${fmt.esc([u.identity.build, u.identity.defense, u.identity.attack].filter(Boolean).join(' · '))}</p>` : '';
-  return `<article class="card${small ? ' small' : ''}"><header><h3>${fmt.esc(name)}</h3>
-    <div class="badges"><span class="badge">${fmt.num(u.n, 0)} partidos</span>
-    <span class="badge">${fmt.confidence(u.confidence)}</span>${small ? '<span class="badge warn">Muestra pequeña</span>' : ''}</div></header>
-    ${identity}${rows ? `<table class="kv">${head}${rows}</table>` : '<p class="muted">Sin métricas publicadas todavía.</p>'}
-    <p class="caption">Valores ajustados hacia su referencia previa (prior) para no exagerar muestras chicas.</p>${link}</article>`;
+  const out = [];
+  if (Number.isFinite(u.n)) out.push(`<span class="badge">${fmt.num(u.n, 0)} partidos</span>`);
+  if (u.confidence) out.push(`<span class="badge">${fmt.confidence(u.confidence)}</span>`);
+  if (u.small) out.push('<span class="badge warn">Muestra pequeña</span>');
+  if (u.window && u.window !== 'oficial') out.push(windowBadge(u.window, fmt));
+  return `<div class="badges">${out.join('')}</div>`;
 }
-export async function render(root, ctx) {
-  const kind = ctx.params && ctx.params[0] === 'dts' ? 'dts' : 'equipos';
-  const tabs = Object.entries(KINDS).map(([k, v]) => `<a class="seg${k === kind ? ' on' : ''}" href="#explorador/${k}">${v.title}</a>`).join('');
-  root.innerHTML = `<section class="view"><header class="vhead"><h2>Explorador: ¿cómo rinde cada ${kind === 'dts' ? 'entrenador' : 'equipo'}?</h2>
-    <p>Todos los equipos y DTs de la liga con la misma regla de identidad que la historia. Con pocos partidos el valor se acerca a su referencia previa.</p>
-    <nav class="segs">${tabs}</nav></header><div class="grid" id="exp-list"><p class="muted">Cargando…</p></div></section>`;
+
+function chipsHTML(identity, ctx, withTags) {
+  const { fmt } = ctx;
+  const chips = identityChips(identity).map((t) => `<span class="chip info">${fmt.esc(t)}</span>`);
+  const tags = withTags && identity && Array.isArray(identity.tags) ? identity.tags.map((t) => `<span class="tag">${fmt.esc(t)}</span>`) : [];
+  if (!chips.length && !tags.length) return '';
+  return `${chips.length ? `<div class="chips">${chips.join('')}</div>` : ''}${tags.length ? `<div class="tags">${tags.join('')}</div>` : ''}`;
+}
+
+function traitsHTML(unit, ctx, k = FAN_TRAITS) {
+  const list = traits(unit, k);
+  if (!list.length) return '';
+  return `<ul class="traits">${list.map((t) => `<li>${ctx.fmt.esc(t.text)}</li>`).join('')}</ul>`;
+}
+
+function valueCell(r, fmt) {
+  if (r.value === null) return `<td class="muted" colspan="3">Sin dato${r.motivo ? ': ' + fmt.esc(r.motivo) : ''}</td>`;
+  return `<td class="num"><strong>${fmt.metricValue(r.rec)}</strong></td><td class="num">${fmt.ciByUnit(r.ci, r.unit)}</td>` +
+    `<td class="num">${fmt.metricValue(r.rec, r.rec.bruto !== undefined ? 'bruto' : 'raw')}</td>`;
+}
+
+/** Tabla DT: métrica (enlace a Método), valor ajustado, intervalo 80%, bruto, percentil y unidad. */
+function metricsTable(rows, ctx) {
+  const { fmt } = ctx;
+  if (!rows.length) return '';
+  const body = rows.map((r) => `<tr><th scope="row"><a href="#metodo/${encodeURIComponent(r.fid)}">${fmt.esc(r.label)}</a></th>${valueCell(r, fmt)}` +
+    `<td class="num">${r.pct === null ? fmt.NA : fmt.percentile(r.pct)}</td><td class="muted">${fmt.esc(fmt.unitText(r.unit))}</td></tr>`).join('');
+  return `<div class="scroll"><table class="table"><thead><tr><th>Métrica</th><th class="num">Valor ajustado</th><th class="num">Intervalo 80%</th>` +
+    `<th class="num">Bruto</th><th class="num">Percentil en la liga</th><th>Unidad</th></tr></thead><tbody>${body}</tbody></table></div>`;
+}
+
+function relatedHTML(u, kind, ctx) {
+  if (!u.related || !u.related.length) return '';
+  return `<p class="muted">${KINDS[kind].related}: ${ctx.fmt.esc(u.related.join(' · '))}</p>`;
+}
+
+function listCard(u, kind, ctx) {
+  const { fmt, mode } = ctx;
+  const rows = metricRows(u);
+  const hasData = rows.length || identityChips(u.identity).length;
+  const detail = mode === 'dt' ? metricsTable(rows.filter((r) => LIST_DT_METRICS.includes(r.id)), ctx) : traitsHTML(u, ctx);
+  const cls = ['card', u.small ? 'small' : '', u.window && u.window !== 'oficial' ? 'out' : ''].filter(Boolean).join(' ');
+  return `<article class="${cls}"><header><h3><a href="${hrefOf(kind, u.key)}">${fmt.esc(u.name)}</a></h3>${badgesHTML(u, ctx)}</header>
+    ${relatedHTML(u, kind, ctx)}${chipsHTML(u.identity, ctx, mode === 'dt')}${detail}
+    ${hasData ? '' : '<p class="muted">Abre la ficha para ver su detalle por temporada.</p>'}
+    <p><a class="btn sm" href="${hrefOf(kind, u.key)}">Ver ficha →</a></p></article>`;
+}
+
+function headHTML(kind, title, lead) {
+  const nav = Object.entries(KINDS).map(([k, v]) => `<a href="${hrefOf(k)}"${k === kind ? ' aria-current="page"' : ''}>${v.title}</a>`).join('');
+  return `<header class="section-head vhead"><div><div class="eyebrow">Explorador · Liga MX</div><h2>${title}</h2><p>${lead}</p></div>
+    <nav class="segmented" aria-label="Tipo de unidad">${nav}</nav></header>`;
+}
+
+const EMPTY = '<div class="empty card"><h3>Datos en construcción</h3><p>El explorador se publica cuando termine el cálculo de la liga.</p></div>';
+
+async function renderList(root, ctx, kind) {
+  const k = KINDS[kind];
+  root.innerHTML = `<section class="view">${headHTML(kind, `¿Cómo juega y rinde cada ${k.noun}?`,
+    'Todos los equipos y DTs con la misma regla de identidad que la historia. Con pocos partidos, el valor se acerca a su referencia previa (su carrera o la liga) para no exagerar.')}
+    <div class="toolbar"><input class="input search" type="search" placeholder="Buscar ${k.noun}…" aria-label="Buscar ${k.noun}">
+    <button type="button" class="btn sm" id="exp-small" aria-pressed="false">Ocultar muestras pequeñas</button></div>
+    <p class="muted" id="exp-count"></p><div class="grid" id="exp-list"><p class="muted">Cargando…</p></div></section>`;
   const list = root.querySelector('#exp-list');
   let payload = null;
-  try { payload = await ctx.api.tryJSON(KINDS[kind].path); } catch (e) { payload = null; }
+  try { payload = await ctx.api.tryJSON(k.list); } catch (e) { payload = null; }
   const units = unitsOf(payload);
-  if (!units.length) { list.innerHTML = '<div class="empty card"><h3>Datos en construcción</h3><p>El explorador se publica cuando termine el cálculo de la liga.</p></div>'; return; }
-  list.innerHTML = units.map((u) => card(u, kind, ctx)).join('');
+  if (!units.length) { list.innerHTML = EMPTY; return; }
+  const state = { q: '', hideSmall: false };
+  const paint = () => {
+    const shown = filterUnits(units, state.q).filter((u) => !state.hideSmall || !u.small);
+    root.querySelector('#exp-count').textContent = `${ctx.fmt.num(shown.length, 0)} de ${ctx.fmt.num(units.length, 0)} ${k.plural}, ordenados por partidos.`;
+    list.innerHTML = shown.length ? shown.map((u) => listCard(u, kind, ctx)).join('') : '<p class="muted">Ningún resultado con ese filtro.</p>';
+  };
+  paint();
+  root.querySelector('.search').addEventListener('input', (ev) => { state.q = ev.target.value; paint(); });
+  const toggle = root.querySelector('#exp-small');
+  toggle.addEventListener('click', () => { state.hideSmall = !state.hideSmall; toggle.setAttribute('aria-pressed', String(state.hideSmall)); paint(); });
+}
+
+function seasonCard(s, kind, ctx) {
+  const { fmt, mode } = ctx;
+  const who = kind === 'equipos' ? s.coach : '';
+  const sub = [who, mode === 'dt' && s.from ? `${fmt.date(s.from)} – ${fmt.date(s.to)}` : ''].filter(Boolean).join(' · ');
+  const dt = mode === 'dt' ? `${metricsTable(metricRows(s), ctx)}<p class="muted">${fmt.esc(fmt.prior(s.prior))}</p>` : traitsHTML(s, ctx);
+  const cls = ['card', s.small ? 'small' : '', s.window && s.window !== 'oficial' ? 'out' : ''].filter(Boolean).join(' ');
+  return `<article class="${cls}"><header><h3>${fmt.esc(s.label || 'Temporada')}</h3>${badgesHTML(s, ctx)}</header>
+    ${sub ? `<p class="muted">${fmt.esc(sub)}</p>` : ''}${chipsHTML(s.identity, ctx, mode === 'dt')}${dt}</article>`;
+}
+
+function summaryCard(u, kind, ctx) {
+  const { fmt, mode } = ctx;
+  const rows = metricRows(u);
+  const body = mode === 'dt'
+    ? `${metricsTable(rows, ctx)}${u.prior ? `<p class="muted">${fmt.esc(fmt.prior(u.prior))}</p>` : ''}`
+    : traitsHTML(u, ctx);
+  return `<article class="card protag"><header><h3>${fmt.esc(u.name)}</h3>${badgesHTML(u, ctx)}</header>
+    ${relatedHTML(u, kind, ctx)}${chipsHTML(u.identity, ctx, mode === 'dt')}${body}</article>`;
+}
+
+function percentilesFigure(u, ctx) {
+  const rows = metricRows(u).filter((r) => r.pct !== null).map((r) => ({ label: r.label, pct: r.pct }));
+  if (!rows.length) return '';
+  return `<div class="panel">${dotPlot({ title: `Dónde se separa ${u.name} del equipo típico`, unit: 'percentil en la liga (50 = típico)',
+    n: u.n, window: u.window || 'oficial' }, rows)}</div>`;
+}
+
+function detailHTML(detail, kind, ctx) {
+  const [u] = unitsOf([detail]);
+  const k = KINDS[kind];
+  const seasons = seasonsOf(detail);
+  const list = seasons.length
+    ? `<div class="grid">${seasons.map((s) => seasonCard(s, kind, ctx)).join('')}</div>`
+    : '<div class="card empty"><p>El detalle por temporada se publica cuando termine el cálculo del explorador.</p></div>';
+  return `<p><a class="btn sm ghost" href="${hrefOf(kind)}">${k.back}</a></p>
+    <p class="caption">Valores ajustados hacia su referencia previa con k = 8 partidos; intervalo central al 80%. Solo la ventana oficial entra en las conclusiones.</p>
+    ${summaryCard(u, kind, ctx)}
+    ${ctx.mode === 'dt' ? percentilesFigure(u, ctx) : ''}<h3 class="subhead">${k.seasons}</h3>${list}`;
+}
+
+async function renderDetail(root, ctx, kind, key) {
+  const k = KINDS[kind];
+  root.innerHTML = `<section class="view">${headHTML(kind, `Ficha del ${k.noun}`, 'Identidad, rendimiento ajustado por tamaño de muestra y su evolución por etapa.')}
+    <div id="exp-body"><p class="muted">Cargando…</p></div></section>`;
+  const body = root.querySelector('#exp-body');
+  let detail = null;
+  try { detail = await ctx.api.tryJSON(k.detail + encodeURIComponent(key)); } catch (e) { detail = null; }
+  if (!detail || typeof detail !== 'object') {
+    body.innerHTML = `<div class="empty card"><h3>No encontramos «${ctx.fmt.esc(key)}»</h3><p><a href="${hrefOf(kind)}">${k.back}</a></p></div>`;
+    return;
+  }
+  body.innerHTML = detailHTML(detail, kind, ctx);
+}
+
+export async function render(root, ctx) {
+  const { kind, key } = routeOf(ctx.params);
+  if (key) await renderDetail(root, ctx, kind, key);
+  else await renderList(root, ctx, kind);
 }

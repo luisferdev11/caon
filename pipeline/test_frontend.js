@@ -48,3 +48,22 @@ test('lab has no 3-decimal formatting nor moved context renderers', () => {
   const html = read('../frontend/lab.html');
   assert.doesNotMatch(html, /toFixed\(3\)|renderTemporal|renderPersonnel|ContextView/);
 });
+test('theme script: dark default, cycles auto → dark → light, persists and survives blocked storage', () => {
+  const src = read('../frontend/js/theme.js');
+  const mk = (store) => {
+    const attrs = {};
+    const el = { setAttribute: (k, v) => { attrs[k] = v; }, removeAttribute: (k) => { delete attrs[k]; } };
+    const win = { document: { documentElement: el }, localStorage: store, addEventListener() {} };
+    vm.runInNewContext(src, { window: win, globalThis: win });
+    return { t: win.caonTheme, attrs };
+  };
+  const mem = {}; const store = { getItem: (k) => (k in mem ? mem[k] : null), setItem: (k, v) => { mem[k] = v; } };
+  const { t, attrs } = mk(store);
+  assert.equal(t.read(), 'auto'); assert.equal(attrs['data-theme'], undefined, 'sin elección: oscuro por defecto vía tokens');
+  assert.equal(t.cycle(), 'dark'); assert.equal(attrs['data-theme'], 'dark'); assert.equal(mem['caon.theme'], 'dark');
+  assert.equal(t.cycle(), 'light'); assert.equal(attrs['data-theme'], 'light');
+  assert.equal(t.cycle(), 'auto'); assert.equal(attrs['data-theme'], undefined);
+  const broken = { getItem() { throw new Error('bloqueado'); }, setItem() { throw new Error('bloqueado'); } };
+  const b = mk(broken); assert.equal(b.t.read(), 'auto'); assert.equal(b.t.cycle(), 'dark');
+  for (const page of ['index.html', 'lab.html']) assert.match(read('../frontend/' + page), /<script src="(?:\/)?js\/theme\.js"><\/script>/, page);
+});

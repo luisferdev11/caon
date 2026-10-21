@@ -1,30 +1,43 @@
-/* Método: glosario del framework (/api/framework) con IDs, fórmula, alcance y límites. */
-export function definitionsOf(payload) {
-  if (!payload) return [];
-  const defs = payload.definitions || payload.DEFINITIONS || payload;
-  if (Array.isArray(defs)) return defs;
-  return Object.entries(defs).filter(([, v]) => v && typeof v === 'object').map(([id, v]) => ({ id, ...v }));
-}
-function item(d, ctx) {
+/* Método: glosario del framework (/api/framework) como entradas de referencia (no tarjetas de datos):
+   ID, definición, unidad, límites y, en modo DT, fórmula y fuente. #metodo/<id> pone esa definición primero y la resalta (enlaces «¿Cómo se mide?»). */
+import { definitionsOf } from '../js/glossary.js';
+
+export { definitionsOf };
+
+function item(d, ctx, focused) {
   const { fmt } = ctx;
   const extra = ctx.mode === 'dt'
-    ? `${d.formula ? `<dt>Fórmula</dt><dd><code>${fmt.esc(d.formula)}</code></dd>` : ''}${d.fuente ? `<dt>Fuente</dt><dd>${fmt.esc(d.fuente)}</dd>` : ''}`
+    ? `${d.formula ? `<dt>Fórmula</dt><dd><code>${fmt.esc(d.formula)}</code></dd>` : ''}${d.fuente ? `<dt>Fuente</dt><dd>${fmt.esc(fmt.source(d.fuente) || d.fuente)}</dd>` : ''}`
     : '';
-  return `<article class="card" id="def-${fmt.esc(d.id)}"><header><h3>${fmt.esc(d.nombre || d.id)}</h3><span class="badge mono">${fmt.esc(d.id)}</span></header>
-    <p>${fmt.esc(d.definicion || '')}</p><dl class="kv">${d.unidad ? `<dt>Unidad</dt><dd>${fmt.esc(d.unidad)}</dd>` : ''}
+  return `<article class="def${focused ? ' focus' : ''}" id="def-${fmt.esc(d.id)}"><header><h3>${fmt.esc(d.nombre || d.id)}</h3><code class="badge">${fmt.esc(d.id)}</code></header>
+    <p>${fmt.esc(d.definicion || '')}</p><dl class="defs">${d.unidad ? `<dt>Unidad</dt><dd>${fmt.esc(d.unidad)}</dd>` : ''}
     ${d.limites ? `<dt>Límites</dt><dd>${fmt.esc(d.limites)}</dd>` : ''}${extra}</dl></article>`;
 }
+
+/** Ordena con la definición pedida primero; devuelve {defs, found}. */
+export function focusFirst(defs, id) {
+  if (!id) return { defs, found: true };
+  const hit = defs.find((d) => d.id === id);
+  return hit ? { defs: [hit, ...defs.filter((d) => d !== hit)], found: true } : { defs, found: false };
+}
+
 export async function render(root, ctx) {
-  root.innerHTML = `<section class="view"><header class="vhead"><h2>Método: cómo medimos cada cosa</h2>
-    <p>Cada número del portal tiene un identificador que aparece aquí con su definición. Las conclusiones solo usan la ventana oficial de cada DT; lo demás lleva la insignia «Fuera de ventana oficial».</p>
-    <input class="search" type="search" placeholder="Buscar métrica…" aria-label="Buscar métrica"></header>
-    <div class="grid" id="defs"><p class="muted">Cargando…</p></div></section>`;
+  const focus = (ctx.params && ctx.params[0]) || '';
+  root.innerHTML = `<section class="view"><header class="section-head vhead"><div><div class="eyebrow">Método</div><h2>Cómo medimos cada cosa</h2>
+    <p>Cada número del portal tiene un identificador que aparece aquí con su definición. Las conclusiones solo usan la ventana oficial de cada DT; lo demás lleva la insignia «Fuera de ventana oficial».</p></div></header>
+    <div class="toolbar"><input class="input search" type="search" placeholder="Buscar métrica…" aria-label="Buscar métrica"></div>
+    <div class="deflist" id="defs"><p class="muted">Cargando…</p></div></section>`;
   const box = root.querySelector('#defs');
   let payload = null;
   try { payload = await ctx.api.tryJSON('/api/framework'); } catch (e) { payload = null; }
-  const defs = definitionsOf(payload);
-  if (!defs.length) { box.innerHTML = '<div class="empty card"><h3>Glosario en construcción</h3><p>El registro de definiciones aún no está publicado.</p></div>'; return; }
-  const paint = (q) => { box.innerHTML = defs.filter((d) => !q || JSON.stringify(d).toLowerCase().includes(q)).map((d) => item(d, ctx)).join(''); };
+  const all = definitionsOf(payload);
+  if (!all.length) { box.innerHTML = '<div class="empty card"><h3>Glosario en construcción</h3><p>El registro de definiciones aún no está publicado.</p></div>'; return; }
+  const { defs, found } = focusFirst(all, focus);
+  const note = found ? '' : `<div class="card empty"><p>No hay una definición publicada con el identificador «${ctx.fmt.esc(focus)}». Usa el buscador.</p></div>`;
+  const paint = (q) => {
+    const shown = defs.filter((d) => !q || JSON.stringify(d).toLowerCase().includes(q));
+    box.innerHTML = (q ? '' : note) + (shown.length ? shown.map((d) => item(d, ctx, found && d.id === focus)).join('') : '<p class="muted">Ninguna definición coincide.</p>');
+  };
   paint('');
   root.querySelector('.search').addEventListener('input', (ev) => paint(ev.target.value.trim().toLowerCase()));
 }

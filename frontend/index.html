@@ -4,24 +4,35 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Vestidor Táctico</title>
+<script src="js/theme.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;600;700&display=swap">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=Barlow:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/components.css">
+<link rel="stylesheet" href="css/pitch.css">
 <link rel="stylesheet" href="css/portal.css">
 </head>
 <body>
 <header class="top"><div class="top-in">
-  <a class="brand" href="#historia">Vestidor Táctico</a>
+  <a class="brand" href="#historia"><span class="eyebrow">Liga MX · Hudl StatsBomb</span><b>Vestidor Táctico</b></a>
   <nav class="tabs" id="tabs" aria-label="Secciones">
     <a href="#historia">Historia</a><a href="#almada">Almada</a><a href="#partidos">Partidos</a>
     <a href="#explorador">Explorador</a><a href="#laboratorio">Laboratorio</a><a href="#metodo">Método</a>
   </nav>
-  <div class="mode" role="group" aria-label="Nivel de detalle">
-    <button type="button" data-mode="aficionado" aria-pressed="true">Aficionado</button>
-    <button type="button" data-mode="dt" aria-pressed="false">DT</button>
+  <div class="top-tools">
+    <div class="segmented" role="group" aria-label="Nivel de detalle">
+      <button type="button" data-mode="aficionado" aria-pressed="true">Aficionado</button>
+      <button type="button" data-mode="dt" aria-pressed="false">DT</button>
+    </div>
+    <button type="button" class="btn sm ghost icon" data-theme-toggle aria-label="Tema: automático" title="Tema: automático">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 4a8 8 0 0 0 0 16z" fill="currentColor"/></svg>
+    </button>
   </div>
 </div></header>
 <main id="view" aria-live="polite"></main>
 <div id="errors" hidden></div>
+<pre id="qa-report" hidden></pre>
 <script>
   window.__errors = [];
   const note = (m) => { window.__errors.push(m); document.getElementById('errors').textContent = window.__errors.join(' | '); };
@@ -35,25 +46,44 @@ import * as api from './js/api.js';
 import { parseHash, routeFor } from './js/router.js';
 
 const MODE_KEY = 'caon.mode';
-const urlMode = new URLSearchParams(location.search).get('modo');
+const query = new URLSearchParams(location.search);
+const urlMode = query.get('modo');
 const readMode = () => { if (urlMode === 'dt' || urlMode === 'aficionado') return urlMode; try { return localStorage.getItem(MODE_KEY) === 'dt' ? 'dt' : 'aficionado'; } catch (e) { return 'aficionado'; } };
 const saveMode = (m) => { try { localStorage.setItem(MODE_KEY, m); } catch (e) { /* almacenamiento no disponible */ } };
 let mode = readMode();
+const TAB_OF = { partido: 'partidos', dt: 'explorador', equipo: 'explorador' };
 
 async function renderLab(root, ctx) {
-  root.innerHTML = `<section class="view"><header class="vhead"><h2>Laboratorio: prueba estilos y jugadas en el modelo</h2>
-    <p>Aquí se simula; nada de esto es un pronóstico. <a href="/lab.html">Abrir el laboratorio en pantalla completa →</a></p></header>
-    <div id="playlab"></div>
-    <iframe class="labframe" src="/lab.html" title="Laboratorio de simulación" loading="lazy"></iframe></section>`;
+  const sim = ctx.params[0] === 'simulador';
+  root.innerHTML = `<section class="view"><header class="section-head vhead"><div><div class="eyebrow">Laboratorio · interpretación, no pronóstico</div>
+    <h2>${sim ? 'Duelo de estilos en el modelo' : 'Escribe una jugada y mírala en la cancha'}</h2>
+    <p>${sim ? 'Enfrenta dos estilos en el simulador. Nada de esto es un pronóstico.' : 'El intérprete convierte tu texto en pasos y los anima con el once tipo de cada equipo.'}
+    <a href="/lab.html">Abrir el simulador en pantalla completa →</a></p></div>
+    <nav class="segmented" aria-label="Herramienta"><a href="#laboratorio"${sim ? '' : ' aria-current="page"'}>Jugada por texto</a><a href="#laboratorio/simulador"${sim ? ' aria-current="page"' : ''}>Simulador de estilos</a></nav></header>
+    <div id="lab-body"></div></section>`;
+  const body = root.querySelector('#lab-body');
+  if (sim) { body.innerHTML = '<iframe class="labframe" src="/lab.html" title="Simulador de estilos" loading="lazy"></iframe>'; return; }
   const mod = await import('./views/playlab.js');
-  await mod.render(root.querySelector('#playlab'), ctx);
+  await mod.render(body, ctx);
+}
+async function runQA() {
+  if (query.get('qa') !== '1') return;
+  const qa = await import('./js/qa.js');
+  const rep = qa.scanDocument(document, mode);
+  rep.overflowX = document.documentElement.scrollWidth > window.innerWidth;
+  rep.errors = window.__errors.slice();
+  const box = document.getElementById('qa-report');
+  box.textContent = JSON.stringify(rep);
+  box.dataset.ready = '1';
 }
 async function route() {
   const { name, params } = parseHash(location.hash);
   const r = routeFor(name);
   for (const a of document.querySelectorAll('#tabs a')) {
     const target = a.getAttribute('href').slice(1);
-    a.classList.toggle('on', target === name || (name === 'partido' && target === 'partidos') || (name === 'dt' && target === 'explorador') || (name === 'equipo' && target === 'explorador'));
+    const on = target === name || TAB_OF[name] === target;
+    a.classList.toggle('on', on);
+    if (on) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current');
   }
   const root = document.getElementById('view');
   const ctx = { api, fmt, mode, params, navigate: (h) => { location.hash = h; } };
@@ -65,12 +95,20 @@ async function route() {
     window.__note(String(e));
     root.innerHTML = '<div class="card"><h3>No pudimos mostrar esta sección</h3><p class="muted">Intenta recargar la página.</p></div>';
   }
+  await runQA();
 }
 function paintMode() {
-  for (const b of document.querySelectorAll('.mode button')) b.setAttribute('aria-pressed', String(b.dataset.mode === mode));
+  for (const b of document.querySelectorAll('[data-mode]')) b.setAttribute('aria-pressed', String(b.dataset.mode === mode));
   document.documentElement.dataset.mode = mode;
 }
-for (const b of document.querySelectorAll('.mode button')) b.addEventListener('click', () => { mode = b.dataset.mode; saveMode(mode); paintMode(); route(); });
+function paintTheme(v) {
+  const b = document.querySelector('[data-theme-toggle]');
+  const label = window.caonTheme ? window.caonTheme.LABELS[v] : '';
+  b.setAttribute('aria-label', label); b.title = label;
+}
+for (const b of document.querySelectorAll('[data-mode]')) b.addEventListener('click', () => { mode = b.dataset.mode; saveMode(mode); paintMode(); route(); });
+document.querySelector('[data-theme-toggle]').addEventListener('click', () => { if (window.caonTheme) paintTheme(window.caonTheme.cycle()); });
+if (window.caonTheme) paintTheme(window.caonTheme.read());
 window.addEventListener('hashchange', route);
 paintMode(); route();
 </script>

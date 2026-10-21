@@ -18,7 +18,7 @@ import sequences
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 CACHE = ROOT / 'data' / 'cache'
 OUT = ROOT / 'data' / 'extract'
-VERSION = 1
+VERSION = 4  # 2: alcance solo completadas; 3: sin tanda de penales; 4: tipo de pérdida como extract
 WORKERS = 4
 
 

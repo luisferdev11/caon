@@ -3,7 +3,7 @@
    da una interpretación: xG de la zona del remate y qué tan típica es la ruta para el equipo.
    Es una interpretación sobre el modelo, no una predicción. engine.js no se toca: las fórmulas de
    colocación se copian (ver shapeTargets más abajo). */
-import { pitchSVG, caption } from '../js/pitch.js';
+import { pitchSVG, caption, playerDisc, ballSVG, legendHTML } from '../js/pitch.js';
 
 const ZONES = { // = app/play_schema.py ZONES (marco del atacante, ataca hacia x=120)
   campo_propio: [24, 40], medio: [60, 40], zona_alta: [86, 40], banda_izq: [78, 7], banda_der: [78, 73],
@@ -36,6 +36,7 @@ const EXAMPLES = [
   'Tiro libre directo del 10: poste',
   'Córner al primer palo y remate de cabeza del 4: fuera',
 ];
+const EXAMPLE_NAMES = ['Centro y cabezazo', 'Salida desde el portero', 'Robo alto y contra', 'Tiro libre', 'Córner al primer palo'];
 const DUR = { pass: 0.9, carry: 1.3, dribble: 1.0, cross: 1.3, shot: 0.6, header: 0.6, recovery: 0.6, loss: 0.6, clearance: 0.8 };
 const BLOCK_K = 0.45; // sty.blockK de engine.js depende del estilo; aquí un valor medio fijo
 const ALPHA = 0.5; // suavizado de Laplace para las transiciones entre zonas
@@ -150,17 +151,15 @@ function frameSVG(shapes, seg, t, idx, n) {
   const T = shapeTargets(shapes, p);
   if (seg.actor >= 0) T[0][seg.actor] = seg.type === 'carry' || seg.type === 'dribble' ? p : lerp(seg.from, p, 0);
   if (seg.receiver >= 0) T[0][seg.receiver] = lerp(T[0][seg.receiver], seg.to, Math.min(1, t * 1.4));
+  // Semántica fija del producto: equipo elegido = dorado (protagonista), rival = azul.
   const dots = (ti) => T[ti].map((q, j) => {
     const s = shapes[ti][j], hi = ti === 0 && (j === seg.actor || j === seg.receiver);
-    return `<g class="pl-p${ti}${hi ? ' pl-hi' : ''}"><circle cx="${q[0].toFixed(1)}" cy="${q[1].toFixed(1)}" r="1.7"/>` +
-      (ti === 0 && s.num != null ? `<text x="${q[0].toFixed(1)}" y="${(q[1] + 0.7).toFixed(1)}">${s.num}</text>` : '') + '</g>';
+    return playerDisc({ x: q[0], y: q[1], num: s.num, side: ti === 0 ? 'protag' : 'rival', gk: s.pos === 'Goalkeeper', hi });
   }).join('');
-  const arc = seg.lofted ? `<path class="pl-arc" d="M ${seg.from[0]} ${seg.from[1]} Q ${(seg.from[0] + seg.to[0]) / 2} ${(seg.from[1] + seg.to[1]) / 2 - 12} ${seg.to[0]} ${seg.to[1]}"/>` : `<line class="pl-arc" x1="${seg.from[0]}" y1="${seg.from[1]}" x2="${seg.to[0]}" y2="${seg.to[1]}"/>`;
+  const arc = seg.lofted ? `<path class="pitch-arc" d="M ${seg.from[0]} ${seg.from[1]} Q ${(seg.from[0] + seg.to[0]) / 2} ${(seg.from[1] + seg.to[1]) / 2 - 12} ${seg.to[0]} ${seg.to[1]}"/>` : `<line class="pitch-arc" x1="${seg.from[0]}" y1="${seg.from[1]}" x2="${seg.to[0]}" y2="${seg.to[1]}"/>`;
   const label = (seg.type === 'header' ? 'Cabezazo' : '') + (t >= 1 && idx === n - 1 && seg.outcome ? ' · ' + OUTCOME_ES[seg.outcome] : '');
-  return arc + dots(1) + dots(0) +
-    `<ellipse class="pl-shadow" cx="${p[0].toFixed(1)}" cy="${(p[1] + 0.6).toFixed(1)}" rx="1" ry="0.5"/>` +
-    `<circle class="pl-ball" cx="${p[0].toFixed(1)}" cy="${(p[1] - h).toFixed(1)}" r="${(0.9 + h * 0.08).toFixed(2)}"/>` +
-    (label ? `<text class="pl-label" x="${clamp(p[0], 12, 108).toFixed(1)}" y="${clamp(p[1] - 5 - h, 4, 76).toFixed(1)}">${label.trim()}</text>` : '');
+  return arc + dots(1) + dots(0) + ballSVG(p[0], p[1], h) +
+    (label ? `<text class="pitch-label" x="${clamp(p[0], 12, 108).toFixed(1)}" y="${clamp(p[1] - 5 - h, 4, 76).toFixed(1)}">${label.trim()}</text>` : '');
 }
 
 function animate(stage, shapes, segs) {
@@ -178,18 +177,7 @@ function animate(stage, shapes, segs) {
   requestAnimationFrame(tick);
 }
 
-/* ---------- vista ---------- */
-const STYLE = `<style>
-.pl-form textarea{width:100%;min-height:4.5em;font:inherit;padding:.5em;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink)}
-.pl-row{display:flex;flex-wrap:wrap;gap:.5em;align-items:center;margin:.5em 0}.pl-ex{font-size:.85em}
-.pl-ex button,.pl-row button{cursor:pointer}.pl-steps{margin:.3em 0 .3em 1.2em}
-.pl-p0 circle{fill:#0072b2;stroke:#fff;stroke-width:.3}.pl-p1 circle{fill:#e69f00;stroke:#000;stroke-width:.3}
-.pl-hi circle{stroke:#ff0;stroke-width:.7}.pl-p0 text{font-size:1.6px;fill:#fff;text-anchor:middle;font-weight:700}
-.pl-ball{fill:#fff;stroke:#000;stroke-width:.25}.pl-shadow{fill:rgba(0,0,0,.35)}
-.pl-arc{fill:none;stroke:#fff;stroke-width:.35;stroke-dasharray:1 1;opacity:.8}
-.pl-label{font-size:3.2px;fill:#fff;text-anchor:middle;font-weight:700;paint-order:stroke;stroke:#000;stroke-width:.6}
-</style>`;
-
+/* ---------- vista (controles y colores: css/components.css y css/pitch.css) ---------- */
 const teamOptions = (teams, sel) => teams.map((t) => `<option value="${t.id}"${t.id === sel ? ' selected' : ''}>${t.label || t.id}</option>`).join('');
 
 function stepsHTML(play, fmt) {
@@ -207,7 +195,7 @@ function interpHTML(play, segs, ent, league, teamLabel, fmt) {
     : r >= SIMILAR_HI ? `${fmt.num(r, 1)} veces más frecuente que en el promedio de la liga`
       : r <= 1 / SIMILAR_HI ? `${fmt.num(1 / r, 1)} veces menos frecuente que en el promedio de la liga`
         : 'tan frecuente como en el promedio de la liga';
-  return `<div class="card"><h3>Interpretación (no es una predicción)</h3><ul>
+  return `<div class="card pl-interp"><h3>Interpretación (no es una predicción)</h3><ul class="pl-list">
     <li>${shot ? `Un remate desde esa zona vale en promedio <b>${xg == null ? fmt.NA : fmt.num(xg, 2)} xG</b> en la liga (juego abierto${shot.type === 'header' ? '; los cabezazos suelen valer menos' : ''}).` : 'La jugada no termina en remate.'}</li>
     <li>¿Qué tan típica es esta ruta para ${fmt.esc(teamLabel)}? La secuencia de zonas es <b>${typ}</b>.</li></ul>
     <p class="muted">Interpretación: <b>${fmt.esc(RESTART_ES[play.start.restart] || '')}</b> · fuente: ${play.source === 'llm' ? 'modelo de lenguaje' : 'intérprete de reglas'} · confianza ${fmt.pct(play.confidence)}.</p></div>`;
@@ -226,14 +214,18 @@ export async function render(root, ctx) {
   const sel = (params && params.team) || (list[0] && list[0].id) || '';
   const selTeam = (list.find((t) => t.id === sel) || {}).team;
   const opp = (list.find((t) => t.team !== selTeam) || list.find((t) => t.id !== sel) || {}).id || sel;
-  root.innerHTML = `${STYLE}<section class="card pl-form"><h3>Escribe una jugada y mírala en la cancha</h3>
-    <div class="pl-row"><label>Equipo <select id="pl-team">${teamOptions(list, sel)}</select></label>
-      <label>Rival <select id="pl-opp">${teamOptions(list, opp)}</select></label>
-      ${caps && caps.llm ? `<label>Intérprete <select id="pl-mode"><option value="auto">Automático</option><option value="rules">Reglas</option><option value="llm">Modelo de lenguaje</option></select></label>` : ''}</div>
-    <textarea id="pl-text" maxlength="500" aria-label="Jugada en texto">${fmt.esc(EXAMPLES[0])}</textarea>
-    <div class="pl-row pl-ex">Ejemplos: ${EXAMPLES.map((e, i) => `<button type="button" data-ex="${i}">${i + 1}</button>`).join('')}</div>
-    <div class="pl-row"><button type="button" id="pl-go">Interpretar y animar</button><button type="button" id="pl-replay">Repetir</button></div>
-    <div id="pl-out"></div><div id="pl-stage"></div>${caption('Azul: equipo elegido; naranja: rival.')}<div id="pl-interp"></div></section>`;
+  const label = (id) => (list.find((t) => t.id === id) || {}).label || id;
+  root.innerHTML = `<div class="pl-grid"><div class="pl-col"><section class="card pl-form" aria-label="Jugada en texto">
+    <div class="pl-row"><label class="field protag"><span>Equipo (ataca)</span><select class="select" id="pl-team">${teamOptions(list, sel)}</select></label>
+      <label class="field rival"><span>Rival</span><select class="select" id="pl-opp">${teamOptions(list, opp)}</select></label>
+      ${caps && caps.llm ? `<label class="field"><span>Intérprete</span><select class="select" id="pl-mode"><option value="auto">Automático</option><option value="rules">Reglas</option><option value="llm">Modelo de lenguaje</option></select></label>` : ''}</div>
+    <label class="field"><span>Jugada</span><textarea class="input" id="pl-text" maxlength="500" aria-label="Jugada en texto">${fmt.esc(EXAMPLES[0])}</textarea></label>
+    <div class="pl-row pl-ex"><span class="eyebrow">Ejemplos</span><div class="seg">${EXAMPLES.map((e, i) => `<button type="button" class="btn sm" data-ex="${i}" title="${fmt.esc(e)}">${EXAMPLE_NAMES[i]}</button>`).join('')}</div></div>
+    <div class="pl-row"><button type="button" class="btn primary" id="pl-go">Interpretar y animar</button><button type="button" class="btn" id="pl-replay">Repetir</button></div>
+    </section>
+    <section class="panel pl-result" aria-live="polite"><h3 class="kicker">Así la entendimos</h3><div id="pl-out"></div></section></div>
+    <section class="pl-view" aria-label="Animación"><div id="pl-legend">${legendHTML([{ side: 'protag', label: label(sel) }, { side: 'rival', label: label(opp) }])}</div>
+    <div id="pl-stage" class="pl-stage">${pitchSVG('', { label: 'Cancha' })}</div>${caption('Dorado: equipo elegido; azul: rival.')}<div id="pl-interp"></div></section></div>`;
   const $ = (id) => root.querySelector('#' + id);
   for (const b of root.querySelectorAll('[data-ex]')) b.onclick = () => { $('pl-text').value = EXAMPLES[+b.dataset.ex]; run(); };
   let last = null;
@@ -243,16 +235,17 @@ export async function render(root, ctx) {
     const team = $('pl-team').value, oppId = $('pl-opp').value;
     const mode = $('pl-mode') ? $('pl-mode').value : 'rules';
     $('pl-out').innerHTML = '<p class="muted">Interpretando…</p>';
+    $('pl-legend').innerHTML = legendHTML([{ side: 'protag', label: label(team) }, { side: 'rival', label: label(oppId) }]);
     const [res, ent, rival, model] = await Promise.all([postParse({ text: $('pl-text').value, team, opponent: oppId, mode }),
       api.tryJSON('/api/teams/' + encodeURIComponent(team)), api.tryJSON('/api/teams/' + encodeURIComponent(oppId)), api.tryJSON('/api/model')]);
     if (!res.ok) {
       const d = res.data.detail || {};
-      $('pl-out').innerHTML = `<div class="err"><p>${fmt.esc(d.mensaje || 'No pudimos interpretar la jugada.')}</p>` +
+      $('pl-out').innerHTML = `<div class="panel err"><p>${fmt.esc(d.mensaje || 'No pudimos interpretar la jugada.')}</p>` +
         (d.sugerencias ? `<p>Prueba algo como:</p><ul>${d.sugerencias.map((s) => `<li>${fmt.esc(s)}</li>`).join('')}</ul>` : '') + '</div>';
       return;
     }
     const play = res.data, shape = (ent && ent.shape) || [], rshape = (rival && rival.shape) || shape;
-    if (shape.length < 11 || rshape.length < 11) { $('pl-out').innerHTML = '<p class="err">Este equipo no tiene once tipo en el modelo.</p>'; return; }
+    if (shape.length < 11 || rshape.length < 11) { $('pl-out').innerHTML = '<p class="panel err">Este equipo no tiene once tipo en el modelo.</p>'; return; }
     const segs = buildSegments(play, shape), shapes = [shape.slice(0, 11), rshape.slice(0, 11)];
     $('pl-out').innerHTML = stepsHTML(play, fmt) +
       (play.assumptions.length ? `<p class="muted">Supuestos: ${play.assumptions.map(fmt.esc).join(' ')}</p>` : '') +

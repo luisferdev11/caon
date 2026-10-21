@@ -60,9 +60,47 @@ export function warning(code) {
   if (!code || code === 'unknown') return '';
   return WARNINGS[code] || 'Aviso: revisa la nota de método para este dato.';
 }
+const CONFIDENCE = { alta: 'alta', media: 'media', baja: 'baja', 'muy baja': 'muy baja', high: 'alta', medium: 'media', low: 'baja', very_low: 'muy baja' };
 export function confidence(level) {
-  const map = { alta: 'Confianza alta', media: 'Confianza media', baja: 'Confianza baja', high: 'Confianza alta', medium: 'Confianza media', low: 'Confianza baja' };
-  return map[level] || 'Confianza sin calcular';
+  return CONFIDENCE[level] ? 'Confianza ' + CONFIDENCE[level] : 'Confianza sin calcular';
+}
+const PRIORS = { liga: 'promedio de la liga', carrera: 'su carrera anterior', league: 'promedio de la liga', career: 'su carrera anterior' };
+/** Referencia hacia la que se encoge una muestra chica. */
+export function prior(kind) { return PRIORS[kind] ? 'Referencia previa: ' + PRIORS[kind] : ''; }
+const SOURCES = { 'team-stats': 'Estadísticas por partido', eventos: 'Eventos', 360: 'Capturas 360' };
+export function source(kind) { return SOURCES[kind] || ''; }
+
+/** Percentil bajo en palabras: 15 → «por debajo de 85 de cada 100». */
+export function percentileLow(p) {
+  return finite(p) ? `por debajo de ${Math.round(100 - p)} de cada 100` : NA;
+}
+const SHARE_UNITS = new Set(['proporción', 'proporcion', 'share', '0-1']);
+/** Proporción 0–1: unidades «proporción» y las que empiezan con «%» («% del balón», «% de saques largos»). */
+const isShare = (unit) => SHARE_UNITS.has(unit) || /^%/.test(String(unit || ''));
+/** Símbolo corto de la unidad para encabezados (las proporciones se muestran como %). */
+export function unitLabel(unit) { return isShare(unit) ? '%' : String(unit || ''); }
+/** Texto de la unidad junto al valor ya formateado: sin el «%» que ya lleva el valor. */
+export function unitText(unit) {
+  if (SHARE_UNITS.has(unit)) return '';
+  return String(unit || '').replace(/^%\s*/, '');
+}
+/** Valor de un registro métrico {value, unit} según su unidad (proporción → %). */
+export function metricValue(rec, field = 'value') {
+  if (!rec || typeof rec !== 'object') return NA;
+  const v = rec[field];
+  return isShare(rec.unit) ? pct(v) : num(v);
+}
+/** Intervalo formateado según la unidad del registro. */
+export function ciByUnit(ci, unit) {
+  if (!Array.isArray(ci) || !finite(ci[0]) || !finite(ci[1])) return NA;
+  return isShare(unit) ? `${pct(ci[0])} – ${pct(ci[1])}` : interval(ci);
+}
+/** Banda de confianza por partidos (= framework.confidence: <5 muy baja, 5–11 baja, 12–24 media, ≥25 alta). */
+export function confidenceOfN(n) {
+  if (!finite(n)) return null;
+  if (n < 5) return 'muy baja';
+  if (n < 12) return 'baja';
+  return n < 25 ? 'media' : 'alta';
 }
 export function windowBadge(win) {
   return { oficial: 'Ventana oficial', epilogo: 'Fuera de ventana oficial', temprano: 'Fuera de ventana oficial' }[win] || '';

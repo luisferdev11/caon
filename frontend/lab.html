@@ -1,45 +1,27 @@
+<!doctype html>
+<html lang="es-MX">
+<head>
 <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Laboratorio táctico</title>
 <meta name="claude:viewport-fit-sides" content="cover">
+<script src="js/theme.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=Barlow:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/components.css">
 <style>
-/* Layout: consola de "match centre" estilo videojuego. Barra de enfrentamiento arriba,
-   luego plan de juego, partido animado y simulación rápida. Un solo look oscuro deliberado. */
-:root {
-  color-scheme: dark;
-  --ground: #10141C;
-  --panel: #171D29;
-  --panel-2: #1D2534;
-  --line: #2A3448;
-  --ink: #E9EDF4;
-  --ink-2: #B7C0D1;
-  --muted: #8E99AE;
-  --home: #C0870E;
-  --home-ink: #F2C55C;
-  --away: #3D8FD6;
-  --away-ink: #8CC4F2;
-  --grass: #1B3627;
-  --grass-2: #1F3D2C;
-  --chalk: rgba(220, 240, 228, 0.32);
-  --font-display: 'Barlow Condensed', 'Arial Narrow', 'Roboto Condensed', sans-serif;
-  --font-body: 'Barlow', 'Segoe UI', system-ui, sans-serif;
-}
-* { box-sizing: border-box; }
-html, body { background: var(--ground); color: var(--ink); }
+/* Laboratorio: consola de "match centre". Tokens en css/tokens.css y controles en css/components.css;
+   aquí solo la distribución propia del laboratorio. Barra de enfrentamiento arriba,
+   luego plan de juego, partido animado y simulación rápida. Mismo tema que el portal (oscuro por defecto). */
 body {
-  font-family: var(--font-body); font-size: 15px; line-height: 1.45;
+  font-family: var(--font-body); font-size: var(--fs-md); line-height: var(--lh); margin: 0;
   padding-left: max(16px, env(safe-area-inset-left, 0px));
   padding-right: max(16px, env(safe-area-inset-right, 0px));
   padding-block: 20px 40px;
 }
 .wrap { max-width: 1280px; margin: 0 auto; display: flex; flex-direction: column; gap: 22px; }
-h1, h2, h3 { font-family: var(--font-display); text-transform: uppercase; margin: 0; text-wrap: balance; letter-spacing: 0.3px; }
-.eyebrow { font-family: var(--font-display); font-size: 13px; letter-spacing: 2.4px; text-transform: uppercase; color: var(--muted); font-weight: 600; }
-.num { font-variant-numeric: tabular-nums; }
-button, select { font-family: inherit; }
-:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 
 .top { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; flex-wrap: wrap; }
 .brand h1 { font-size: clamp(30px, 5vw, 44px); font-weight: 800; line-height: 1; }
@@ -51,28 +33,13 @@ button, select { font-family: inherit; }
 .side label { font-family: var(--font-display); font-size: 13px; letter-spacing: 2px; text-transform: uppercase; font-weight: 600; }
 .side.home label { color: var(--home-ink); }
 .side.away label { color: var(--away-ink); }
-select.team { width: 100%; min-height: 48px; background: var(--panel-2); color: var(--ink); border: 1px solid var(--line); border-radius: 10px; padding: 0 12px; font-size: 17px; font-weight: 600; }
+select.team { width: 100%; min-height: 48px; font-size: var(--fs-lg); }
 .side.home select.team { border-left: 4px solid var(--home); }
 .side.away select.team { border-right: 4px solid var(--away); }
-.chips { display: flex; gap: 6px; flex-wrap: wrap; }
 .side.away .chips { justify-content: flex-end; }
-.chip { font-size: 12.5px; padding: 3px 9px; border-radius: 999px; background: var(--panel-2); color: var(--ink-2); border: 1px solid var(--line); white-space: nowrap; }
-.chip.warn { color: #F3B4A3; border-color: #5A3A35; background: #2A1E20; }
-.chip.info { color: #BFD8F5; border-color: #2E4A6A; background: #18263A; }
 .vs { display: flex; flex-direction: column; align-items: center; gap: 8px; padding-top: 22px; }
 .vs b { font-family: var(--font-display); font-size: 26px; color: var(--muted); }
-.btn { min-height: 44px; padding: 0 16px; border-radius: 10px; border: 1px solid var(--line); background: var(--panel-2); color: var(--ink); font-size: 15px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; }
-.btn:hover { border-color: var(--muted); }
-.btn.primary { background: var(--ink); color: var(--ground); border-color: var(--ink); }
-.btn.primary:hover { background: #FFFFFF; }
-.btn[aria-pressed="true"] { background: var(--ink); color: var(--ground); border-color: var(--ink); }
-.btn.sm { min-height: 36px; padding: 0 12px; font-size: 14px; }
-.btn svg { width: 18px; height: 18px; }
 
-.section { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 18px; display: flex; flex-direction: column; gap: 16px; }
-.section-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; flex-wrap: wrap; }
-.section-head h2 { font-size: 28px; font-weight: 700; }
-.section-head p { margin: 4px 0 0; color: var(--ink-2); max-width: 72ch; }
 
 .plan { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 18px; }
 .idcards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
@@ -80,11 +47,6 @@ select.team { width: 100%; min-height: 48px; background: var(--panel-2); color: 
 .idcard.home { box-shadow: inset 0 3px 0 var(--home); }
 .idcard.away { box-shadow: inset 0 3px 0 var(--away); }
 .idcard h3 { font-size: 20px; }
-.kv { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 3px 10px; font-size: 14px; margin: 0; }
-.kv dt { color: var(--muted); }
-.kv dd { margin: 0; font-weight: 600; text-align: right; }
-.tags { display: flex; flex-wrap: wrap; gap: 5px; }
-.tag { font-size: 12.5px; padding: 2px 8px; border-radius: 6px; background: #232C3D; color: var(--ink); }
 .sliders { display: flex; flex-direction: column; gap: 2px; margin-top: 4px; }
 .srow { display: grid; grid-template-columns: 44px minmax(0, 1fr) 44px; gap: 10px; align-items: center; padding: 5px 0; }
 .srow .lab { grid-column: 1 / -1; display: flex; justify-content: space-between; font-size: 13.5px; color: var(--ink-2); margin-bottom: -4px; }
@@ -99,10 +61,7 @@ select.team { width: 100%; min-height: 48px; background: var(--panel-2); color: 
 .dot { position: absolute; top: 2px; width: 14px; height: 14px; margin-left: -7px; border-radius: 50%; border: 2px solid var(--panel); transition: left 450ms ease; }
 .dot.h { background: var(--home); }
 .dot.a { background: var(--away); }
-.legend { display: flex; gap: 14px; font-size: 13px; color: var(--ink-2); flex-wrap: wrap; }
-.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; vertical-align: -1px; }
 .tview { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
-.seg { display: flex; gap: 6px; flex-wrap: wrap; }
 canvas { display: block; width: 100%; max-width: 100%; border-radius: 8px; }
 .note { font-size: 13px; color: var(--muted); margin: 0; }
 
@@ -117,9 +76,6 @@ canvas { display: block; width: 100%; max-width: 100%; border-radius: 8px; }
 .mapbox .u { cursor: pointer; }
 .mapbox text, .mapbox polyline { pointer-events: none; }
 .mapbox .u:hover, .mapbox .u.on { r: 6; opacity: 1; }
-.tip { position: absolute; pointer-events: none; background: #0B0F14; border: 1px solid var(--line); color: var(--ink); font-size: 13px; line-height: 1.35; padding: 7px 9px; border-radius: 8px; max-width: 240px; z-index: 2; box-shadow: 0 6px 18px rgba(0,0,0,0.4); }
-.tip b { display: block; font-size: 13.5px; }
-.tip span { color: var(--ink-2); }
 .mapread { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
 .mr { background: var(--panel-2); border-radius: 10px; padding: 12px 14px; display: flex; flex-direction: column; gap: 6px; font-size: 14px; color: var(--ink-2); min-width: 0; }
 .mr.home { box-shadow: inset 0 3px 0 var(--home); }
@@ -167,9 +123,9 @@ canvas { display: block; width: 100%; max-width: 100%; border-radius: 8px; }
 .quick { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 18px; }
 .wdl { display: flex; height: 40px; gap: 2px; border-radius: 8px; overflow: hidden; }
 .wdl div { display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; min-width: 0; overflow: hidden; white-space: nowrap; }
-.wdl .w { background: var(--home); color: #1A1204; }
-.wdl .d { background: #4A5468; color: var(--ink); }
-.wdl .l { background: var(--away); color: #06121E; }
+.wdl .w { background: var(--home); color: var(--on-protag); }
+.wdl .d { background: var(--draw); color: var(--ink); }
+.wdl .l { background: var(--away); color: var(--on-protag); }
 .wdl-lab { display: flex; justify-content: space-between; font-size: 13px; color: var(--ink-2); margin-top: 6px; gap: 8px; }
 .scores { display: flex; gap: 8px; flex-wrap: wrap; }
 .scores .s { background: var(--panel-2); border-radius: 8px; padding: 6px 10px; font-size: 14px; }
@@ -197,7 +153,7 @@ canvas { display: block; width: 100%; max-width: 100%; border-radius: 8px; }
 .temporal-card th, .temporal-card td { padding: 7px 6px; border-bottom: 1px solid var(--line); text-align: right; white-space: nowrap; }
 .temporal-card th:first-child, .temporal-card td:first-child { text-align: left; }
 .temporal-card .na { color: var(--muted); }
-.temporal-card .warn { color: #F2D024; }
+.temporal-card .warn { color: var(--warn); }
 @media (max-width: 960px) { .temporal { grid-template-columns: minmax(0, 1fr); } }
 
 @media (max-width: 960px) {
@@ -214,7 +170,8 @@ canvas { display: block; width: 100%; max-width: 100%; border-radius: 8px; }
 }
 @media (prefers-reduced-motion: reduce) { .dot { transition: none; } }
 </style>
-
+</head>
+<body>
 <div class="wrap">
   <header class="top">
     <div class="brand">
@@ -336,8 +293,8 @@ canvas { display: block; width: 100%; max-width: 100%; border-radius: 8px; }
           <div class="feed" id="feed" aria-live="polite"></div>
         </div>
         <div class="keys" aria-label="Cómo leer la cancha">
-          <span><svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true"><circle cx="11" cy="11" r="10" fill="none" stroke="#FFFFFF" stroke-width="1.5" opacity="0.9"/><circle cx="11" cy="11" r="6" fill="var(--home)"/></svg>Tiene el balón</span>
-          <span><svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true"><path d="M2 11h18" stroke="#FFFFFF" stroke-width="1.5" stroke-dasharray="3 3"/></svg>Pase en el aire</span>
+          <span><svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true"><circle cx="11" cy="11" r="10" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.9"/><circle cx="11" cy="11" r="6" fill="var(--home)"/></svg>Tiene el balón</span>
+          <span><svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true"><path d="M2 11h18" stroke="currentColor" stroke-width="1.5" stroke-dasharray="3 3"/></svg>Pase en el aire</span>
           <span><svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true"><circle cx="11" cy="11" r="6" fill="var(--away)"/><circle cx="11" cy="11" r="6" fill="none" stroke="var(--ground)" stroke-width="2"/></svg>Número = dorsal</span>
           <span><svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true"><path d="M4 18 L11 6 L18 18" fill="none" stroke="var(--home)" stroke-width="2"/></svg>Barra inferior = dominio</span>
         </div>
@@ -1057,3 +1014,5 @@ canvas { display: block; width: 100%; max-width: 100%; border-radius: 8px; }
   }).catch((err) => { $('qstatus').textContent = 'No se pudo cargar el modelo. Arranca el servidor con: uvicorn app.main:app --reload'; console.error(err); });
 })();
 </script>
+</body>
+</html>

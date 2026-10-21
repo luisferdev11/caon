@@ -2,11 +2,18 @@
 """Marco analítico canónico: constantes con nombre, registro DEFINITIONS y helpers geométricos.
 
 Es la única fuente de umbrales. ``/api/framework`` y ``docs/MARCO_ANALITICO.md`` se generan de
-``DEFINITIONS``. Coordenadas StatsBomb 120×80 yd; cada evento en el marco de ataque de su equipo (x→120).
+``DEFINITIONS`` (textos en ``framework_defs.py``). Coordenadas StatsBomb 120×80 yd; cada evento en el marco
+de ataque de su equipo (x→120).
 """
 from __future__ import annotations
 
+import importlib
+import importlib.util
+import math
+import pathlib
+import sys
 from collections.abc import Sequence
+from types import ModuleType
 from typing import Any, Optional
 
 # --- Geometría -------------------------------------------------------------------------------------
@@ -29,6 +36,9 @@ TRANSITION_PHASE_S = 10.0   # == extract.T_WINDOW (fase de transición)
 OUTCOME_WINDOW_S = 15.0     # contraataque y pérdida costosa (compatible StatsBomb)
 COUNTERPRESS_WINDOW_S = 5.0
 PACE_FLOOR_S = 0.5          # piso de duración entre acciones para el ritmo
+SHOOTOUT_PERIOD = 5         # tanda de penales: fuera de todo análisis
+SUB_WINDOW_MIN = 15         # forma/impacto 15 min antes y después de un cambio
+SUB_GAP_MIN = 2             # ±2 min alrededor del cambio excluidos
 
 # --- Umbrales con nombre (uno por concepto) --------------------------------------------------------
 REC_CAMPO_RIVAL_X = 60.0    # = simulador "Robos en campo rival" (colOf(z) >= 3)
@@ -51,11 +61,53 @@ TIER_MIN_MATCHES = 10
 SHRINK_N0 = 8
 CI_LEVEL = 0.80
 CONFIDENCE_BANDS = ((5, 'muy baja'), (12, 'baja'), (25, 'media'))  # n < límite → etiqueta; si no 'alta'
+SURPRISE_P = 0.20           # "resultado sorpresivo": P(resultado real) < 0.20
+KPI_TRAFFIC_PCT = (33, 67)  # semáforo de KPIs en los terciles propios del DT
+VIG_LOW_MAX = 2             # "pocas vigilancias": ≤2 jugadores visibles detrás del balón
+
+# --- 360 (puerta de visibilidad y radios; frames360 debe importarlos de aquí) -----------------------
+GRID_STEP_YD = 2.0            # muestreo de la región de interés (ROI) en malla de 2 yd
+MIN_ROI_VISIBLE = 0.70        # cuadro válido si ≥70 % de la ROI es visible
+MIN_SHAPE_PLAYERS = 7         # forma del bloque solo con ≥7 jugadores de campo visibles
+DEEP_LINE_N = 3               # altura de línea = media x de los 3 más retrasados
+ROI_BACK_YD = 25.0            # ROI de forma: 25 yd detrás del balón ...
+ROI_FRONT_YD = 10.0           # ... 10 yd delante ...
+ROI_HALF_WIDTH_YD = 25.0      # ... y ±25 yd a lo ancho
+ERROR_OPP_RADIUS_YD = 5.0     # rivales cercanos al error
+PRESS_SUPPORT_RADIUS_YD = 10.0  # compañeros que acompañan la presión
+FREE_OPTION_RADIUS_YD = 15.0  # opciones de pase del rival cerca del balón
+FREE_OPTION_MARGIN_YD = 3.0   # opción libre si ningún defensor está a ≤3 yd
+PAIRING_RADIUS_YD = 1.5       # atacante emparejado si un defensor está a ≤1.5 yd
+
 OFFICIAL_END = '2025-06-30'
 WINDOWS = ('oficial', 'epilogo', 'temprano')
 SOURCES = ('eventos', 'team-stats', '360')
 MINUTE_BINS = ((15, '0-15'), (30, '16-30'))
 MINUTE_BINS_2H = ((60, '46-60'), (75, '61-75'))
+ROUND_DIGITS = 4
+MISSING_REASON = 'sin dato suficiente'
+
+
+def _sibling(name: str) -> ModuleType:
+    """Importa un módulo hermano de ``pipeline/`` aunque este archivo se haya cargado por ruta."""
+    try:
+        return importlib.import_module(name)
+    except ImportError:
+        if name in sys.modules:
+            return sys.modules[name]
+        spec = importlib.util.spec_from_file_location(name, pathlib.Path(__file__).with_name(f'{name}.py'))
+        module = importlib.util.module_from_spec(spec)
+        sys.modules[name] = module
+        spec.loader.exec_module(module)
+        return module
+
+
+_defs = _sibling('framework_defs')
+DEFINITIONS: dict[str, dict[str, str]] = _defs.DEFINITIONS
+KPIS: tuple = _defs.KPIS
+ASSUMPTIONS: tuple = _defs.ASSUMPTIONS
+SCOPE: tuple = _defs.SCOPE
+LIMITS: tuple = _defs.LIMITS
 
 
 def zone(loc: Sequence[float]) -> int:
@@ -81,7 +133,7 @@ def third(x: float) -> str:
 
 def minute_bin(minute: int, period: int) -> Optional[str]:
     """Tramo de 15 min; añadido en 45+/90+; prórroga aparte; tanda de penales (period 5) → None."""
-    if period >= 5:
+    if period >= SHOOTOUT_PERIOD:
         return None
     if period >= 3:
         return 'prorroga'
@@ -92,9 +144,15 @@ def minute_bin(minute: int, period: int) -> Optional[str]:
     return '31-45+' if period == 1 else '76-90+'
 
 
-def rival_tier(team_id: int, season_rows: list[dict[str, Any]]) -> Optional[str]:
-    """Nivel del rival por rango de ``team_season_xgd_pg`` en su temporada: 1–6 alto, 7–12 medio, resto bajo."""
-    ranked = sorted((r for r in season_rows if r.get('team_season_xgd_pg') is not None),
+def window_of(date: Optional[str]) -> Optional[str]:
+    """Ventana por fecha ISO: 'oficial' hasta OFFICIAL_END, si no 'epilogo' ('temprano' lo asigna la entidad)."""
+    if not date:
+        return None
+    return 'oficial' if str(date)[:10] <= OFFICIAL_END else 'epilogo'
+
+
+def _tier_of(team_id: int, rows: list[dict[str, Any]]) -> Optional[str]:
+    ranked = sorted((r for r in rows if r.get('team_season_xgd_pg') is not None),
                     key=lambda r: -r['team_season_xgd_pg'])
     ids = [r['team_id'] for r in ranked]
     if team_id not in ids:
@@ -103,6 +161,22 @@ def rival_tier(team_id: int, season_rows: list[dict[str, Any]]) -> Optional[str]
     if pos < TIER_SIZE:
         return 'alto'
     return 'medio' if pos < 2 * TIER_SIZE else 'bajo'
+
+
+def rival_tier(team_id: int, season_rows: list[dict[str, Any]],
+               prev_rows: Optional[list[dict[str, Any]]] = None) -> Optional[str]:
+    """Nivel del rival por rango de ``team_season_xgd_pg``: 1–6 alto, 7–12 medio, resto bajo.
+
+    Si el rival tiene menos de TIER_MIN_MATCHES partidos en la temporada y aparece en ``prev_rows``
+    (temporada previa), se usa esa; si no, la actual.
+    """
+    row = next((r for r in season_rows if r.get('team_id') == team_id), None)
+    short = row is not None and (row.get('team_season_matches') or 0) < TIER_MIN_MATCHES
+    if short and prev_rows:
+        prev = _tier_of(team_id, prev_rows)
+        if prev is not None:
+            return prev
+    return _tier_of(team_id, season_rows)
 
 
 def is_danger_sp(kind: str, loc: Sequence[float]) -> bool:
@@ -134,6 +208,25 @@ def shrink(mean: float, n: int, prior: float, n0: int = SHRINK_N0) -> float:
     return (n * mean + n0 * prior) / (n + n0)
 
 
+def metric(mid: str, value: Optional[float], n: int, unit: str, source: str, window: str,
+           motivo: Optional[str] = None, **extra: Any) -> dict[str, Any]:
+    """Registro de métrica del contrato; valor ausente o no finito → null con ``motivo``.
+
+    Lanza KeyError si ``mid`` no está en DEFINITIONS y ValueError si la ventana o la fuente no existen.
+    """
+    if mid not in DEFINITIONS:
+        raise KeyError(f'id de métrica desconocido: {mid}')
+    if window not in WINDOWS or source not in SOURCES:
+        raise ValueError(f'ventana o fuente inválida: {window} / {source}')
+    ok = isinstance(value, (int, float)) and not isinstance(value, bool) and math.isfinite(value)
+    rec: dict[str, Any] = {'id': mid, 'value': round(float(value), ROUND_DIGITS) if ok else None, 'n': int(n),
+                           'unit': unit, 'source': source, 'window': window}
+    if not ok:
+        rec['motivo'] = motivo or MISSING_REASON
+    rec.update(extra)
+    return rec
+
+
 def check_metric_record(rec: dict[str, Any]) -> list[str]:
     """Errores de contrato de un registro de métrica (lista vacía = válido)."""
     errs = []
@@ -149,134 +242,105 @@ def check_metric_record(rec: dict[str, Any]) -> list[str]:
     return errs
 
 
-
-def _d(nombre: str, definicion: str, formula: str, unidad: str, limites: str, fuente: str) -> dict[str, str]:
-    """Una definición del glosario."""
-    return {'nombre': nombre, 'definicion': definicion, 'formula': formula, 'unidad': unidad,
-            'limites': limites, 'fuente': fuente}
-
-
-EV, TS, F360 = 'eventos', 'team-stats', '360'
-DEFINITIONS: dict[str, dict[str, str]] = {
-    'coord': _d('Sistema de coordenadas', 'Campo StatsBomb de 120×80 yardas; cada evento en el marco de ataque '
-                'de su equipo (ataca hacia x=120). En pantalla el protagonista ataca de izquierda a derecha.',
-                'rival: (120-x, 80-y) vía to_frame', 'yardas', 'Los 360 vienen en el marco del equipo actor.', EV),
-    'zona': _d('Zona del campo', 'Rejilla de 6 columnas × 3 carriles (20 yd × 26.7 yd).',
-               'zona = floor(x/20)·3 + floor(y/26.67)', 'zona 0–17', 'Idéntica a la del simulador.', EV),
-    'tercio': _d('Tercio', 'Propio x<40, medio 40–80, final x≥80.', 'umbral en x', 'tercio', 'Marco propio.', EV),
-    'posesion': _d('Posesión (secuencia ofensiva)', 'Posesión de StatsBomb con al menos una acción con balón '
-                   '(pase, conducción, regate o tiro) del equipo poseedor; se ignoran las solo administrativas.',
-                   'possession id con ≥1 acción con balón', 'posesiones', 'Aproximada desde eventos.', EV),
-    'origen': _d('Origen de la posesión', 'Robo en juego, portero, banda, tiro libre, córner, saque inicial u otro.',
-                 'tipo de reanudación + posesión previa', 'categoría', 'Robo = posesión previa rival en juego.', EV),
-    'salida_limpia': _d('Salida limpia', 'Posesión en juego que nace en x<40 y llega a x≥60 sin perder el balón.',
-                        'inicio x<40 y max_x≥60', '% de posesiones', 'Solo juego abierto.', EV),
-    'progresion_limpia': _d('Progresión limpia', 'Posesión que nace en x<60 y llega a x≥80 sin perder el balón.',
-                            'inicio x<60 y max_x≥80', '% de posesiones', 'Solo juego abierto.', EV),
-    'creacion': _d('Creación', 'Posesión que entra al área rival o termina en tiro.', 'entrada al área o tiro',
-                   '% de posesiones', 'Área: x≥102, 18≤y≤62.', EV),
-    'prog': _d('Acción progresiva', 'Pase o conducción completada (no la primera de un balón parado), desde x≥48, '
-               'que acerca el balón a la portería ≥25% y ≥10 yd, o pase completado al área desde fuera.',
-               'Δd(120,40) ≥ 25% y ≥ 10 yd', 'acciones/partido', 'Solo acciones completadas.', EV),
-    'field_tilt': _d('Dominio territorial (field tilt)', 'Proporción de acciones con balón en el último tercio '
-                     'que son propias.', 'propias_tercio_final / (propias + rivales)', '%',
-                     'Igual al fieldTilt del simulador.', EV),
-    'transicion': _d('Transición ofensiva', 'Posesión nacida de un robo en juego; la fase de transición son sus '
-                     'primeros 10 s.', 'origen=robo, t ≤ 10 s', 'posesiones', 'Espejo: transición defensiva.', EV),
-    'contraataque': _d('Contraataque', 'Transición que nace en x<60 y termina en tiro en ≤15 s.',
-                       'robo x<60 → tiro ≤ 15 s', 'contraataques/partido', 'Compatible con StatsBomb.', EV),
-    'perdida': _d('Pérdida', 'Fin de una posesión propia cuando la siguiente posesión no administrativa es rival.',
-                  'lossO en juego; lossX* con balón parado', 'pérdidas/partido', 'Como en extract.', EV),
-    'perdida_costosa': _d('Pérdida costosa', 'Pérdida en juego seguida de tiro rival en ≤15 s dentro de esa '
-                          'posesión rival; "letal" si fue gol.', 'lossO → tiro rival ≤ 15 s', 'pérdidas/partido',
-                          'Asociación descriptiva, no causal.', EV),
-    'tipo_error': _d('Tipo de error', 'No forzado (pase fallado con xPass≥0.80 sin presión); bajo presión; decisión '
-                     'arriesgada (pase adelante con xPass<0.50); duelo perdido; aislado (360: 0 compañeros ≤10 yd).',
-                     'reglas en orden', 'categoría', '360 solo ve jugadores visibles.', EV),
-    'fase_presion': _d('Fase de presión', 'Por ubicación del balón rival en nuestro marco: alta x≥80, bloque medio '
-                       '40–80, bajo x<40.', 'presiones+acciones def. / acciones rivales en la banda', 'por acción',
-                       'Marco propio.', EV),
-    'ppda': _d('PPDA', 'Pases rivales permitidos por acción defensiva propia en campo de presión.',
-               'pases rivales x<72 (su marco) / (intercepción+falta+entrada) x≥48', 'pases', 'Menor = más presión.', EV),
-    'contrapresion': _d('Contrapresión', 'Presión marcada counterpress; recuperación por contrapresión: tras nuestra '
-                        'pérdida, la posesión rival dura ≤5 s y acaba en robo propio.', 'rival ≤ 5 s → robo',
-                        '% de pérdidas', 'Solo pérdidas en juego.', EV),
-    'rec_campo_rival': _d('Robos en campo rival', 'Recuperaciones en juego con x≥60.', 'robo x ≥ 60', 'robos/partido',
-                          'Igual al simulador.', EV),
-    'rec_alta': _d('Robos altos', 'Recuperaciones en juego con x≥80.', 'robo x ≥ 80', 'robos/partido',
-                   'Igual a high_press_shots de extract.', EV),
-    'jugada_peligrosa_concedida': _d('Jugada peligrosa concedida', 'Posesión rival con al menos un tiro; orden: gol, '
-                                     'xG de la posesión, OBV máximo, fecha.', 'xG_pos = 1-Π(1-xg)', 'jugadas',
-                                     'Etiquetas: penal, balón parado, transición, ataque establecido.', EV),
-    'bp_peligro': _d('Balón parado de peligro', 'Todos los córners; tiros libres con reanudación en x≥80; saques de '
-                     'banda con x≥90 (solo análisis).', 'is_danger_sp', 'jugadas', 'Zonas: área, remate, área chica.', EV),
-    'rival_tier': _d('Nivel del rival', 'Rango del rival por diferencia de xG por partido en su temporada: 1–6 alto, '
-                     '7–12 medio, 13–18 bajo (temporada previa si tiene <10 partidos).', 'rango team_season_xgd_pg',
-                     'categoría', 'Circular: el rival también jugó contra nosotros.', TS),
-    'minuto': _d('Tramo de minuto', '0–15, 16–30, 31–45+, 46–60, 61–75, 76–90+ y prórroga; sin tanda de penales.',
-                 'minute_bin', 'tramo', 'El añadido cuenta en el último tramo.', EV),
-    'marcador': _d('Marcador', 'Estado del marcador antes de cada acción, visto por el equipo protagonista.',
-                   'ganando / empatando / perdiendo', 'categoría', 'Se excluyen autogoles no registrados.', EV),
-    'obv': _d('OBV', 'Valor añadido por acción (On-Ball Value) de StatsBomb.', 'Σ obv_total_net',
-              'goles esperados', 'Validado contra team_match_obv.', EV),
-    'ventana': _d('Ventana', 'Oficial (≤2025-06-30, Ap2021–Cl2025), epílogo o temprano. Las conclusiones solo usan '
-                  'la oficial.', 'fecha ≤ 2025-06-30', 'categoría', 'Lo demás lleva la insignia "Fuera de ventana".', EV),
-    'encogimiento': _d('Encogimiento hacia el prior', 'Promedio corregido por muestra chica hacia la carrera previa '
-                       'del DT o la liga; intervalo del 80%.', '(n·x̄ + 8·μ0)/(n+8)', 'según métrica',
-                       'Confianza: <5 muy baja, 5–11 baja, 12–24 media, ≥25 alta.', TS),
-    'vigilancias': _d('Vigilancias (defensa de resguardo)', 'Al robo rival tras nuestra pérdida: jugadores propios '
-                      'visibles por detrás del balón.', 'conteo en el cuadro 360 del robo', 'jugadores',
-                      'Cota inferior: solo jugadores visibles.', F360),
-    'altura_linea': _d('Altura de la línea', 'x media de los 3 jugadores de campo más retrasados visibles.',
-                       'media x de los 3 más profundos', 'yardas', 'Cuadros con ≥70% de la región visible.', F360),
-}
-
-ASSUMPTIONS = (
-    'La posesión se aproxima con el identificador de posesión de StatsBomb; no se mide el tiempo de balón en juego.',
-    'Los cuadros 360 solo muestran a los jugadores visibles en la toma de televisión: los conteos son cotas inferiores.',
-    'Los eventos no registran desmarques sin balón; lo que no toca el balón solo se ve en 360.',
-    'La población de referencia 360 son los rivales observados en los mismos partidos, no toda la liga.',
-    'Los tipos de marca en balón parado (zonal, mixto, al hombre) se infieren de posiciones; son tentativos.',
-    'El nivel del rival es circular: su diferencia de xG incluye el partido contra nosotros.',
-)
-SCOPE = (
-    'Ventana oficial: Apertura 2021 a Clausura 2025 (hasta 2025-06-30). Las conclusiones solo usan esa ventana.',
-    'Epílogo (2025-07-01 en adelante) y muestras tempranas se muestran con la insignia "Fuera de ventana".',
-    'Muestras chicas se encogen hacia la carrera previa del DT o la liga (n0 = 8) y llevan intervalo del 80%.',
-)
-LIMITS = (
-    'Las asociaciones son descriptivas, no causales: "en partidos con X sumó Y" no significa que X cause Y.',
-    'El simulador es un duelo de estilos dentro del modelo, no un pronóstico.',
-    'Sin 360, las métricas de forma (línea, bloque, vigilancias) se marcan como no disponibles, nunca se imputan.',
-)
+def thresholds() -> dict[str, Any]:
+    """Constantes numéricas con nombre (y pares de umbrales) de este módulo."""
+    def numeric(v: Any) -> bool:
+        if isinstance(v, tuple):
+            return bool(v) and all(isinstance(x, (int, float)) for x in v)
+        return isinstance(v, (int, float)) and not isinstance(v, bool)
+    return {k: (list(v) if isinstance(v, tuple) else v) for k, v in globals().items()
+            if k.isupper() and not k.startswith('_') and numeric(v)}
 
 
-def render_marco() -> str:
-    """Texto Markdown de docs/MARCO_ANALITICO.md, generado desde DEFINITIONS y las listas de supuestos."""
-    lines = ['# Marco analítico', '',
-             ('Documento generado por `pipeline/framework.py` (`render_marco`). No editar a mano: '
-             'cambia `DEFINITIONS` y vuelve a generarlo. La misma fuente alimenta `/api/framework`.'), '',
-             '## Definiciones', '']
+def label_rules() -> dict[str, Any]:
+    """Reglas del motor de etiquetas (``labels``) para el glosario y /api/framework."""
+    lab = _sibling('labels')
+    profiles = {k: {'texto': p['texto'], 'afirma': {s: lab.int_bounds(r) for s, r in p['claims'].items()}}
+                for k, p in lab.PRESS_PROFILES.items()}
+    qualified = [{'linea': side, 'perfil': prof, 'nombre': name} for (side, prof), name in lab.DFN_QUALIFIED.items()]
+    return {'cuadrantes': lab.QUADRANTS, 'ejes': lab.AXES, 'combinada': lab.COMBINED, 'selectiva': lab.SELECTIVE,
+            'sin_robo': lab.SIN_ROBO, 'perfiles_presion': profiles, 'calificados': qualified,
+            'nombres_calificados': list(lab.DFN_QUALIFIED.values()),
+            'conflictos': [list(c) for c in lab.conflict_pairs()], 'extremo_alto': lab.HI, 'extremo_bajo': lab.LO,
+            'banda_central': lab.CENTER_BAND}
+
+
+def _marco_definitions() -> list[str]:
+    lines = ['## Definiciones', '']
     for key, d in DEFINITIONS.items():
         lines += ['### {} (`{}`)'.format(d['nombre'], key), '', d['definicion'], '',
                   '- **Fórmula:** {}'.format(d['formula']), '- **Unidad:** {}'.format(d['unidad']),
                   '- **Límites:** {}'.format(d['limites']), '- **Fuente:** {}'.format(d['fuente']), '']
+    return lines
+
+
+def _marco_kpis() -> list[str]:
+    lines = ['## KPIs de identidad', '',
+             'Cada KPI lleva semáforo en los terciles propios del DT (P{}/P{}) y la frase descriptiva "en partidos '
+             'en verde sumó X pts/partido".'.format(*KPI_TRAFFIC_PCT), '',
+             '| # | KPI | Métrica (`id`) | Apoyo | Mejor |', '|---|---|---|---|---|']
+    for i, k in enumerate(KPIS, 1):
+        apoyo = ', '.join(f'`{a}`' for a in k['apoyo']) or '—'
+        lines.append('| {} | {} | `{}` | {} | {} |'.format(i, k['nombre'], k['id'], apoyo, k['mejor']))
+    return lines + ['']
+
+
+def _marco_labels() -> list[str]:
+    r = label_rules()
+    lines = ['## Motor de etiquetas', '',
+             'Una sola función (`labels.identity`) produce tarjetas, etiquetas y puntos del mapa: la tarjeta '
+             '"Enfoque defensivo" es el cuadrante del mapa defensivo. Extremos: percentil ≥{} o ≤{}; centro '
+             '"Equilibrado" si ambos ejes están a menos de {} puntos de 50.'.format(
+                 r['extremo_alto'], r['extremo_bajo'], r['banda_central']), '',
+             '- **Mapa ofensivo:** x = {}, y = {}.'.format(*r['ejes']['off']),
+             '- **Mapa defensivo:** x = {}, y = {} (media de volumen de presión, PPDA invertido y '
+             'contrapresión).'.format(*r['ejes']['dfn']),
+             '- **Regla combinada:** "{}" (verticalidad alta con ritmo bajo; sustituye a las dos etiquetas '
+             'sueltas).'.format(r['combinada']),
+             '- **Presión selectiva:** "{}".'.format(r['selectiva']), '',
+             '| Cuadrante ofensivo | | Cuadrante defensivo | |', '|---|---|---|---|']
+    for pos in ('tl', 'tr', 'bl', 'br'):
+        lines.append('| {} | {} | {} | {} |'.format(pos, r['cuadrantes']['off'][pos], pos, r['cuadrantes']['dfn'][pos]))
+    lines += _marco_pressing(r)
+    lines += ['', 'Pares excluyentes (nunca aparecen juntos; incluye los deducidos de afirmaciones disjuntas):', '']
+    lines += [f'- {a} ↔ {b}' for a, b in r['conflictos']]
+    return lines + ['']
+
+
+def _marco_pressing(r: dict[str, Any]) -> list[str]:
+    d = DEFINITIONS['perfil_presion']
+    lines = ['', '### Regla de presión', '', d['definicion'], '',
+             '| Perfil | Texto | Afirma (percentiles) |', '|---|---|---|']
+    for key, p in r['perfiles_presion'].items():
+        claims = ', '.join(f'{s} {lo}–{hi}' for s, (lo, hi) in p['afirma'].items())
+        lines.append(f"| `{key}` | {p['texto']} | {claims} |")
+    lines += ['', '| Línea | Perfil | Tarjeta y nombre en el mapa |', '|---|---|---|']
+    lines += [f"| {q['linea']} | `{q['perfil']}` | {q['nombre']} |" for q in r['calificados']]
+    return lines
+
+
+def render_marco() -> str:
+    """Texto Markdown de docs/MARCO_ANALITICO.md, generado desde DEFINITIONS, KPIS y el motor de etiquetas."""
+    lines = ['# Marco analítico', '',
+             ('Documento generado por `pipeline/framework.py` (`render_marco`). No editar a mano: '
+              'cambia `DEFINITIONS` (en `framework_defs.py`) y vuelve a generarlo. La misma fuente alimenta '
+              '`/api/framework`.'), '']
+    lines += _marco_definitions() + _marco_kpis() + _marco_labels()
     for title, items in (('Supuestos', ASSUMPTIONS), ('Alcance', SCOPE), ('Límites', LIMITS)):
         lines += ['## ' + title, ''] + ['- ' + t for t in items] + ['']
     lines += ['## Umbrales con nombre', '', '| Constante | Valor |', '|---|---|']
-    lines += [f'| `{k}` | {v} |' for k, v in globals().items()
-              if k.isupper() and isinstance(v, (int, float)) and not isinstance(v, bool)]
+    lines += [f'| `{k}` | {v} |' for k, v in thresholds().items()]
     return '\n'.join(lines) + '\n'
 
 
 def framework_payload() -> dict[str, Any]:
-    """Payload de /api/framework: definiciones, supuestos, alcance y límites."""
-    return {'definitions': DEFINITIONS, 'assumptions': list(ASSUMPTIONS), 'scope': list(SCOPE),
-            'limits': list(LIMITS), 'windows': list(WINDOWS), 'official_end': OFFICIAL_END}
+    """Payload de /api/framework: definiciones, KPIs, etiquetas, umbrales, supuestos, alcance y límites."""
+    return {'definitions': DEFINITIONS, 'kpis': [dict(k, apoyo=list(k['apoyo'])) for k in KPIS],
+            'etiquetas': label_rules(), 'thresholds': thresholds(), 'assumptions': list(ASSUMPTIONS),
+            'scope': list(SCOPE), 'limits': list(LIMITS), 'windows': list(WINDOWS), 'official_end': OFFICIAL_END}
 
 
 if __name__ == '__main__':
-    import pathlib
     out = pathlib.Path(__file__).resolve().parents[1] / 'docs' / 'MARCO_ANALITICO.md'
     out.write_text(render_marco(), encoding='utf-8')
     print('escrito', out)

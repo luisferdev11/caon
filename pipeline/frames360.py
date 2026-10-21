@@ -17,10 +17,22 @@ from typing import Any, Optional
 
 from framework import (
     BOX_Y,
+    DEEP_LINE_N,
+    ERROR_OPP_RADIUS_YD,
+    FREE_OPTION_MARGIN_YD,
+    FREE_OPTION_RADIUS_YD,
+    GRID_STEP_YD,
     ISOLATION_RADIUS_YD,
+    MIN_ROI_VISIBLE,
+    MIN_SHAPE_PLAYERS,
+    PAIRING_RADIUS_YD,
     PITCH_X,
     PITCH_Y,
+    PRESS_SUPPORT_RADIUS_YD,
     PRESSURE_RADIUS_YD,
+    ROI_BACK_YD,
+    ROI_FRONT_YD,
+    ROI_HALF_WIDTH_YD,
     XPASS_EASY,
     XPASS_RISKY,
     to_frame,
@@ -29,23 +41,11 @@ from framework import (
 Point = tuple[float, float]
 Rect = tuple[float, float, float, float]  # x0, y0, x1, y1
 
-# --- Constantes 360 (TODO: mover a framework.py; ver data/out/requests/A3.md) ---
-GRID_STEP_YD = 2.0            # muestreo de la ROI en malla de 2 yd
-MIN_ROI_VISIBLE = 0.70        # frame válido si ≥70 % de la ROI es visible
-MIN_SHAPE_PLAYERS = 7         # forma del bloque solo con ≥7 jugadores de campo visibles
-DEEP_LINE_N = 3               # altura de línea = media x de los 3 más retrasados
-ROI_BACK_YD = 25.0            # ROI de forma: 25 yd detrás del balón ...
-ROI_FRONT_YD = 10.0           # ... 10 yd delante ...
-ROI_HALF_WIDTH_YD = 25.0      # ... y ±25 yd a lo ancho (el área visible mediana es ~2,100 yd², 22 % del campo)
-ERROR_OPP_RADIUS_YD = 5.0     # rivales cercanos al error
+# --- Constantes 360 propias de la geometría (los umbrales de visibilidad y radios viven en framework.py) ---
 ERROR_ROI_YD = 10.0           # ROI del contexto del error: cuadrado ±10 yd del actor
-PRESS_SUPPORT_RADIUS_YD = 10.0  # compañeros que acompañan la presión
-FREE_OPTION_RADIUS_YD = 15.0  # opciones de pase del rival cerca del balón
-FREE_OPTION_MARGIN_YD = 3.0   # una opción es libre si ningún defensor está a ≤3 yd
 OWN_BOX_MAX_X = 18.0          # área propia en el marco de X (x < 18, 18 ≤ y ≤ 62)
 OWN_SIX_MAX_X = 6.0           # área chica propia (x < 6, 30 ≤ y ≤ 50)
 SIX_Y = (30.0, 50.0)
-PAIRING_RADIUS_YD = 1.5       # atacante emparejado si un defensor está a ≤1.5 yd
 MARK_MAN_MIN_PAIRING = 0.60   # ≥60 % de atacantes emparejados → "al hombre" (inferido)
 MARK_MAN_MAX_UNPAIRED_SIX = 1
 MARK_ZONAL_MAX_PAIRING = 0.35  # ≤35 % emparejados y ≥3 libres en área chica → "zonal"

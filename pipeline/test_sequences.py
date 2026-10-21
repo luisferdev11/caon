@@ -61,6 +61,82 @@ class PossessionTests(unittest.TestCase):
 
 
 
+def _ev(idx, kind, team, loc, poss=7, body=None, pattern='Regular Play'):
+    e = {'id': f'r{idx}', 'index': idx, 'period': 1, 'minute': 10, 'second': idx, 'timestamp': f'00:10:{idx:02d}.000',
+         'type': {'name': kind}, 'team': {'id': team}, 'possession': poss, 'possession_team': {'id': team},
+         'play_pattern': {'name': pattern}, 'player': {'id': 100 + idx}, 'location': loc}
+    if body is not None:
+        e[kind.lower()] = body
+    return e
+
+
+class ReachTests(unittest.TestCase):
+    """max_x y box_entry solo cuentan acciones completadas (salida/progresión limpia, entradas al área)."""
+
+    def _one(self, events):
+        tail = _ev(99, 'Pass', 2, [50, 40], poss=8, body={'end_location': [60, 40]})
+        return sequences.build_possessions(events + [tail], {'home_team': {'home_team_id': 1}})['possessions'][0]
+
+    def test_incomplete_pass_does_not_reach_or_enter_the_box(self):
+        p = self._one([_ev(1, 'Pass', 1, [30, 40], body={'end_location': [50, 40]}),
+                       _ev(2, 'Pass', 1, [50, 40], body={'end_location': [110, 40], 'outcome': {'name': 'Incomplete'}})])
+        self.assertEqual(p['max_x'], 50)
+        self.assertFalse(p['box_entry'])
+
+    def test_completed_pass_and_carry_reach(self):
+        p = self._one([_ev(1, 'Pass', 1, [30, 40], body={'end_location': [70, 40]}),
+                       _ev(2, 'Carry', 1, [70, 40], body={'end_location': [104, 40]})])
+        self.assertEqual(p['max_x'], 104)
+        self.assertTrue(p['box_entry'])
+
+    def test_shot_end_location_is_not_a_reach(self):
+        p = self._one([_ev(1, 'Pass', 1, [30, 40], body={'end_location': [60, 40]}),
+                       _ev(2, 'Shot', 1, [70, 40], body={'end_location': [120, 40], 'statsbomb_xg': 0.02,
+                                                         'outcome': {'name': 'Off T'}})])
+        self.assertEqual(p['max_x'], 70)
+        self.assertTrue(p['box_entry'])
+
+
+class LossKindTests(unittest.TestCase):
+    """Pérdida como en extract: en juego si el rival reanuda en juego (incl. portero); si no, balón muerto."""
+
+    def _first(self, last, pattern):
+        evs = [_ev(1, 'Pass', 1, [30, 40], body={'end_location': [50, 40]}), last,
+               _ev(9, 'Pass', 2, [40, 40], poss=8, pattern=pattern, body={'end_location': [60, 40]})]
+        return sequences.build_possessions(evs, {'home_team': {'home_team_id': 1}})['possessions'][0]
+
+    def test_rival_corner_is_a_dead_ball_loss(self):
+        p = self._first(_ev(2, 'Pass', 1, [50, 40], body={'end_location': [70, 40], 'outcome': {'name': 'Out'}}),
+                        'From Corner')
+        self.assertEqual(p['loss']['kind'], 'lossXF')
+
+    def test_keeper_restart_is_an_open_play_loss(self):
+        p = self._first(_ev(2, 'Pass', 1, [90, 40], body={'end_location': [115, 40], 'outcome': {'name': 'Incomplete'}}),
+                        'From Keeper')
+        self.assertEqual(p['loss']['kind'], 'lossO')
+
+    def test_possession_ending_in_a_shot_is_not_a_loss(self):
+        p = self._first(_ev(2, 'Shot', 1, [100, 40], body={'statsbomb_xg': 0.1, 'outcome': {'name': 'Saved'}}),
+                        'From Keeper')
+        self.assertEqual(p['end']['type'], 'shot')
+        self.assertIsNone(p['loss'])
+
+
+class ShootoutTests(unittest.TestCase):
+    def test_penalty_shootout_is_outside_every_analysis(self):
+        evs = [_ev(1, 'Pass', 1, [30, 40], body={'end_location': [50, 40]}),
+               _ev(2, 'Pass', 2, [50, 40], poss=8, body={'end_location': [60, 40]})]
+        for i, team in ((3, 1), (4, 2)):
+            shot = _ev(i, 'Shot', team, [108, 40], poss=10 + i, pattern='Other',
+                       body={'statsbomb_xg': 0.78, 'type': {'name': 'Penalty'}, 'outcome': {'name': 'Goal'}})
+            shot['period'] = 5
+            evs.append(shot)
+        out = sequences.build_possessions(evs, {'home_team': {'home_team_id': 1}})
+        self.assertEqual([p['period'] for p in out['possessions']], [1, 1])
+        self.assertFalse(any(p['shots'] for p in out['possessions']))
+        self.assertFalse(any(r['period'] >= 5 for lst in out['events_light'].values() for r in lst))
+
+
 class ContractTests(unittest.TestCase):
     def test_an_sample_matches_builder_output(self):
         sample = json.loads((HERE / 'fixtures' / 'an_sample.json').read_text(encoding='utf-8'))

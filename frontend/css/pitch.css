@@ -1,0 +1,33 @@
+/* Cancha SVG única (js/pitch.js): el mismo verde rayado, líneas, porterías y discos del lienzo del laboratorio.
+   Dorado = protagonista, azul = rival, gris = liga/otros. Solo tokens. */
+.pitch { width: 100%; height: auto; display: block; border-radius: var(--radius-md); background: var(--pitch); }
+.pitch-bg { fill: var(--pitch); }
+.pitch-grass { fill: var(--grass); }
+.pitch-stripe { fill: var(--grass-2); }
+.pitch-lines { fill: none; stroke: var(--chalk-strong); stroke-width: 0.3; }
+.pitch-spot { fill: var(--chalk-strong); stroke: none; }
+.pitch-goal { fill: var(--net); stroke: var(--net-line); stroke-width: 0.2; }
+.pitch-net { stroke: var(--net); stroke-width: 0.12; }
+.pd circle { stroke: var(--disc-ring); stroke-width: 0.3; }
+.pd text { font: 700 1.75px var(--font-body); text-anchor: middle; dominant-baseline: central; pointer-events: none; }
+.pd-protag circle { fill: var(--protag); }
+.pd-protag text { fill: var(--on-protag); }
+.pd-rival circle { fill: var(--rival); }
+.pd-rival text { fill: var(--on-rival); }
+.pd-league circle { fill: var(--league); }
+.pd-league text { fill: var(--on-league); }
+.pd-gk.pd-protag circle { fill: var(--protag-gk); }
+.pd-gk.pd-rival circle { fill: var(--rival-gk); }
+.pd-hi circle { stroke: var(--disc-hi); stroke-width: 0.55; }
+.pitch-ball { fill: var(--ball); stroke: var(--ball-line); stroke-width: 0.25; }
+.pitch-ball-shadow { fill: var(--shadow-ball); }
+.pitch-arc { fill: none; stroke: var(--on-pitch); stroke-width: 0.35; stroke-dasharray: 1 1; opacity: 0.8; }
+.pitch-label { font: 700 3px var(--font-display); letter-spacing: 0.1px; text-transform: uppercase; fill: var(--on-pitch); text-anchor: middle; paint-order: stroke; stroke: var(--disc-ring); stroke-width: 0.6; }
+.pitch-dir { font: 600 2.2px var(--font-body); fill: var(--on-pitch); opacity: 0.75; }
+/* marcas de gráficas sobre la cancha (js/charts.js) */
+.ch-cell { fill: var(--chart-protag); }
+.ch-cell.rival { fill: var(--chart-rival); }
+.ch-shot { fill: none; stroke: var(--protag-ink); stroke-width: 0.5; }
+.ch-shot.goal { fill: var(--protag); stroke: var(--on-pitch); stroke-width: 0.25; }
+.ch-shot.rival { stroke: var(--rival-ink); }
+.ch-shot.rival.goal { fill: var(--rival); }

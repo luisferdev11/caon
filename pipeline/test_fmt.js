@@ -59,3 +59,44 @@ test('router parses hash routes', async () => {
   assert.deepEqual(r.parseHash('#nada'), { name: 'historia', params: [] });
   assert.equal(r.ROUTES.length >= 9, true);
 });
+test('confidence bands include "muy baja", prior and source in Spanish', async () => {
+  const f = await load();
+  assert.equal(f.confidence('muy baja'), 'Confianza muy baja');
+  assert.equal(f.confidence('media'), 'Confianza media');
+  assert.equal(f.prior('liga'), 'Referencia previa: promedio de la liga');
+  assert.equal(f.prior('carrera'), 'Referencia previa: su carrera anterior');
+  assert.equal(f.prior(null), '');
+  assert.equal(f.source('team-stats'), 'Estadísticas por partido');
+  assert.equal(f.source('eventos'), 'Eventos');
+  assert.equal(f.source('360'), 'Capturas 360');
+  assert.equal(f.source('rara'), '');
+});
+test('low percentile phrasing and metric values by unit', async () => {
+  const f = await load();
+  assert.equal(f.percentileLow(15), 'por debajo de 85 de cada 100');
+  assert.equal(f.percentileLow(null), 's/d');
+  assert.equal(f.metricValue({ value: 0.507, unit: 'proporción' }), '51%');
+  assert.equal(f.metricValue({ value: 1.0394, unit: 'xG por partido' }), '1.04');
+  assert.equal(f.metricValue({ value: 269.3242, unit: 'por partido' }), '269.32');
+  assert.equal(f.metricValue({ value: 0.4848, unit: 'proporción' }, 'value'), '48%');
+  assert.equal(f.metricValue({ value: null, unit: 'm' }), 's/d');
+  assert.equal(f.metricValue(null), 's/d');
+  assert.equal(f.unitLabel('proporción'), '%');
+  assert.equal(f.unitLabel('m/s'), 'm/s');
+  assert.equal(f.ciByUnit([0.4848, 0.5292], 'proporción'), '48% – 53%');
+  assert.equal(f.ciByUnit([8.13, 10.47], 'pases por acción'), '8.13 – 10.47');
+});
+test('explorer.v2 units: "% del balón" values are shares, unit text without the % sign; confidence from n', async () => {
+  const f = await load();
+  assert.equal(f.metricValue({ value: 0.538, unit: '% del balón' }), '54%');
+  assert.equal(f.metricValue({ value: 0.4754, unit: '% de saques largos' }), '48%');
+  assert.equal(f.ciByUnit([0.5282, 0.5477], '% del balón'), '53% – 55%');
+  assert.equal(f.unitLabel('% del balón'), '%');
+  assert.equal(f.unitText('% del balón'), 'del balón');
+  assert.equal(f.unitText('proporción'), '');
+  assert.equal(f.unitText('xG por partido'), 'xG por partido');
+  assert.equal(f.metricValue({ value: 313.2046, unit: 'presiones por partido (ajustadas)' }), '313.2');
+  assert.equal(f.confidenceOfN(4), 'muy baja'); assert.equal(f.confidenceOfN(5), 'baja');
+  assert.equal(f.confidenceOfN(12), 'media'); assert.equal(f.confidenceOfN(25), 'alta'); assert.equal(f.confidenceOfN(null), null);
+  assert.equal(f.confidence(f.confidenceOfN(223)), 'Confianza alta');
+});

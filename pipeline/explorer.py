@@ -1,10 +1,14 @@
 # ruff: noqa: UP045  (Python 3.9: Optional en lugar de X | None)
 """Explorador por equipo, temporada y DT desde team-stats de todos los partidos en caché (AC-12).
 
-Unidad = (equipo, DT, temporada), solo partidos con un único DT registrado. Cada métrica se
-encoge hacia el prior de la carrera del DT (sus otros clubes, ponderado por partidos) o hacia la
-liga si no tiene historia: (n·x̄ + K·μ0)/(n + K). Intervalo al 80% σ/√(n+K) y banda de confianza.
-Uso: .venv/bin/python -X utf8 pipeline/explorer.py [--out ruta.json]
+Unidad = (equipo, DT, temporada) y tenencia = (equipo, DT, ventana), solo partidos con un único DT
+registrado. Cada métrica se encoge hacia el prior de la carrera previa del DT (sus partidos anteriores,
+ponderados por partido) o hacia la liga si no tiene historia: (n·x̄ + n0·μ0)/(n + n0), con intervalo
+central al 80% σ/√(n+n0) y banda de confianza. Los resúmenes de equipo y DT usan solo la ventana oficial
+(si no la hay, se rotula la ventana usada). La identidad sale de ``labels.identity`` (mismas reglas que
+la historia) sobre los percentiles de los valores encogidos. Los ids de métrica son los de DEFINITIONS.
+Cada equipo, DT y tenencia enlaza las entidades del modelo con analítica de eventos/360 (``entidades``).
+Uso: .venv/bin/python -X utf8 pipeline/explorer.py [--out ruta.json] [--model model/model.json]
 """
 import argparse
 import collections
@@ -12,43 +16,31 @@ import json
 import math
 import pathlib
 import statistics
+import unicodedata
+from collections.abc import Callable
 from typing import Any, Optional
+
+import framework as fw
+import labels
+from analytics.replay import window_of
+from build_model import STY as METRICS  # mismas métricas de estilo que el modelo
+from framework import confidence
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 CACHE = ROOT / 'data' / 'cache'
+MODEL = ROOT / 'model' / 'model.json'
 DEFAULT_OUT = ROOT / 'data' / 'out' / 'preview' / 'A6' / 'explorer.json'
-
-from framework import OFFICIAL_END as WINDOW_END
-from framework import SHRINK_N0 as SHRINK_K
-from framework import confidence
-
-Z80 = 1.2816                       # cuantil normal para intervalo central al 80% (framework.CI_LEVEL)
-WINDOW_START = '2021-07-01'        # inicio de la ventana oficial Ap2021–Cl2025
-UNITS = {'posesion': 'proporción', 'verticalidad': 'proporción', 'ritmo': 'm/s', 'linea': 'm',
-         'presion': 'pases por acción', 'saque_largo': 'proporción', 'xg': 'xG por partido',
-         'xga': 'xG por partido', 'bp_xg': 'xG por partido'}
-SMALL_SAMPLE_N = 12                # "muestra chica" por debajo de confianza media
+VERSION = 'explorer.v3'
+SHRINK_K = fw.SHRINK_N0
+Z_CI = statistics.NormalDist().inv_cdf(0.5 + fw.CI_LEVEL / 2)   # 1.2816 para el 80%
+SMALL_SAMPLE_N = {name: limit for limit, name in fw.CONFIDENCE_BANDS}['baja']  # "muestra chica": n < 12 (bajo 'media')
 REF_MIN_MATCHES = 10               # equipo-temporada entra a la referencia de percentiles
-
-try:  # mismas definiciones de estilo que el modelo (no se edita build_model.py)
-    from build_model import STY as METRICS
-except Exception:  # noqa: BLE001 - build_model trae dependencias pesadas; copia fiel de STY
-    METRICS = [
-        ('posesion', 'team_match_possession', False, 'Posesión'),
-        ('verticalidad', 'team_match_directness', False, 'Verticalidad'),
-        ('ritmo', 'team_match_pace_towards_goal', False, 'Velocidad hacia portería'),
-        ('linea', 'team_match_defensive_distance', False, 'Altura de línea defensiva'),
-        ('volumen_presion', 'team_match_pressures_adj', False, 'Volumen de presión'),
-        ('presion', 'team_match_ppda', True, 'Pases rivales por acción defensiva (PPDA)'),
-        ('contrapresion', 'team_match_counterpressures', False, 'Contrapresión'),
-        ('saque_largo', 'team_match_gk_long_pass_ratio', False, 'Saque largo del portero'),
-        ('centros', 'team_match_crosses_into_box', False, 'Centros al área'),
-        ('contragolpe', 'team_match_counter_attacking_shots', False, 'Tiros al contragolpe'),
-        ('presion_alta_tiros', 'team_match_high_press_shots', False, 'Tiros tras robo alto'),
-        ('xg', 'team_match_np_xg', False, 'xG a favor'),
-        ('xga', 'team_match_np_xg_conceded', True, 'Solidez (xG en contra)'),
-        ('bp_xg', 'team_match_sp_xg', False, 'Peligro a balón parado'),
-    ]
+DISPLAY_FIRST = ('xg', 'xga', 'posesion')   # las 3 que ve el modo Aficionado
+IDENTITY_KEYS = ('build', 'defense', 'attack', 'offense_style', 'tags', 'map')
+SEASON_IDENTITY_KEYS = ('build', 'defense', 'attack', 'tags')
+SIG_DIGITS = 4                     # cifras significativas publicadas
+SOURCE = 'team-stats'
+Row = dict[str, Any]
 
 
 def _finite(v: Any) -> bool:
@@ -56,29 +48,28 @@ def _finite(v: Any) -> bool:
 
 
 def shrink(n: int, xbar: Optional[float], mu0: float, k: int = SHRINK_K) -> float:
-    """Encogimiento (n·x̄ + k·μ0)/(n + k)."""
+    """Encogimiento (n·x̄ + k·μ0)/(n + k) (framework.shrink); sin datos devuelve μ0."""
     if not n or xbar is None:
         return mu0
-    return (n * xbar + k * mu0) / (n + k)
+    return fw.shrink(xbar, n, mu0, k)
 
 
 def interval80(value: float, sd: float, n: int, k: int = SHRINK_K) -> list:
-    """Intervalo central 80%: value ± z·σ/√(n+k)."""
-    half = Z80 * sd / math.sqrt(n + k)
+    """Intervalo central al nivel framework.CI_LEVEL: value ± z·σ/√(n+k)."""
+    half = Z_CI * sd / math.sqrt(n + k)
     return [value - half, value + half]
-
-
-def window_of(date: str) -> str:
-    """Ventana del framework: 'oficial' (Ap2021–Cl2025), 'epilogo' (después) o 'temprano' (antes)."""
-    if date > WINDOW_END:
-        return 'epilogo'
-    return 'oficial' if date >= WINDOW_START else 'temprano'
 
 
 def percentile(ref: list, v: float, inverted: bool) -> int:
     """Percentil de v en la referencia ordenada (invertido si menos es mejor)."""
     p = 100 * sum(1 for x in ref if x < v) / len(ref)
     return round(100 - p if inverted else p)
+
+
+def slug(text: str) -> str:
+    """'André Jardine' → 'andre-jardine' (misma regla que las claves de URL de la API)."""
+    plain = unicodedata.normalize('NFKD', str(text)).encode('ascii', 'ignore').decode().lower()
+    return '-'.join(''.join(c if c.isalnum() else ' ' for c in plain).split())
 
 
 def match_coach(side: dict) -> Optional[str]:
@@ -89,8 +80,25 @@ def match_coach(side: dict) -> Optional[str]:
     return mgrs[0].get('nickname') or mgrs[0].get('name')
 
 
+def sig(v: float, digits: int = SIG_DIGITS) -> float:
+    """Redondeo a ``digits`` cifras significativas (269.32 → 269.3; 0.50712 → 0.5071)."""
+    if v == 0:
+        return 0.0
+    return round(v, digits - 1 - math.floor(math.log10(abs(v))))
+
+
+def unit_of(key: str) -> str:
+    """Unidad publicada de la métrica: la del glosario DEFINITIONS (una sola fuente de verdad)."""
+    return (fw.DEFINITIONS.get(key) or {}).get('unidad', 'por partido')
+
+
+# ---------------------------------------------------------------- referencias y prior
+def _values(rows: list, col: str) -> list:
+    return [r['stats'][col] for r in rows if _finite(r['stats'].get(col))]
+
+
 def _mean(rows: list, col: str) -> Optional[float]:
-    vals = [r['stats'][col] for r in rows if _finite(r['stats'].get(col))]
+    vals = _values(rows, col)
     return sum(vals) / len(vals) if vals else None
 
 
@@ -106,29 +114,12 @@ def career_prior(rows: list, coach: str, before: str, league: dict, cols: list):
     return prior, 'carrera'
 
 
-def _metric_records(rows: list, prior: dict, league_sd: dict, ref: dict, metrics: list, window: str) -> dict:
-    out = {}
-    for key, col, inv, _label in metrics:
-        vals = [r['stats'][col] for r in rows if _finite(r['stats'].get(col))]
-        if not vals or prior.get(col) is None:
-            out[key] = {'id': key, 'value': None, 'n': len(vals), 'motivo': 'sin_dato_en_team_stats'}
-            continue
-        v = shrink(len(vals), sum(vals) / len(vals), prior[col])
-        lo, hi = interval80(v, league_sd[col], len(vals))
-        rec = {'id': key, 'value': round(v, 4), 'bruto': round(sum(vals) / len(vals), 4), 'n': len(vals),
-               'unit': UNITS.get(key, 'por partido'),
-               'ci': [round(lo, 4), round(hi, 4)], 'source': 'team-stats', 'window': window}
-        if ref.get(col):
-            rec['ref_pct'] = percentile(ref[col], v, inv)
-        out[key] = rec
-    return out
-
-
-def _league_refs(rows: list, cols: list):
+def league_refs(rows: list, cols: list) -> tuple:
+    """(media de liga, σ entre partidos, referencia ordenada de equipo-temporada con ≥10 partidos)."""
     league = {c: _mean(rows, c) for c in cols}
     sd = {}
     for c in cols:
-        vals = [r['stats'][c] for r in rows if _finite(r['stats'].get(c))]
+        vals = _values(rows, c)
         sd[c] = statistics.pstdev(vals) if len(vals) > 1 else 0.0
     grp = collections.defaultdict(list)
     for r in rows:
@@ -138,57 +129,171 @@ def _league_refs(rows: list, cols: list):
     return league, sd, ref
 
 
-def _window(rows: list) -> str:
-    wins = {window_of(r['date']) for r in rows}
-    if wins == {'oficial'}:
-        return 'oficial'
-    return 'epilogo' if 'epilogo' in wins else 'temprano'
+# ---------------------------------------------------------------- registros e identidad
+def _ordered(metrics: list) -> list:
+    first = [m for k in DISPLAY_FIRST for m in metrics if m[0] == k]
+    return first + [m for m in metrics if m not in first]
 
 
-def _unit(rows: list, prior: dict, src: str, refs, metrics: list) -> dict:
+def metric_record(vals: list, mu0: Optional[float], sd: float, ref: list, metric: tuple, window: str,
+                  compact: bool = False) -> dict:
+    """Registro de métrica encogido (contrato del framework) o nulo con motivo.
+
+    ``compact``: para unidades anidadas, sin id/nombre/unidad/fuente/ventana (el id es la clave del dict, la
+    unidad viene del catálogo y la fuente y la ventana de la unidad).
+    """
+    key, _col, inv, label = metric
+    rec = {'n': len(vals)} if compact else {'id': key, 'nombre': label, 'unit': unit_of(key), 'n': len(vals),
+                                            'source': SOURCE, 'window': window}
+    if not vals or mu0 is None:
+        return dict(rec, value=None, motivo='sin dato en team-stats para estos partidos')
+    raw = sum(vals) / len(vals)
+    v = shrink(len(vals), raw, mu0)
+    lo, hi = interval80(v, sd, len(vals))
+    rec.update({'value': sig(v), 'raw': sig(raw), 'prior_value': sig(mu0), 'ci': [sig(lo), sig(hi)]})
+    if ref:
+        rec['ref_pct'] = percentile(ref, v, inv)
+    return rec
+
+
+def identity_of(records: dict, keys: tuple = IDENTITY_KEYS) -> dict:
+    """Identidad (labels.identity) desde los percentiles de los valores encogidos."""
+    style = {k: r['ref_pct'] for k, r in records.items() if r.get('ref_pct') is not None}
+    ident = labels.identity(style)
+    return {k: ident.get(k) for k in keys}
+
+
+def window_label(rows: list) -> str:
+    """Ventana de una unidad: la única de sus partidos o, si se mezclan, la más frecuente."""
+    counts = collections.Counter(window_of(r['date']) for r in rows)
+    return counts.most_common(1)[0][0]
+
+
+def unit(rows: list, prior: dict, src: str, refs: tuple, metrics: list, nested: bool = False) -> dict:
+    """Unidad del explorador con métricas por id, identidad y confianza.
+
+    Resumen (``nested=False``): registros completos del contrato. Temporada o tenencia (``nested=True``):
+    registros compactos, identidad corta y ``source`` a nivel de unidad.
+    """
     _league, sd, ref = refs
-    first = rows[0]
-    n = len(rows)
-    return {'team': first['team'], 'coach': first['coach'], 'season_id': first['season_id'],
-            'temporada': first['season_name'], 'n': n, 'confianza': confidence(n),
-            'muestra_chica': n < SMALL_SAMPLE_N, 'ventana': _window(rows), 'prior': src,
-            'desde': min(r['date'] for r in rows), 'hasta': max(r['date'] for r in rows),
-            'metricas': _metric_records(rows, prior, sd, ref, metrics, _window(rows))}
+    n, window = len(rows), window_label(rows)
+    recs = {m[0]: metric_record(_values(rows, m[1]), prior.get(m[1]), sd[m[1]], ref[m[1]], m, window, nested)
+            for m in _ordered(metrics)}
+    out = {'n': n, 'confidence': confidence(n), 'small_sample': n < SMALL_SAMPLE_N, 'window': window,
+           'prior': src, 'desde': min(r['date'] for r in rows), 'hasta': max(r['date'] for r in rows),
+           'identity': identity_of(recs, SEASON_IDENTITY_KEYS if nested else IDENTITY_KEYS), 'metrics': recs}
+    if nested:
+        out['source'] = SOURCE
+    return out
+
+
+# ---------------------------------------------------------------- equipos y DTs
+def _summary_rows(rows: list) -> list:
+    official = [r for r in rows if window_of(r['date']) == 'oficial']
+    return official or rows
+
+
+def _by(rows: list, keyf: Callable[[Row], Any]) -> dict:
+    out = collections.defaultdict(list)
+    for r in sorted(rows, key=lambda r: r['date']):
+        out[keyf(r)].append(r)
+    return out
+
+
+def _season_units(rows: list, all_rows: list, refs: tuple, metrics: list, cols: list) -> list:
+    out = []
+    for (team, coach, _sid), urows in _by(rows, lambda r: (r['team'], r['coach'], r['season_id'])).items():
+        prior, src = career_prior(all_rows, coach, urows[0]['date'], refs[0], cols)
+        label = f"{team} · {coach} · {urows[0]['season_name']}"
+        out.append(dict(unit(urows, prior, src, refs, metrics, nested=True), key=slug(label),
+                        label=label, team=team, coach=coach, season_id=urows[0]['season_id'],
+                        temporada=urows[0]['season_name']))
+    return out
+
+
+def team_items(rows: list, refs: tuple, metrics: list, cols: list) -> list:
+    """Un resumen por equipo (prior = liga) con sus temporadas por DT encogidas a la carrera previa."""
+    items = []
+    for team, trows in sorted(_by(rows, lambda r: r['team']).items()):
+        seasons = _season_units(trows, rows, refs, metrics, cols)
+        base = unit(_summary_rows(trows), refs[0], 'liga', refs, metrics)
+        items.append(dict(base, key=slug(team), label=team, team=team, n_total=len(trows), unidades=len(seasons),
+                          entrenadores=sorted({r['coach'] for r in trows}), temporadas=seasons))
+    return items
+
+
+def coach_items(rows: list, refs: tuple, metrics: list, cols: list) -> list:
+    """Un resumen por DT (prior = liga), su carrera por temporada y sus tenencias (equipo, ventana)."""
+    items = []
+    for coach, crows in sorted(_by(rows, lambda r: r['coach']).items()):
+        tenures = []
+        for (team, _win), trows in _by(crows, lambda r: (r['team'], window_of(r['date']))).items():
+            prior, src = career_prior(rows, coach, trows[0]['date'], refs[0], cols)
+            tenures.append(dict(unit(trows, prior, src, refs, metrics, nested=True), team=team,
+                                coach=coach, label=f'{team} · {coach}'))
+        seasons = _season_units(crows, rows, refs, metrics, cols)
+        base = unit(_summary_rows(crows), refs[0], 'liga', refs, metrics)
+        items.append(dict(base, key=slug(coach), label=coach, coach=coach, n_total=len(crows),
+                          unidades=len(seasons), clubes=list(dict.fromkeys(t['team'] for t in tenures)),
+                          tenencias=tenures, temporadas=seasons))
+    return items
+
+
+def _method() -> dict:
+    return {'k': SHRINK_K, 'intervalo': f'{round(100 * fw.CI_LEVEL)}%',
+            'fuente': 'team-stats StatsBomb por partido (solo partidos con un único DT registrado)',
+            'resumen': 'Resúmenes de equipo y DT con la ventana oficial; prior = liga.',
+            'unidades': 'Temporadas y tenencias encogidas hacia la carrera previa del DT o la liga; sus '
+                        'métricas son compactas (unidad en el catálogo, fuente y ventana en la unidad).',
+            'bandas': {'muy baja': '<5', 'baja': '5–11', 'media': '12–24', 'alta': '≥25'},
+            'muestra_chica': f'menos de {SMALL_SAMPLE_N} partidos',
+            'identidad': 'labels.identity sobre percentiles de valores encogidos.',
+            'entidades': 'Entidades del modelo con analítica de eventos y 360 (/api/entities/{id}/analysis).'}
 
 
 def build_payload(rows: list, metrics: Optional[list] = None) -> dict:
-    """Índices de equipos y DTs, línea de tiempo por equipo y carrera por DT."""
+    """Payload del explorador: equipos y DTs (resumen oficial + detalle), catálogo de métricas y método."""
     metrics = metrics or METRICS
     cols = [m[1] for m in metrics]
-    refs = _league_refs(rows, cols)
-    by_unit = collections.defaultdict(list)
-    by_tenure = collections.defaultdict(list)
-    for r in rows:
-        if r['coach']:
-            by_unit[(r['team'], r['coach'], r['season_id'])].append(r)
-            by_tenure[(r['team'], r['coach'], window_of(r['date']))].append(r)
-    timeline = collections.defaultdict(list)
-    career = collections.defaultdict(list)
-    for (team, coach, _sid), urows in sorted(by_unit.items(), key=lambda kv: min(r['date'] for r in kv[1])):
-        prior, src = career_prior(rows, coach, min(r['date'] for r in urows), refs[0], cols)
-        timeline[team].append(_unit(urows, prior, src, refs, metrics))
-    for (_team, coach, _win), trows in sorted(by_tenure.items(), key=lambda kv: min(r['date'] for r in kv[1])):
-        prior, src = career_prior(rows, coach, min(r['date'] for r in trows), refs[0], cols)
-        career[coach].append(_unit(trows, prior, src, refs, metrics))
-    teams = [{'team': t, 'n': sum(u['n'] for u in us), 'unidades': len(us),
-              'entrenadores': sorted({u['coach'] for u in us})} for t, us in sorted(timeline.items())]
-    coaches = []
-    for c, ts in sorted(career.items()):
-        n = sum(t['n'] for t in ts)
-        coaches.append({'coach': c, 'n': n, 'confianza': confidence(n), 'muestra_chica': n < SMALL_SAMPLE_N,
-                        'clubes': [t['team'] for t in ts]})
-    return {'version': 'explorer.v1', 'equipos': teams, 'entrenadores': coaches,
-            'linea_tiempo': dict(timeline), 'carrera': dict(career),
-            'metodo': {'k': SHRINK_K, 'intervalo': '80%', 'fuente': 'team-stats StatsBomb por partido',
-                       'bandas': {'muy baja': '<5', 'baja': '5–11', 'media': '12–24', 'alta': '≥25'},
-                       'nota': 'Identidad (labels.identity) pendiente: aún no existe pipeline/labels.py.'}}
+    rows = [r for r in rows if r['coach']]
+    refs = league_refs(rows, cols)
+    catalog = [{'id': k, 'nombre': lab, 'unit': unit_of(k), 'menos_es_mejor': inv, 'columna': col,
+                'fuente': SOURCE} for k, col, inv, lab in _ordered(metrics)]
+    return {'version': VERSION, 'equipos': team_items(rows, refs, metrics, cols),
+            'entrenadores': coach_items(rows, refs, metrics, cols), 'metricas': catalog, 'metodo': _method()}
 
 
+# ---------------------------------------------------------------- enlace a entidades del modelo
+def entity_coach(entity: dict, rows: list) -> Optional[str]:
+    """DT con más partidos del equipo de la entidad dentro de [d0, d1]; None si no hay partidos."""
+    d0, d1 = entity.get('d0') or '', entity.get('d1') or '9999'
+    counts = collections.Counter(r['coach'] for r in rows
+                                 if r['team'] == entity.get('team') and d0 <= r['date'] <= d1 and r['coach'])
+    return counts.most_common(1)[0][0] if counts else None
+
+
+def _overlaps(unit_: dict, entity: dict) -> bool:
+    return unit_['desde'] <= (entity.get('d1') or '9999') and (entity.get('d0') or '') <= unit_['hasta']
+
+
+def link_entities(payload: dict, entities: list, rows: list) -> dict:
+    """Agrega ``entidades`` [{id, label, window}] a equipos, DTs y tenencias (mismo equipo y DT)."""
+    linked = []
+    for e in entities:
+        coach = entity_coach(e, rows)
+        if coach is not None:
+            linked.append((e, coach, {'id': e['id'], 'label': e.get('label', e['id']), 'window': e.get('window')}))
+    for t in payload['equipos']:
+        t['entidades'] = [ref for e, _c, ref in linked if e['team'] == t['team']]
+    for c in payload['entrenadores']:
+        c['entidades'] = [ref for _e, coach, ref in linked if coach == c['coach']]
+        for ten in c['tenencias']:
+            ten['entidades'] = [ref for e, coach, ref in linked
+                                if coach == c['coach'] and e['team'] == ten['team'] and _overlaps(ten, e)]
+    return payload
+
+
+# ---------------------------------------------------------------- IO
 def _read(path: pathlib.Path) -> Any:
     raw = path.read_bytes()
     try:
@@ -198,7 +303,7 @@ def _read(path: pathlib.Path) -> Any:
 
 
 def load_rows(cache: pathlib.Path = CACHE) -> list:
-    """Une partidos (DT, fecha) con team-stats por partido; agrega team_match_pressures_adj."""
+    """IO: une partidos (DT, fecha) con team-stats por partido; agrega team_match_pressures_adj."""
     rows = []
     for mf in sorted(cache.glob('v6_competitions_73_seasons_*_matches.json')):
         for m in _read(mf):
@@ -217,15 +322,28 @@ def load_rows(cache: pathlib.Path = CACHE) -> list:
     return rows
 
 
+def load_entities(path: pathlib.Path = MODEL) -> list:
+    """IO: entidades reales de Liga MX del modelo (id, label, team, d0, d1, window); [] si no hay modelo."""
+    try:
+        model = json.loads(path.read_text(encoding='utf-8'))
+    except (OSError, ValueError):
+        return []
+    return [e for e in model.get('entities', []) if e.get('kind') == 'real' and e.get('team')]
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument('--out', default=str(DEFAULT_OUT))
-    out = pathlib.Path(ap.parse_args().out)
+    ap.add_argument('--model', default=str(MODEL))
+    args = ap.parse_args()
+    out = pathlib.Path(args.out)
     rows = load_rows()
-    payload = build_payload(rows)
+    payload = link_entities(build_payload(rows), load_entities(pathlib.Path(args.model)), rows)
     out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_text(json.dumps(payload, ensure_ascii=False, allow_nan=False), encoding='utf-8')
-    print(f"{len(rows)} filas, {len(payload['equipos'])} equipos, {len(payload['entrenadores'])} DTs → {out}")
+    text = json.dumps(payload, ensure_ascii=False, allow_nan=False, separators=(',', ':'))
+    out.write_text(text, encoding='utf-8')
+    print(f"{len(rows)} filas, {len(payload['equipos'])} equipos, {len(payload['entrenadores'])} DTs, "
+          f"{len(text.encode('utf-8')) // 1024} KB → {out}")
 
 
 if __name__ == '__main__':

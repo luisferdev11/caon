@@ -1,6 +1,6 @@
 import unittest
 
-from personnel import build_match_personnel, clock_seconds
+from personnel import build_match_personnel, clock_seconds, players_minutes
 
 
 def player(player_id, name, positions):
@@ -21,7 +21,7 @@ class PersonnelTests(unittest.TestCase):
     def test_clock_seconds_and_starting_lineup(self):
         self.assertEqual(clock_seconds('01:08:20.920'), 4100.92)
         lineup = [{'team_id': 1, 'team_name': 'Team', 'lineup': [
-            player(index, 'Player %d' % index, [segment('Center Back', '00:00:00.000', None)])
+            player(index, f'Player {index}', [segment('Center Back', '00:00:00.000', None)])
             for index in range(1, 12)
         ]}]
         result, warnings = build_match_personnel(1, lineup, [
@@ -72,6 +72,27 @@ class PersonnelTests(unittest.TestCase):
         self.assertTrue(any('player_id' in warning for warning in warnings))
         self.assertEqual(result['players'], [])
         self.assertTrue(result['warnings'])
+
+    def test_players_minutes_by_team_id(self):
+        positions = [segment('Center Forward', '00:00:00.000', '00:30:00.000',
+                             end_reason='Substitution - Off (Tactical)')]
+        lineup = [{'team_id': 1, 'team_name': 'Team', 'lineup': [
+            dict(player(1, 'Starter', positions), player_nickname='Titular'),
+            player(2, 'Replacement', [segment('Left Wing', '00:30:00.000', None,
+                                              start_reason='Substitution - On (Tactical)')]),
+            player(3, 'Bench', []),
+        ]}, {'team_id': 9, 'team_name': 'Other', 'lineup': []}]
+        events = [{'index': 1, 'minute': 90, 'second': 0, 'timestamp': '01:30:00.000',
+                   'type': {'name': 'Half End'}, 'team': {'id': 1}}]
+        rows = players_minutes(lineup, events, 1)
+        by_id = {r['player_id']: r for r in rows}
+        self.assertEqual(set(by_id), {1, 2})            # el suplente sin minutos no aparece
+        self.assertEqual(by_id[1]['name'], 'Titular')   # apodo primero
+        self.assertTrue(by_id[1]['starter'])
+        self.assertEqual(by_id[1]['minutes'], 30)
+        self.assertEqual(by_id[2]['minutes'], 60)
+        self.assertEqual(by_id[2]['positions'], {'Left Wing': 60})
+        self.assertIsNone(players_minutes(lineup, events, 5))
 
 
 if __name__ == '__main__':
