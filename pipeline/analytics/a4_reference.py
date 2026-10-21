@@ -13,12 +13,14 @@ import pathlib
 from collections import defaultdict
 from typing import Any, Callable, Optional  # noqa: UP035 - Python 3.9
 
+import framework as fw
+
 from analytics import CACHE, EXTRACT, ROOT, a4_facts
 
-REF_VERSION = 2  # súbase cuando cambie a4_facts
-REF_MIN_MATCHES = 5
+REF_VERSION = 3  # súbase cuando cambie a4_facts o la población (3: solo ventana oficial)
+REF_MIN_MATCHES = fw.REF_MIN_MATCHES
 REF_PATH = ROOT / 'data' / 'out' / 'a4' / 'a4_reference.json'
-REF_LABEL = 'equipos-temporada de la Liga MX con eventos'
+REF_LABEL = 'equipos-temporada de la Liga MX con eventos, ventana oficial'
 _MEMO: dict[str, Any] = {}
 
 
@@ -46,6 +48,11 @@ def populations(units: dict[str, dict[str, Any]],
     return dict(out)
 
 
+def official_only(mids: list[int], date_of: dict[int, str], end: str = fw.OFFICIAL_END) -> list[int]:
+    """Partidos de la ventana oficial (fecha ≤ ``end``); sin fecha conocida quedan fuera."""
+    return [m for m in mids if date_of.get(m) and date_of[m] <= end]
+
+
 def signature(mids: list[int]) -> str:
     """Firma barata del conjunto de partidos (versión, cuántos y suma de ids)."""
     return f'v{REF_VERSION}:{len(mids)}:{sum(mids)}'
@@ -65,6 +72,19 @@ def season_map(cache: pathlib.Path = CACHE) -> dict[int, Any]:
     return out
 
 
+def match_dates(cache: pathlib.Path = CACHE) -> dict[int, str]:
+    """{match_id: fecha} desde los calendarios v6 en caché."""
+    out: dict[int, str] = {}
+    for path in sorted(cache.glob('v6_competitions_*_seasons_*_matches.json')):
+        try:
+            rows = json.loads(path.read_text(encoding='utf-8'))
+        except (OSError, ValueError):
+            continue
+        for m in rows:
+            out[m['match_id']] = m.get('match_date')
+    return out
+
+
 def an_match_ids(extract: pathlib.Path = EXTRACT) -> list[int]:
     """Partidos con extracto an_."""
     out = []
@@ -79,7 +99,7 @@ def an_match_ids(extract: pathlib.Path = EXTRACT) -> list[int]:
 def load_units(path: pathlib.Path = REF_PATH, build: bool = True) -> dict[str, dict[str, Any]]:
     """Unidades de referencia desde disco; si faltan o la firma no coincide, se recalculan y se guardan."""
     from analytics import a4_common, load_an, load_events, load_f360
-    mids = an_match_ids()
+    mids = official_only(an_match_ids(), match_dates())   # las conclusiones se comparan con la ventana oficial
     sig = signature(mids)
     try:
         doc = json.loads(path.read_text(encoding='utf-8'))

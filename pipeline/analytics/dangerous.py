@@ -13,13 +13,15 @@ import json
 import math
 from typing import Any, Optional
 
+import framework as fw
+
 from analytics import a4_common as ac
 from analytics import a4_facts, register
 from analytics import dangerous_detail as dd
 from analytics.dangerous_detail import MAX_ACTIONS, possession_actions
 
-TOP_N = 10
-PAYLOAD_MAX_BYTES = 250_000
+TOP_N = fw.DANGEROUS_TOP_N
+PAYLOAD_MAX_BYTES = fw.DANGEROUS_PAYLOAD_MAX_BYTES
 CATEGORIES = ('juego_abierto', 'balon_parado', 'penales')
 SP_ORIGINS = frozenset({'corner', 'fk', 'throw'})
 SP_PATTERNS = frozenset({'From Corner', 'From Free Kick', 'From Throw In'})

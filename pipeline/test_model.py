@@ -4,7 +4,16 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from build_model import Acc, my_metrics, publish_model
+import labels
+from build_model import (
+    STY,
+    Acc,
+    entity_identities,
+    map_point,
+    my_metrics,
+    official_groups,
+    publish_model,
+)
 from check_model import validate
 from extract import new_team
 from metric_utils import fit_calibration
@@ -98,6 +107,53 @@ class ModelTests(unittest.TestCase):
             self.assertEqual(model['entities'][0]['temporal'], {'x': 1})
             self.assertEqual(size_errors(path, limit=10 ** 6), [])
             self.assertTrue(size_errors(path, limit=5))
+
+
+STYLES = [
+    {'ritmo': 80, 'contragolpe': 70, 'posesion': 30, 'linea': 20, 'volumen_presion': 71, 'contrapresion': 40, 'presion': 18},
+    {'ritmo': 20, 'contragolpe': 30, 'posesion': 85, 'linea': 90, 'volumen_presion': 90, 'contrapresion': 80, 'presion': 85},
+    {'ritmo': 50, 'contragolpe': 50, 'posesion': 50, 'linea': 50, 'volumen_presion': 50, 'contrapresion': 50, 'presion': 50},
+    {'ritmo': 70, 'contragolpe': 41, 'posesion': 62, 'linea': 66, 'volumen_presion': 71, 'contrapresion': 33, 'presion': 18},
+]
+
+
+class MapPointTests(unittest.TestCase):
+    def test_map_point_is_the_label_engine_point(self):
+        for st in STYLES:
+            pts = labels.map_points(st)
+            self.assertEqual(map_point(st), (pts['off'], pts['dfn']))
+
+    def test_map_point_without_data_is_none(self):
+        self.assertEqual(map_point({}), (None, None))
+
+    def test_card_quadrant_equals_map_quadrant(self):
+        ents = [{'id': f'e{i}', 'style': st} for i, st in enumerate(STYLES)]
+        for e, ident in zip(ents, entity_identities(ents).values()):
+            self.assertEqual(ident['defense'], ident['map']['dfn'][2])
+            self.assertEqual(ident['map']['dfn'][:2], list(map_point(e['style'])[1]))
+
+
+class PpdaLabelTests(unittest.TestCase):
+    def test_pressing_control_label_states_the_orientation(self):
+        label = {k: lab for k, _, _, lab in STY}['presion']
+        self.assertEqual(label, labels.PPDA_LABEL)
+        self.assertIn('alto = deja pocos pases', label)
+        self.assertNotIn('Pases rivales por acción defensiva', label)
+
+    def test_the_control_is_inverted_in_sty(self):
+        self.assertTrue({k: inv for k, _, inv, _ in STY}['presion'])
+
+
+class OfficialReferenceTests(unittest.TestCase):
+    def test_reference_groups_use_only_the_official_window(self):
+        rows = [{'team_name': 'A', 'season_id': 1, '_date': '2025-06-30'},
+                {'team_name': 'A', 'season_id': 2, '_date': '2025-07-01'},
+                {'team_name': 'B', 'season_id': 2, '_date': '2026-02-01'},
+                {'team_name': 'B', 'season_id': 1, '_date': '2024-02-01'},
+                {'team_name': 'C', 'season_id': 1}]
+        groups = official_groups(rows, '2025-06-30')
+        self.assertEqual(sorted(groups), [('A', 1), ('B', 1)])
+        self.assertTrue(all(r['_date'] <= '2025-06-30' for g in groups.values() for r in g))
 
 
 if __name__ == '__main__':

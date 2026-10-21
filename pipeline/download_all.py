@@ -6,6 +6,7 @@ P4 Santos·Almada + 360 faltante de partidos con eventos ya cacheados ·
 P5 resto de la liga en ventana oficial (108, 235, 281, 317) · P6 temporadas 318 y 351.
 
 Uso: python pipeline/download_all.py --priorities 1,2 --max-seconds 480
+     python pipeline/download_all.py --ids @data/out/neutral_sample.json --kinds events,lineups
 """
 import argparse
 import json
@@ -74,6 +75,18 @@ def build_plan(ents: list, ms: list, cached_events: set, seed: int = NEUTRAL_SEE
 def plan_jobs(plan: list, by_id: dict) -> list:
     """[(prioridad, ruta API)] para el plan; 360 solo donde está disponible."""
     return [(p, path) for p, mid, kinds in plan if mid in by_id for path in jobs_for_match(by_id[mid], kinds)]
+
+
+def ids_jobs(ids: list, by_id: dict, kinds: tuple = ALL_KINDS) -> list:
+    """Rutas de API para partidos concretos (ordenados); ignora ids desconocidos y 360 no disponibles."""
+    return [path for mid in sorted(ids) if mid in by_id for path in jobs_for_match(by_id[mid], kinds)]
+
+
+def parse_ids(arg: str) -> list:
+    """'1,2,3' o '@archivo.json' (con la llave match_ids) -> ids ordenados."""
+    if arg.startswith('@'):
+        return sorted(json.loads(pathlib.Path(arg[1:]).read_text(encoding='utf-8'))['match_ids'])
+    return sorted(int(x) for x in arg.split(',') if x.strip())
 
 
 def _write(path: pathlib.Path, obj: object) -> None:
@@ -161,6 +174,8 @@ def main(argv: tuple = ()) -> int:
     ap.add_argument('--priorities', default='1,2,3,4,5,6')
     ap.add_argument('--max-seconds', type=float, default=0.0)
     ap.add_argument('--coverage', action='store_true', help='solo escribe data/out/coverage.md')
+    ap.add_argument('--ids', default='', help="ids '1,2,3' o '@archivo.json' (llave match_ids); baja solo esos")
+    ap.add_argument('--kinds', default='events,lineups', help='tipos para --ids: events,lineups,360')
     ap.add_argument('--clean-stubs', action='store_true', help='borra mx_ inválidos por caché faltante')
     args = ap.parse_args(list(argv) or None)
     out = DATA / 'out'
@@ -173,6 +188,13 @@ def main(argv: tuple = ()) -> int:
     if args.coverage:
         rows = entity_coverage(ents, {m['match_id']: m for m in ms}, CACHE, DATA / 'extract')
         (out / 'coverage.md').write_text(coverage_markdown(rows, time.strftime('%Y-%m-%d %H:%M')), encoding='utf-8')
+        return 0
+    if args.ids:
+        paths = ids_jobs(parse_ids(args.ids), {m['match_id']: m for m in ms}, tuple(args.kinds.split(',')))
+        st = run_jobs(paths, get, CACHE, on_progress=_progress_writer(out / 'download_progress.json', 0))
+        print(f"ids: total={st['total']} cached={st['cached']} ok={st['ok']} fail={len(st['failures'])}", flush=True)
+        _write(out / 'download_failures.json', _merge_failures(out / 'download_failures.json', st['failures'],
+                                                               {p for p in paths if (CACHE / cache_name(p)).exists()}))
         return 0
     cached_ev = {m['match_id'] for m in ms if (CACHE / cache_name(PATHS['events'].format(m['match_id']))).exists()}
     plan = build_plan(ents, ms, cached_ev)

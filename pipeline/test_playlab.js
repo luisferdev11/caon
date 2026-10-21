@@ -31,3 +31,25 @@ test('pathTypicality = 1 cuando equipo y liga coinciden; zoneXG usa la zona del 
   assert.strictEqual(zoneXG(league, [110, 45]), 0.1);
   assert.strictEqual(zoneXG({}, [110, 45]), null);
 });
+
+test('gridXG repite el xG del modelo de Python (xg_grid.xg_at) con los coeficientes de la rejilla', async () => {
+  const { gridXG } = await import(MOD);
+  const grid = { coef: { intercepto: -2.5, distancia: -0.05, angulo: 1.2, cabeza: -0.3 } };
+  const close = (a, b) => assert.ok(Math.abs(a - b) < 1e-9, `${a} vs ${b}`);
+  close(gridXG(grid, [108, 40], false), 0.08884670628295942);
+  close(gridXG(grid, [100, 30], true), 0.028335063884828437);
+  close(gridXG(grid, [130, -5], false), 0.01098694263059318); // se acota al campo
+  close(gridXG(grid, [60, 40], false), 0.004771857266278496);
+  assert.strictEqual(gridXG({}, [108, 40], false), null);
+  assert.strictEqual(gridXG(null, [108, 40], false), null);
+});
+test('la interpretación prefiere el xG de la rejilla y cae al promedio por zona', async () => {
+  const { interpHTML } = await import(MOD);
+  const fmt = { num: (v, d) => v.toFixed(d), NA: 's/d', esc: (x) => x, pct: (v) => String(v) };
+  const grid = { coef: { intercepto: -2.5, distancia: -0.05, angulo: 1.2, cabeza: -0.3 } };
+  const play = { start: { restart: 'open' }, source: 'rules', confidence: 1 };
+  const segs = [{ type: 'shot', from: [108, 40], to: [120, 40] }];
+  assert.match(interpHTML(play, segs, null, {}, 'América', fmt, grid), /0\.09 xG/);
+  const league = { xg: [Array(18).fill(1)], shot: [Array(18).fill(10)] };
+  assert.match(interpHTML(play, segs, null, league, 'América', fmt, null), /0\.10 xG/);
+});

@@ -10,10 +10,12 @@ from __future__ import annotations
 
 from typing import Any, Optional
 
+import framework as fw
+
 from analytics import a4_common as ac
 from analytics import a4_reference, register
 
-TOP_PROGRESSORS = 8
+TOP_PROGRESSORS = fw.PROGRESSORS_TOP
 OBV_TYPES = ('pase', 'conduccion', 'tiro', 'portero', 'otras')
 SERIES_KEYS = ('field_tilt', 'progresion_limpia', 'npxg_tiro', 'tiros_zona', 'salida_limpia')
 N_ZONES = 18
@@ -53,9 +55,9 @@ def values(n: dict[str, Any]) -> ac.Values:
 
 def _buildup(rec: ac.Recorder, v: ac.Values) -> dict[str, Any]:
     return {
-        'saque_puerta_largo': rec.from_values(v, 'saque_largo', 'saque_largo', '% de saques de puerta largos',
+        'saque_puerta_largo': rec.from_values(v, 'saque_largo', 'salida_portero', '% de saques de puerta largos',
                                               scope='saque_puerta'),
-        'portero_en_juego_largo': rec.from_values(v, 'portero_juego_largo', 'saque_largo',
+        'portero_en_juego_largo': rec.from_values(v, 'portero_juego_largo', 'salida_portero',
                                                   '% de pases largos del portero en juego', scope='portero_en_juego'),
         'salida_limpia': rec.from_values(v, 'salida_limpia', 'salida_limpia', '% de posesiones que nacen en x<40'),
         'salida_limpia_tras_portero': rec.from_values(v, 'salida_limpia_portero', 'salida_limpia',
@@ -87,7 +89,7 @@ def _origins(rec: ac.Recorder, origen: dict[str, dict[str, float]], m: int) -> l
     for kind, row in sorted(origen.items(), key=lambda kv: -kv[1]['xg']):
         out.append({'origen': kind, 'nombre': ac.ORIGIN_ES.get(kind, kind), 'posesiones': row['posesiones'],
                     'tiros': row['tiros'], 'goles': row['goles'],
-                    'xg': rec('xg', ac.ratio(row['xg'], m), m, 'xG sin penal por partido', scope=f'origen:{kind}')})
+                    'xg': rec('xg_origen', ac.ratio(row['xg'], m), m, 'xG sin penal por partido', scope=f'origen:{kind}')})
     return out
 
 

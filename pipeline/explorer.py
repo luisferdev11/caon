@@ -34,7 +34,7 @@ VERSION = 'explorer.v3'
 SHRINK_K = fw.SHRINK_N0
 Z_CI = statistics.NormalDist().inv_cdf(0.5 + fw.CI_LEVEL / 2)   # 1.2816 para el 80%
 SMALL_SAMPLE_N = {name: limit for limit, name in fw.CONFIDENCE_BANDS}['baja']  # "muestra chica": n < 12 (bajo 'media')
-REF_MIN_MATCHES = 10               # equipo-temporada entra a la referencia de percentiles
+REF_MIN_MATCHES = fw.REF_MIN_MATCHES
 DISPLAY_FIRST = ('xg', 'xga', 'posesion')   # las 3 que ve el modo Aficionado
 IDENTITY_KEYS = ('build', 'defense', 'attack', 'offense_style', 'tags', 'map')
 SEASON_IDENTITY_KEYS = ('build', 'defense', 'attack', 'tags')
@@ -248,6 +248,9 @@ def _method() -> dict:
             'bandas': {'muy baja': '<5', 'baja': '5–11', 'media': '12–24', 'alta': '≥25'},
             'muestra_chica': f'menos de {SMALL_SAMPLE_N} partidos',
             'identidad': 'labels.identity sobre percentiles de valores encogidos.',
+            'referencia': 'Referencia ampliada: equipos-temporada con al menos 10 partidos de todas las temporadas '
+                          'descargadas, incluidas las fuera de la ventana oficial. Las conclusiones de la historia '
+                          'usan solo la ventana oficial.',
             'entidades': 'Entidades del modelo con analítica de eventos y 360 (/api/entities/{id}/analysis).'}
 
 

@@ -30,11 +30,11 @@ LABELS_ES = {'corto': 'Córner en corto', 'primer_palo': 'Primer palo', 'centro_
 TECHNIQUE_ES = {'Inswinging': 'Cerrado', 'Outswinging': 'Abierto', 'Straight': 'Recto'}
 CONTACT_TYPES = {'Ball Receipt*', 'Clearance', 'Shot', 'Interception', 'Goal Keeper', 'Block', 'Miscontrol',
                  'Pass', 'Ball Recovery', 'Dribble', 'Carry'}
-SHORT_CORNER_YD = 15.0       # = extract.corner_target (córner corto: pase de menos de 15 yd)
+SHORT_CORNER_YD = fw.SHORT_CORNER_YD
 DEAD_BALL_OUTCOMES = {'Out', 'Pass Offside', 'Unknown', 'Injury Clearance'}
-CONTACT_SCAN_EVENTS = 8      # eventos tras el córner en los que se busca el primer contacto
+CONTACT_SCAN_EVENTS = fw.CONTACT_SCAN_EVENTS
 LONG_PASS_LENGTH = 99.0      # longitud ficticia para reutilizar extract.corner_target en un punto cualquiera
-TOP_N = 5
+TOP_N = fw.SETPIECES_TOP_N
 PCT = 100.0
 NO_AN = 'sin extractos de posesión (an_) en la ventana'
 NO_360 = 'sin córners rivales con cuadro 360 válido en la ventana'

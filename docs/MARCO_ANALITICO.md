@@ -37,7 +37,7 @@ Posesión de StatsBomb con al menos una acción con balón (pase, conducción, r
 
 - **Fórmula:** possession id con ≥1 acción con balón
 - **Unidad:** posesiones
-- **Límites:** Aproximada desde eventos.
+- **Límites:** Aproximada desde eventos. Se excluye un tiro hecho dentro de una posesión rival (1 de 2,241 tiros y 0.003 % del xG en los 91 partidos de Jardine; se mide en rival_shots de cada an_). La jugada que reanuda (córner, tiro libre, saque de banda o de puerta, inicial) no cuenta como progresión.
 - **Fuente:** eventos
 
 ### Origen de la posesión (`origen`)
@@ -188,9 +188,9 @@ Por ubicación del balón rival en nuestro marco: alta x≥80, bloque medio 40�
 
 Pases rivales permitidos por acción defensiva propia en campo de presión.
 
-- **Fórmula:** pases rivales x<72 (su marco) / (intercepción+falta+entrada) x≥48
+- **Fórmula:** pases rivales x<72 (su marco) / (intercepción+falta+entrada+regate superado) x≥48
 - **Unidad:** pases
-- **Límites:** Menor = más presión.
+- **Límites:** Menor = más presión. Con el regate superado correlaciona r=0.985 con el PPDA de StatsBomb.
 - **Fuente:** eventos
 
 ### Contrapresión (`contrapresion`)
@@ -245,6 +245,51 @@ Suma de xG de los tiros rivales (por tipo de jugada).
 - **Fórmula:** Σ xG rival
 - **Unidad:** xG por partido
 - **Límites:** Sin penales salvo que se indique.
+- **Fuente:** eventos
+
+### Puntos por partido (`puntos`)
+
+Puntos reales del partido: victoria 3, empate 1, derrota 0 (la tanda de penales no cuenta).
+
+- **Fórmula:** Σ puntos / partidos
+- **Unidad:** puntos por partido
+- **Límites:** Resultado en tiempo regular.
+- **Fuente:** eventos
+
+### Diferencia de xG (`xg_dif`)
+
+xG sin penales a favor menos xG sin penales en contra, por partido.
+
+- **Fórmula:** xg − xga
+- **Unidad:** xG por partido
+- **Límites:** Usa el xG de team-stats; ver xg y xga.
+- **Fuente:** team-stats
+
+### Salida larga del portero (eventos) (`salida_portero`)
+
+Porcentaje de saques de puerta largos y de pases largos del portero en juego, contados desde los eventos (largo = 35 yd o más).
+
+- **Fórmula:** saques o pases largos / saques o pases del portero
+- **Unidad:** % de acciones
+- **Límites:** Distinta de saque_largo (team-stats, proporción del portero).
+- **Fuente:** eventos
+
+### xG por origen de la jugada (`xg_origen`)
+
+xG sin penales por partido de las posesiones que nacen en cada origen: robo, portero, banda, tiro libre, córner u otro.
+
+- **Fórmula:** Σ xG de posesiones de ese origen / partidos
+- **Unidad:** xG por partido
+- **Límites:** Desde eventos; no suma exactamente el xG de team-stats.
+- **Fuente:** eventos
+
+### Posesiones con tiro tras recuperación (`rec_tiro`)
+
+Posesiones que terminan en tiro en los 15 s siguientes a una recuperación en campo rival (x≥60) o alta (x≥80).
+
+- **Fórmula:** posesiones con tiro ≤15 s tras robo / partidos
+- **Unidad:** posesiones por partido
+- **Límites:** Distinta de presion_alta_tiros (team-stats).
 - **Fuente:** eventos
 
 ### Distancia de los tiros concedidos (`x_media_tiros_concedidos`)
@@ -334,7 +379,7 @@ Oficial (≤2025-06-30, Ap2021–Cl2025), epílogo o temprano. Las conclusiones 
 
 - **Fórmula:** fecha ≤ 2025-06-30
 - **Unidad:** categoría
-- **Límites:** Lo demás lleva la insignia "Fuera de ventana".
+- **Límites:** Lo demás lleva la insignia "Fuera de ventana". Los percentiles de las conclusiones comparan contra equipos-temporada de la ventana oficial; solo el explorador usa la referencia ampliada (y lo dice).
 - **Fuente:** eventos
 
 ### Encogimiento hacia el prior (`encogimiento`)
@@ -866,4 +911,25 @@ Pares excluyentes (nunca aparecen juntos; incluye los deducidos de afirmaciones 
 | `FREE_OPTION_RADIUS_YD` | 15.0 |
 | `FREE_OPTION_MARGIN_YD` | 3.0 |
 | `PAIRING_RADIUS_YD` | 1.5 |
+| `REPLAY_DRAWS` | 20000 |
+| `DESERVED_P` | 0.5 |
+| `BALANCE_PTS` | 1.0 |
+| `BIG_CHANCE_XG` | 0.3 |
+| `REF_MIN_MATCHES` | 10 |
+| `LONG_PASS_YD` | 35.0 |
+| `DANGEROUS_TOP_N` | 10 |
+| `DANGEROUS_MAX_ACTIONS` | 15 |
+| `DANGEROUS_PAYLOAD_MAX_BYTES` | 250000 |
+| `PROGRESSORS_TOP` | 8 |
+| `LOSS_PLAYERS_TOP` | 10 |
+| `SHORT_CORNER_YD` | 15.0 |
+| `CONTACT_SCAN_EVENTS` | 8 |
+| `SETPIECES_TOP_N` | 5 |
+| `BOOT_DRAWS` | 1000 |
+| `CONSISTENCY_MIN_INSIDE` | 3 |
+| `CONSISTENCY_MIN_MATCHES` | 10 |
+| `FINDINGS_TOP` | 12 |
+| `XI_SIZE` | 11 |
+| `SQUAD_TOP` | 25 |
+| `HALFTIME_MINUTE` | 45 |
 | `ROUND_DIGITS` | 4 |

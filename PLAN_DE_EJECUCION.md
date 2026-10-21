@@ -247,13 +247,13 @@ node pipeline/validate.js 100 2>&1 | tail -4 && node pipeline/referee.js 2 2>&1 
 - [x] `git rm pipeline/dangerous.py`.
 - [x] `git add` de `pipeline/ app/ frontend/ docs/` (sin `data/`, `.env` ni respaldos `model/*.gz`).
 - [x] Commit `G1.5: Ola 2 — 360, ofensiva/defensa/peligrosas, balón parado/contexto/uso, sistema de diseño, explorador v2`.
-- [x] Agregar una entrada en `data/out/bitacora.md`. *(commit `404c4f5`)*
+- [x] Agregar una entrada en `data/out/bitacora.md`. *(hash en la bitácora)*
 - **Aceptación:** `git status --short` sin cambios de código pendientes. → **Revisión del advisor (rápida).**
 
 ### ETAPA Integración (rol A7b)
 
 **T-03 · Atender las peticiones pendientes del integrador** (una subtarea por punto, cada una con TDD)
-- [ ] **T-03.1** `pipeline/run.py`: el paso `build` debe ejecutar en orden:
+- [x] **T-03.1** `pipeline/run.py`: el paso `build` debe ejecutar en orden: *(`run.py`: `extract`=3 scripts, `analysis`=pasos 4–9 con `check_model` y `targets` entre `build_model` y `build_analysis`, `build`=ambos; los módulos `-m` corren desde `pipeline/`. Hasta T-06/T-07 `kpis.py` y `story.py` no existen, así que T-04 corre los pasos sueltos.)*
   1. `extract.py` (incremental)
   2. `extract_analysis.py`
   3. `extract_360.py`
@@ -265,31 +265,31 @@ node pipeline/validate.js 100 2>&1 | tail -4 && node pipeline/referee.js 2 2>&1 
   9. `story.py`
 
   Agregar el paso `analysis` (de 4 a 9) para no repetir `extract`. Test: el orden de `STEPS` es exactamente ese.
-- [ ] **T-03.2** `build_model.map_point` debe usar `labels.map_points()`, y `entity.identity` debe regenerarse con `labels.identity()`. Test: para cada entidad, el cuadrante de la tarjeta es igual al del mapa.
-- [ ] **T-03.3** `acceptance.py` y `test_acceptance.py` deben usar `labels.QUADRANTS` y `labels.DFN_QUALIFIED`, no nombres escritos a mano.
-- [ ] **T-03.4** Renombrar la etiqueta del control `presion` en `style_labels` (y en `lab.html`, que solo es presentación) a **"Presión por PPDA (alto = deja pocos pases)"**. Revisar con el advisor el texto final.
-- [ ] **T-03.5** `lab.html` (solo presentación): los nombres de cuadrantes y de ejes (`MAPS`) deben leerse de `identity.regions` o de `/api/framework` (`etiquetas.cuadrantes`). El JavaScript de simulación queda igual.
-- [ ] **T-03.6** **Presupuesto de tamaño:**
+- [x] **T-03.2** `build_model.map_point` debe usar `labels.map_points()`, y `entity.identity` debe regenerarse con `labels.identity()`. Test: para cada entidad, el cuadrante de la tarjeta es igual al del mapa. *(`build_model.map_point` delega en `labels.map_points`; las identidades ya se regeneraban con `labels.identity`.)*
+- [x] **T-03.3** `acceptance.py` y `test_acceptance.py` deben usar `labels.QUADRANTS` y `labels.DFN_QUALIFIED`, no nombres escritos a mano. *(`acceptance.py` deriva `_FAST/_SLOW/_PRESS/_WAIT/LINE_HIGH/LINE_LOW` de `labels`; `LABEL_JS` recibe los nombres desde Python.)*
+- [x] **T-03.4** Renombrar la etiqueta del control `presion` en `style_labels` (y en `lab.html`, que solo es presentación) a **"Presión por PPDA (alto = deja pocos pases)"**. Revisar con el advisor el texto final. *(texto PROVISIONAL: «Presión por PPDA (alto = deja pocos pases)» en `labels.PPDA_LABEL`; Jardine P18 = su PPDA medio 20.2 es alto, el percentil está invertido. El advisor lo aprueba en T-05.)*
+- [x] **T-03.5** `lab.html` (solo presentación): los nombres de cuadrantes y de ejes (`MAPS`) deben leerse de `identity.regions` o de `/api/framework` (`etiquetas.cuadrantes`). El JavaScript de simulación queda igual. *(`/api/framework` ahora trae `etiquetas`; `lab.html` lee `ETIQ` de ahí; el polo «Bloque bajo» del eje X pasó a «Línea baja».)*
+- [x] **T-03.6** **Presupuesto de tamaño:** *(`build_analysis.publish_replay/split_replay`; `/api/explorer/{teams|coaches}` sin `temporadas/tenencias/entidades` y con métricas mínimas; nuevo `/api/explorer/catalog`; fichas de partido solo de entidades narrativas, la primera conserva la ficha. Los tests de tamaño con datos reales se corren en T-04: `pipeline/test_budget.py`.)*
   - la repetición se escribe por entidad en `model/replay/<id>.json` y la ficha de cada partido en `model/matches/<match_id>.json`, usando `replay.split_cards()`;
   - `model/analysis/<id>.json` solo guarda el resumen de la repetición;
   - `/api/explorer/{teams|coaches}` deja de devolver `temporadas` y `tenencias`; el detalle (`/api/explorer/team/{key}`, `/api/explorer/coach/{key}`) sí las devuelve.
 
   Tests de tamaño: análisis ≤400 KB, listas ≤300 KB, partido ≤60 KB.
-- [ ] **T-03.7** Ruta nueva `GET /api/xg_grid` que sirve `model/xg_grid.json`. Conectarla en `frontend/views/playlab.js` (la fórmula está en `requests/A6.md`). Test con TestClient.
-- [ ] **T-03.8** `build_analysis`: quitar el adaptador `replay_ctx` y pasar `entity_id`, el equipo y la ventana de cada partido.
-- [ ] **T-03.9** `analytics/__init__.build_all` debe iterar sobre `list(REGISTRY.items())`. Agregar una caché de eventos v8 por partido en `EntityContext`, con LRU acotada. Test: registrar un tópico durante la corrida no falla.
-- [ ] **T-03.10** `framework_defs`: agregar los ids `puntos`, `xg_dif` y los que pidió A4 (salida desde eventos, xG por origen, posesiones con tiro tras recuperación). Mover a `framework.py` las constantes listadas en la sección 1.5 E y actualizar sus imports.
-- [ ] **T-03.11** `sequences.py`, con TDD, un test por bug:
+- [x] **T-03.7** Ruta nueva `GET /api/xg_grid` que sirve `model/xg_grid.json`. Conectarla en `frontend/views/playlab.js` (la fórmula está en `requests/A6.md`). Test con TestClient. *(`/api/xg_grid` + `gridXG` en `playlab.js`, probado contra `xg_grid.xg_at`.)*
+- [x] **T-03.8** `build_analysis`: quitar el adaptador `replay_ctx` y pasar `entity_id`, el equipo y la ventana de cada partido. *(`replay.build` ya aceptaba `EntityContext`; se borraron `replay_ctx` y `replay_meta`.)*
+- [x] **T-03.9** `analytics/__init__.build_all` debe iterar sobre `list(REGISTRY.items())`. Agregar una caché de eventos v8 por partido en `EntityContext`, con LRU acotada. Test: registrar un tópico durante la corrida no falla. *(LRU de 100 partidos por contexto, vaciada al terminar cada entidad; un partido parseado pesa ~18 MB. Vigilar RAM en T-04.)*
+- [x] **T-03.10** `framework_defs`: agregar los ids `puntos`, `xg_dif` y los que pidió A4 (salida desde eventos, xG por origen, posesiones con tiro tras recuperación). Mover a `framework.py` las constantes listadas en la sección 1.5 E y actualizar sus imports. *(5 ids nuevos: `puntos`, `xg_dif`, `salida_portero`, `xg_origen`, `rec_tiro`; 24 constantes movidas a `framework.py`; `REF_MIN_MATCHES` unificado en 10 (A4 usaba 5); `MARCO_ANALITICO.md` regenerado.)*
+- [x] **T-03.11** `sequences.py`, con TDD, un test por bug: *((a) y (d) ya estaban corregidos y con prueba desde A2; hechos (b) con `RESTARTS` y (c) por exclusión medida: 1 de 2,241 tiros, xG 0.007 de 216.8 = 0.003 % en Jardine, publicado en `rival_shots` de cada `an_`; `extract_analysis.VERSION` = 5.)*
   - (a) `box_entry` solo con acciones completadas;
   - (b) `_is_prog` excluye la primera acción de un balón parado;
   - (c) los tiros dentro de una posesión rival se cuentan en una posesión propia de "remate tras pérdida rival", o se documenta su exclusión (decide el advisor);
   - (d) separar `lossO` de "pérdida seguida de córner" (`lossXF`).
 
   Subir `extract_analysis.VERSION` y regenerar `an_` en T-04.
-- [ ] **T-03.12** Referencia de percentiles para las conclusiones: usar solo equipos-temporada de la ventana oficial (`window == 'oficial'`). Dejar la referencia ampliada solo para el explorador, rotulada.
-- [ ] **T-03.13** **Muestra neutral:** bajar los eventos v8 de los 36 partidos de `data/out/neutral_sample.json` que no los tienen (`download_all.py` con un modo `--ids`). Si falla, retirar la referencia neutral y documentarlo.
-- [ ] **T-03.14** Bajar los 360 faltantes `4038856` y `4063616`. Si no existen en la API, documentarlo en la cobertura.
-- **Aceptación de T-03:** cada subtarea con su test en verde y su entrada TDD; `ruff` limpio.
+- [x] **T-03.12** Referencia de percentiles para las conclusiones: usar solo equipos-temporada de la ventana oficial (`window == 'oficial'`). Dejar la referencia ampliada solo para el explorador, rotulada. *(`build_model` y `a4_reference` usan solo la ventana oficial; `shape360_ref` ya era por ventana; el explorador conserva la referencia ampliada y la rotula en `metodo.referencia`.)*
+- [x] **T-03.13** **Muestra neutral:** bajar los eventos v8 de los 36 partidos de `data/out/neutral_sample.json` que no los tienen (`download_all.py` con un modo `--ids`). Si falla, retirar la referencia neutral y documentarlo. *(los 36 faltantes ya bajaron: `download_all.py --ids @data/out/neutral_sample.json`, 72 archivos, 0 fallas.)*
+- [x] **T-03.14** Bajar los 360 faltantes `4038856` y `4063616`. Si no existen en la API, documentarlo en la cobertura. *(`4038856` y `4063616` tienen `match_status_360 = 'unscheduled'`: la API no los tiene; documentado en `data/out/coverage.md`.)*
+- **Aceptación de T-03:** cada subtarea con su test en verde y su entrada TDD; `ruff` limpio. ✅ *(517 unittest y 54 node en verde; TDD en `data/out/tdd/T-03.*`.)*
 
 **T-04 · Reconstrucción completa**
 - [ ] Correr `flock data/out/heavy.lock .venv/bin/python -X utf8 pipeline/run.py build`. Tiempo estimado: varios minutos; vigilar la RAM con `Pool(4)`.

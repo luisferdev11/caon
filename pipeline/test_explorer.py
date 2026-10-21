@@ -221,5 +221,12 @@ class EntityLinkTest(unittest.TestCase):
         self.assertEqual([e['id'] for e in tenure['entidades']], ['ame_j'])
 
 
+class MethodLabelTests(unittest.TestCase):
+    def test_method_labels_the_extended_reference(self):
+        text = explorer._method()['referencia']
+        self.assertIn('ampliada', text)
+        self.assertIn('fuera de la ventana oficial', text)
+
+
 if __name__ == '__main__':
     unittest.main()

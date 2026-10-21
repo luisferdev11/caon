@@ -7,6 +7,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import acceptance as A
+import labels
 
 
 class RegistryTest(unittest.TestCase):
@@ -95,14 +96,33 @@ class CheckFunctionsTest(unittest.TestCase):
         self.assertIn('toFixed(3)', evidence)
 
 
+class QuadrantNamesFromLabelsTest(unittest.TestCase):
+    def test_rule_sets_use_only_names_defined_in_labels(self):
+        known = set(labels.QUADRANTS['off'].values()) | set(labels.QUADRANTS['dfn'].values()) | set(labels.DFN_QUALIFIED.values())
+        for group in (A._FAST, A._SLOW, A._PRESS, A._WAIT, A.LINE_HIGH, A.LINE_LOW):
+            self.assertTrue(group and set(group) <= known, group)
+
+    def test_qualified_names_count_as_line_side_and_wait(self):
+        alta = labels.DFN_QUALIFIED[('alta', 'selectiva')]
+        row = {'id': 'x', 'tags': ['Bloque bajo', 'Presión asfixiante'], 'q_dfn': alta}
+        found = {c['rule'] for c in A.label_contradictions(row)}
+        self.assertIn('bloque_bajo_vs_mapa', found)
+        self.assertIn('asfixiante_vs_espera', found)
+
+    def test_line_sides_follow_quadrant_keys(self):
+        self.assertEqual(set(A.LINE_HIGH) & set(A.LINE_LOW), set())
+        self.assertIn(labels.QUADRANTS['dfn']['tr'], A.LINE_HIGH)
+        self.assertIn(labels.QUADRANTS['dfn']['bl'], A.LINE_LOW)
+
+
 class FrontendLabelsTest(unittest.TestCase):
     def test_rows_for_every_entity_and_unit(self):
         rows = A.frontend_label_rows(A.ROOT)
         model = json.loads((A.ROOT / 'model' / 'model.json').read_text(encoding='utf-8'))
         self.assertEqual(len(rows), len(model['entities']) + len(model['map']['units']))
         jardine = next(r for r in rows if r['id'] == 'ame_jardine')
-        self.assertIn(jardine['q_dfn'], ('Bloque medio agresivo', 'Presión alta', 'Bloque bajo',
-                                         'Línea alta, presión selectiva', 'Equilibrado'))
+        names = set(labels.QUADRANTS['dfn'].values()) | set(labels.DFN_QUALIFIED.values()) | {labels.EQ}
+        self.assertIn(jardine['q_dfn'], names)
         self.assertTrue(jardine['build'])
 
 

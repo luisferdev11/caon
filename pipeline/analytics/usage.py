@@ -22,8 +22,8 @@ from analytics.shape360_match import position_line
 from analytics.usage_subs import FLOW_KEYS, match_substitutions
 
 CACHE = pathlib.Path(__file__).resolve().parents[2] / 'data' / 'cache'
-XI_SIZE = 11
-SQUAD_TOP = 25            # jugadores listados en "plantilla"
+XI_SIZE = fw.XI_SIZE
+SQUAD_TOP = fw.SQUAD_TOP
 ROLES_TOP = 3             # puestos por jugador
 FORMATIONS_TOP = 5
 PCT = 100.0

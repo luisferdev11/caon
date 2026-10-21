@@ -9,11 +9,13 @@ from __future__ import annotations
 
 from typing import Any
 
+import framework as fw
+
 from analytics import a4_common as ac
 from analytics import a4_reference, register
 from analytics.a4_transition_facts import ERROR_TYPES
 
-TOP_PLAYERS = 10
+TOP_PLAYERS = fw.LOSS_PLAYERS_TOP
 N_ZONES = 18
 THIRDS = ('propio', 'medio', 'final')
 TYPE_ES = {'no_forzado': 'No forzado', 'bajo_presion': 'Bajo presión', 'decision_arriesgada': 'Decisión arriesgada',

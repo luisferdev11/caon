@@ -122,6 +122,49 @@ class LossKindTests(unittest.TestCase):
         self.assertIsNone(p['loss'])
 
 
+class ProgressiveTests(unittest.TestCase):
+    """T-03.11b: la primera acción de un balón parado (córner, tiro libre, saque de banda o de puerta, inicial) no es progresiva."""
+
+    def _first(self, evs):
+        tail = _ev(99, 'Pass', 2, [50, 40], poss=8, body={'end_location': [60, 40]})
+        return sequences.build_possessions(evs + [tail], {'home_team': {'home_team_id': 1}})['possessions'][0]
+
+    def test_corner_delivery_into_the_box_is_not_progressive(self):
+        corner = _ev(1, 'Pass', 1, [120, 0], pattern='From Corner', body={'end_location': [108, 40]})
+        self.assertEqual(self._first([corner])['n_prog'], 0)
+
+    def test_same_pass_in_open_play_is_progressive(self):
+        p = self._first([_ev(1, 'Pass', 1, [90, 10], body={'end_location': [108, 40]})])
+        self.assertEqual(p['n_prog'], 1)
+
+    def test_only_the_restart_is_excluded_not_the_rest_of_the_possession(self):
+        evs = [_ev(1, 'Pass', 1, [50, 0], pattern='From Free Kick', body={'end_location': [75, 30]}),
+               _ev(2, 'Pass', 1, [75, 30], pattern='From Free Kick', body={'end_location': [105, 40]})]
+        self.assertEqual(self._first(evs)['n_prog'], 1)
+
+    def test_goal_kick_and_throw_in_restarts_are_excluded(self):
+        for pattern in ('From Goal Kick', 'From Throw In', 'From Kick Off'):
+            p = self._first([_ev(1, 'Pass', 1, [60, 0], pattern=pattern, body={'end_location': [108, 40]})])
+            self.assertEqual(p['n_prog'], 0, pattern)
+
+
+class RivalPossessionShotTests(unittest.TestCase):
+    """T-03.11c (decisión del advisor): un tiro dentro de una posesión rival se excluye y la exclusión es medible."""
+
+    def test_shot_by_the_non_possessing_team_is_not_counted_in_any_possession(self):
+        stray = _ev(2, 'Shot', 2, [105, 40], body={'statsbomb_xg': 0.05, 'outcome': {'name': 'Saved'}})
+        stray['possession_team'] = {'id': 1}
+        evs = [_ev(1, 'Pass', 1, [60, 40], body={'end_location': [80, 40]}), stray,
+               _ev(3, 'Pass', 2, [50, 40], poss=8, body={'end_location': [60, 40]})]
+        out = sequences.build_possessions(evs, {'home_team': {'home_team_id': 1}})
+        self.assertEqual([len(p['shots']) for p in out['possessions']], [0, 0])
+        self.assertEqual(sequences.rival_possession_shots(evs), {'n': 1, 'xg': 0.05})
+
+    def test_counter_ignores_penalties_and_normal_shots(self):
+        shot = _ev(1, 'Shot', 1, [100, 40], body={'statsbomb_xg': 0.1, 'outcome': {'name': 'Saved'}})
+        self.assertEqual(sequences.rival_possession_shots([shot]), {'n': 0, 'xg': 0.0})
+
+
 class ShootoutTests(unittest.TestCase):
     def test_penalty_shootout_is_outside_every_analysis(self):
         evs = [_ev(1, 'Pass', 1, [30, 40], body={'end_location': [50, 40]}),

@@ -1,5 +1,5 @@
 {
- "version": 4,
+ "version": 5,
  "match_id": 1,
  "status": "ok",
  "home": 1,
@@ -36,7 +36,7 @@
    "xg": 0.0,
    "obv": 0.02,
    "n_passes": 2,
-   "n_prog": 1,
+   "n_prog": 0,
    "n_final_third": 1,
    "max_x": 80,
    "box_entry": false,
@@ -147,7 +147,7 @@
    "xg": 0.5,
    "obv": 0.03,
    "n_passes": 2,
-   "n_prog": 2,
+   "n_prog": 1,
    "n_final_third": 2,
    "max_x": 110,
    "box_entry": true,
@@ -243,5 +243,9 @@
     "formation": 4231
    }
   ]
+ },
+ "rival_shots": {
+  "n": 0,
+  "xg": 0
  }
 }

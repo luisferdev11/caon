@@ -29,6 +29,8 @@ SAFE_KEY = re.compile(r'^[A-Za-z0-9_\-]{1,80}$')
 EXPLORER_KINDS = {'teams': ('equipos', 'teams'), 'coaches': ('entrenadores', 'coaches'),
                   'team': ('equipos', 'teams'), 'coach': ('entrenadores', 'coaches')}
 EXPLORER_NAME_KEYS = ('key', 'id', 'team', 'coach')
+EXPLORER_HEAVY_KEYS = ('temporadas', 'tenencias', 'entidades')   # solo en el detalle de cada ficha
+EXPLORER_LIST_METRIC_KEYS = ('id', 'value', 'raw', 'ci', 'ref_pct', 'n', 'window')  # nombre y unidad salen del catálogo
 SUMMARY_KEYS = ('id', 'label', 'team', 'coach', 'group', 'kind', 'n', 'd0', 'd1', 'official', 'formation')
 
 app = FastAPI(title='Caon · Vestidor Táctico',
@@ -157,22 +159,27 @@ def substitutions(team_id: str):
 
 
 # ---------------------------------------------------------------- portal
-def load_framework():
-    """DEFINITIONS de pipeline/framework.py (se carga por ruta para no tocar sys.path)."""
+def framework_module():
+    """pipeline/framework.py (se carga por ruta para no tocar sys.path)."""
     spec = importlib.util.spec_from_file_location('caon_framework', FRAMEWORK_PATH)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
-    return module.DEFINITIONS
+    return module
+
+
+def load_framework():
+    """DEFINITIONS de pipeline/framework.py."""
+    return framework_module().DEFINITIONS
 
 
 @app.get('/api/framework')
 def framework():
-    """Marco analítico: definiciones canónicas de cada métrica publicada."""
+    """Marco analítico: definiciones canónicas de cada métrica publicada y nombres de las etiquetas."""
     try:
-        definitions = load_framework()
+        module = framework_module()
+        return {'definitions': module.DEFINITIONS, 'etiquetas': module.label_rules()}
     except Exception as exc:
         raise HTTPException(503, f'El marco analítico no está disponible: {type(exc).__name__}') from exc
-    return {'definitions': definitions}
 
 
 def analysis_for(entity_id):
@@ -221,12 +228,31 @@ def explorer_match(item, key):
     return key in names or slug(key) in {slug(n) for n in names}
 
 
+def explorer_summary(item):
+    """Versión ligera de una ficha para las listas: sin temporadas/tenencias y con métricas mínimas."""
+    out = {k: v for k, v in item.items() if k not in EXPLORER_HEAVY_KEYS}
+    if isinstance(out.get('metrics'), dict):
+        out['metrics'] = {m: {k: r[k] for k in EXPLORER_LIST_METRIC_KEYS if k in r} if isinstance(r, dict) else r
+                          for m, r in out['metrics'].items()}
+    return out
+
+
+@app.get('/api/explorer/catalog')
+def explorer_catalog():
+    """Catálogo de métricas (nombre, unidad en lenguaje llano, orientación) y método del explorador."""
+    data = read_json(MODEL_DIR / 'explorer.json')
+    if data is None:
+        raise HTTPException(404, 'El explorador todavía no está construido')
+    return {'version': data.get('version'), 'metricas': data.get('metricas', []), 'metodo': data.get('metodo', {})}
+
+
 @app.get('/api/explorer/{kind}')
 def explorer_list(kind: str):
-    """Unidades del explorador: equipos (teams) o entrenadores (coaches)."""
+    """Unidades del explorador: equipos (teams) o entrenadores (coaches), sin el detalle pesado."""
     if kind not in ('teams', 'coaches'):
         raise HTTPException(404, f'No existe la sección del explorador «{kind}»; use teams o coaches')
-    return explorer_items(kind)
+    items = explorer_items(kind)
+    return [explorer_summary(x) for x in items] if isinstance(items, list) else items
 
 
 @app.get('/api/explorer/{kind}/{key}')
@@ -244,6 +270,15 @@ def explorer_item(kind: str, key: str):
     return found
 
 
+@app.get('/api/xg_grid')
+def xg_grid():
+    """Rejilla y coeficientes del modelo de xG (distancia, ángulo, cabeza) para interpretar jugadas."""
+    data = read_json(MODEL_DIR / 'xg_grid.json')
+    if data is None:
+        raise HTTPException(404, 'La rejilla de xG todavía no está construida')
+    return data
+
+
 @app.get('/api/story/{name}')
 def story(name: str):
     """Capítulos de la historia del portal (jardine, almada)."""
@@ -256,7 +291,9 @@ def story(name: str):
 @app.get('/api/replay/{entity_id}')
 def replay(entity_id: str):
     """Repetición con xG de los partidos reales de una entidad (¿mereció ganar?)."""
-    data = (analysis_for(entity_id) or {}).get('replay')
+    data = read_json(MODEL_DIR / 'replay' / f'{safe_key(entity_id, "la entidad")}.json')
+    if data is None:
+        data = (analysis_for(entity_id) or {}).get('replay')
     if data is None:
         raise HTTPException(404, f'No existe repetición con xG para {entity_id}')
     return data

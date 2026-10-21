@@ -13,6 +13,8 @@ Tipos de equipo: 'real' (Liga MX, API StatsBomb), 'opendata' (Barcelona 2009-11,
 import sys, json, math, pathlib, collections, unicodedata
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 from entities import *
+import labels
+from framework import OFFICIAL_END
 from temporal import build_temporal
 from personnel import build_personnel, read_json
 import numpy as np
@@ -200,7 +202,7 @@ STY = [  # clave, columna StatsBomb, invertir, etiqueta
     ('ritmo', 'team_match_pace_towards_goal', False, 'Velocidad hacia portería'),
     ('linea', 'team_match_defensive_distance', False, 'Altura de línea defensiva'),
     ('volumen_presion', 'team_match_pressures_adj', False, 'Volumen de presión'),
-    ('presion', 'team_match_ppda', True, 'Pases rivales por acción defensiva (PPDA)'),
+    ('presion', 'team_match_ppda', True, labels.PPDA_LABEL),
     ('contrapresion', 'team_match_counterpressures', False, 'Contrapresión'),
     ('saque_largo', 'team_match_gk_long_pass_ratio', False, 'Saque largo del portero'),
     ('centros', 'team_match_crosses_into_box', False, 'Centros al área'),
@@ -304,6 +306,19 @@ def roles_for(shape, tk):
         if i not in aerial: aerial.append(i)
     return dict(corner=best(tk['corner'], mid), fk=best(tk['fk'], mid), pen=best(tk['pen'], fwd), aerial=aerial)
 
+def official_groups(rows, end=OFFICIAL_END):
+    """{(equipo, temporada): filas} solo de partidos de la ventana oficial: referencia de percentiles de las conclusiones."""
+    out = collections.defaultdict(list)
+    for r in rows:
+        if r.get('_date') and r['_date'] <= end:
+            out[(r['team_name'], r['season_id'])].append(r)
+    return out
+
+def map_point(style):
+    """(punto con balón, punto sin balón) en percentiles; la definición vive en labels.map_points."""
+    pts = labels.map_points(style or {})
+    return pts['off'], pts['dfn']
+
 def entity_identities(entities):
     """{id: identidad} con labels.identity(style) si el motor de etiquetas existe; si no, vacío."""
     try:
@@ -348,6 +363,7 @@ def main():
             text = raw.decode('cp1252')
         for r in json.loads(text):
             r['_mid'] = m['match_id']
+            r['_date'] = m.get('match_date')
             if finite(r.get('team_match_pressures')) and finite(r.get('team_match_possession')) and 0 <= r['team_match_possession'] < 1:
                 r['team_match_pressures_adj'] = r['team_match_pressures'] / (1 - r['team_match_possession'])
             rows.append(r)
@@ -356,7 +372,7 @@ def main():
     def mean(rs, c):
         v = [r[c] for r in rs if finite(r.get(c))]
         return sum(v) / len(v) if v else None
-    ref = {c: sorted(x for x in (mean(rs, c) for rs in grp.values() if sum(finite(r.get(c)) for r in rs) >= 10) if x is not None) for _, c, _, _ in STY}
+    ref = {c: sorted(x for x in (mean(rs, c) for rs in official_groups(rows).values() if sum(finite(r.get(c)) for r in rs) >= 10) if x is not None) for _, c, _, _ in STY}
     league_mean = {c: mean(rows, c) for _, c, _, _ in STY}
     def pct(c, v, inv):
         d = ref[c]; p = 100 * sum(1 for x in d if x < v) / len(d)
@@ -540,14 +556,7 @@ def main():
                          dfn=synth(LEAGUE, C['dfn_E'], C['dfn_T'], C['sp_dfn'], 60, False),
                          note='Arquetipo configurado a mano (no son datos de un equipo real): bloque bajo, deja la pelota al rival y contragolpea con verticalidad.'))
     # ---------------- mapa de estilos
-    # ejes en percentiles (mismas métricas que el plan de juego):
-    #   con balón: x = ritmo de ataque (media de velocidad hacia portería y tiros al contragolpe), y = posesión
-    #   sin balón: x = altura de línea, y = intensidad de presión (media de volumen de presión y contrapresión)
-    def map_point(st_):
-        g = st_.get
-        off = [round((g('ritmo') + g('contragolpe')) / 2), g('posesion')] if None not in (g('ritmo'), g('contragolpe'), g('posesion')) else None
-        dfn = [g('linea'), round((g('volumen_presion') + g('contrapresion')) / 2)] if None not in (g('linea'), g('volumen_presion'), g('contrapresion')) else None
-        return off, dfn
+    # los puntos del mapa salen de labels.map_points: una sola definición para mapa, tarjetas y etiquetas
     def surname(full):
         parts = full.split()
         return parts[-2] if len(parts) >= 4 else parts[-1]
@@ -579,7 +588,7 @@ def main():
     model = dict(map=model_map, meta=dict(nx=NX, ny=NY, k_matches=K_MATCHES, built=datetime.now(timezone.utc).isoformat(), schema_version=2, extract_version=2, t_window=10,
                            style_labels={k: lab for k, _, _, lab in STY},
                            calibration={c: round(CAL[c][2], 2) for c in CAL}, calibration_unavailable=CAL_ERRORS,
-                           style_reference=dict(population='Liga MX, equipo-temporada', minimum_valid_matches=10,
+                           style_reference=dict(population='Liga MX, equipo-temporada, ventana oficial (Ap21–Cl25)', minimum_valid_matches=10,
                                                 groups={c: len(ref[c]) for c in ref}, shrinkage_matches=K_MATCHES,
                                                 mean_weighting='partidos', percentile_weighting='equipos-temporada'),
                            note='Parámetros agregados derivados de datos de eventos Hudl StatsBomb. Sin eventos crudos.'),

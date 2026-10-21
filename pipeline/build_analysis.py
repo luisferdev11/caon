@@ -23,15 +23,16 @@ MODEL_DIR = ROOT / 'model'
 EXTRACT = ROOT / 'data' / 'extract'
 CACHE = ROOT / 'data' / 'cache'
 ANALYSIS_LIMIT_BYTES = 400 * 1024
-EPILOGUE_END = '2026-06-30'
 NARRATIVE_IDS = ('ame_jardine', 'ame_jardine_epi', 'ame_almada', 'pac_almada', 'ame_solari', 'ame_ortiz',
                  'slp_jardine', 'san_almada')
 GLOBAL_BUILDERS = (('explorer.py', 'explorer.json'), ('xg_grid.py', 'xg_grid.json'))
 AUDIT_SCRIPT = HERE / 'audit_coherence.py'
-try:
-    from framework import OFFICIAL_END
-except ImportError:  # el marco es de otro agente; mismo valor documentado
-    OFFICIAL_END = '2025-06-30'
+from framework import EPILOGUE_END, OFFICIAL_END
+
+
+def narrative_rank(entity_id: str) -> tuple:
+    """Orden de publicación: primero las entidades narrativas en su orden (la ficha del partido es del protagonista)."""
+    return (NARRATIVE_IDS.index(entity_id), '') if entity_id in NARRATIVE_IDS else (len(NARRATIVE_IDS), entity_id)
 
 
 def match_window(date: str) -> str:
@@ -55,14 +56,6 @@ def context_matches(entity_matches: Iterable[dict], sb_by_id: dict) -> list[dict
                      'score': [m.get(side + '_score'), m.get(other + '_score')],
                      'team_id': m[side + '_team'][side + '_team_id']})
     return rows
-
-
-def replay_meta(m: dict) -> dict:
-    """Metadatos que espera analytics.replay a partir de un partido del calendario."""
-    return {'match_id': m['match_id'], 'date': m.get('match_date'),
-            'home_id': m['home_team']['home_team_id'], 'away_id': m['away_team']['away_team_id'],
-            'home_name': m['home_team']['home_team_name'], 'away_name': m['away_team']['away_team_name'],
-            'home_score': m.get('home_score'), 'away_score': m.get('away_score')}
 
 
 def entities_to_build(entities: Iterable[dict], has_data: Callable[[dict], bool]) -> list[str]:
@@ -118,17 +111,6 @@ def has_data(entity: dict) -> bool:
     return any((EXTRACT / f"an_{x['mid']}.json").exists() for x in entity.get('matches', []))
 
 
-def replay_ctx(rows: list[dict], sb_by_id: dict) -> dict:
-    """Contexto de analytics.replay; los eventos se leen de uno en uno (generador)."""
-    def gen():
-        for r in rows:
-            events = read_json(CACHE / f"v8_events_{r['id']}.json")
-            if events:
-                yield {'meta': replay_meta(sb_by_id[r['id']]), 'events': events}
-    team_id = rows[0]['team_id'] if rows else None
-    return {'team_id': team_id, 'matches': gen()}
-
-
 def build_entity(entity: dict, slim: dict, sb_by_id: dict, topics: list[str]) -> dict:
     """Payload completo de una entidad (sin presupuesto aplicado)."""
     import analytics
@@ -139,9 +121,39 @@ def build_entity(entity: dict, slim: dict, sb_by_id: dict, topics: list[str]) ->
     payload = {'meta': {'id': entity['id'], 'label': ctx.label, 'window': slim.get('window'), 'n': len(rows),
                         'windows': {w: sum(1 for r in rows if r['window'] == w) for w in ('oficial', 'epilogo', 'temprano')}}}
     for topic in topics:
-        topic_ctx = replay_ctx(rows, sb_by_id) if topic == 'replay' else ctx
-        payload.update(analytics.build_all(topic_ctx, only=[topic]))
+        payload.update(analytics.build_all(ctx, only=[topic]))
+    ctx.clear_events_cache()
     return payload
+
+
+def split_replay(replay: object, entity_id: str) -> tuple:
+    """(resumen para analysis/<id>.json, repetición ligera por partido, {match_id: ficha}); sin partidos → tal cual."""
+    if not isinstance(replay, dict) or 'partidos' not in replay:
+        return replay, None, {}
+    from analytics import replay as replay_mod
+    light, cards = replay_mod.split_cards(replay)
+    summary = {k: v for k, v in replay.items() if k != 'partidos'}
+    summary['archivo'] = f'replay/{entity_id}.json'
+    return summary, light, cards
+
+
+def publish_replay(root: pathlib.Path, entity_id: str, replay: object, cards: bool, written: set) -> object:
+    """Escribe replay/<id>.json y, si ``cards``, matches/<match_id>.json (la primera entidad conserva la ficha).
+
+    Devuelve el resumen que queda en analysis/<id>.json."""
+    from model_split import dump_json
+    summary, light, by_match = split_replay(replay, entity_id)
+    if light is None:
+        return summary
+    (root / 'replay').mkdir(parents=True, exist_ok=True)
+    dump_json(light, root / 'replay' / f'{entity_id}.json')
+    if cards:
+        (root / 'matches').mkdir(parents=True, exist_ok=True)
+        for mid, card in by_match.items():
+            if mid not in written:
+                written.add(mid)
+                dump_json(card, root / 'matches' / f'{mid}.json')
+    return summary
 
 
 def run_script(script: pathlib.Path, *args: str) -> int:
@@ -166,8 +178,12 @@ def main(argv: list[str]) -> int:
     topics = discover()
     print('temas analíticos:', ', '.join(topics) or '(ninguno)', flush=True)
     (MODEL_DIR / 'analysis').mkdir(parents=True, exist_ok=True)
-    for eid in wanted:
-        payload, warnings = enforce_budget(build_entity(by_id[eid], slim_by_id.get(eid, {}), sb_by_id, topics))
+    written: set = set()
+    for eid in sorted(wanted, key=narrative_rank):
+        full = build_entity(by_id[eid], slim_by_id.get(eid, {}), sb_by_id, topics)
+        if 'replay' in full:
+            full['replay'] = publish_replay(MODEL_DIR, eid, full['replay'], eid in NARRATIVE_IDS, written)
+        payload, warnings = enforce_budget(full)
         payload['meta']['advertencias'] = warnings
         dump_json(payload, MODEL_DIR / 'analysis' / f'{eid}.json')
         print(f'  {eid:20s} {_size(payload) // 1024} KB', *warnings, flush=True)

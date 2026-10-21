@@ -350,6 +350,8 @@ canvas { display: block; width: 100%; max-width: 100%; border-radius: 8px; }
   const fmt1 = (v) => v.toFixed(1), fmt2 = (v) => v.toFixed(2), pctf = (v) => Math.round(v * 100) + '%';
   const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
   let MODEL = null, A = null, B = null;
+  const NO_NAMES = { tl: '', tr: '', bl: '', br: '' };
+  let ETIQ = { cuadrantes: { off: NO_NAMES, dfn: NO_NAMES }, ejes: { off: ['', ''], dfn: ['', ''] } }; // nombres de /api/framework
   const SL_ORDER = ['posesion', 'verticalidad', 'ritmo', 'linea', 'volumen_presion', 'presion', 'contrapresion', 'saque_largo', 'centros', 'contragolpe', 'presion_alta_tiros', 'xg', 'xga', 'bp_xg'];
   const MONTHS = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
   const dshort = (d) => MONTHS[+d.slice(5, 7) - 1] + ' ' + d.slice(0, 4);
@@ -559,10 +561,10 @@ canvas { display: block; width: 100%; max-width: 100%; border-radius: 8px; }
 
   /* ================= mapa de estilos ================= */
   const MAPS = {
-    off: { key: 'off', xl: ['Ataque pausado', 'Ataque rápido'], yl: ['Cede el balón', 'Domina el balón'], xa: 'Ritmo de ataque', ya: 'Posesión',
-      q: { tl: 'Posesión elaborada', tr: 'Dominio vertical', bl: 'Reactivo', br: 'Contragolpe' } },
-    dfn: { key: 'dfn', xl: ['Bloque bajo', 'Línea alta'], yl: ['Espera', 'Presiona'], xa: 'Altura de línea', ya: 'Intensidad de presión',
-      q: { tl: 'Bloque medio agresivo', tr: 'Presión alta', bl: 'Bloque bajo', br: 'Línea alta, presión selectiva' } }
+    off: { key: 'off', xl: ['Ataque pausado', 'Ataque rápido'], yl: ['Cede el balón', 'Domina el balón'],
+      get xa() { return ETIQ.ejes.off[0]; }, get ya() { return ETIQ.ejes.off[1]; }, get q() { return ETIQ.cuadrantes.off; } },
+    dfn: { key: 'dfn', xl: ['Línea baja', 'Línea alta'], yl: ['Espera', 'Presiona'],
+      get xa() { return ETIQ.ejes.dfn[0]; }, get ya() { return ETIQ.ejes.dfn[1]; }, get q() { return ETIQ.cuadrantes.dfn; } }
   };
   const seasonShort = (s) => s.slice(2, 4) + '/' + s.slice(5, 7);
   const unitName = (u) => `${u.team} · ${u.coach} · ${seasonShort(u.season)}`;
@@ -1004,7 +1006,8 @@ canvas { display: block; width: 100%; max-width: 100%; border-radius: 8px; }
 
   readColors();
   setPlayIcon();
-  fetch('/api/model').then((r) => r.json()).then((m) => {
+  Promise.all([fetch('/api/model').then((r) => r.json()), fetch('/api/framework').then((r) => r.json()).catch(() => null)]).then(([m, fw]) => {
+    if (fw && fw.etiquetas) ETIQ = fw.etiquetas;
     MODEL = m;
     MODEL.map = MODEL.map || { units: [] };
     for (const entity of MODEL.entities) { entity.style = entity.style || {}; entity.map = entity.map || { off: null, dfn: null, traj: [] }; entity.shape = entity.shape || []; }

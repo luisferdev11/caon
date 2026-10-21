@@ -32,10 +32,10 @@ from analytics.match_xg import (
     team_shots,
 )
 
-REPLAY_DRAWS = 20000           # sorteos por partido
-DESERVED_P = 0.50              # "mereció ganar / perder" si esa probabilidad es ≥ 0.50
-BALANCE_PTS = 1.0              # |puntos − xPts| ≤ 1 → resultado acorde a las ocasiones
-EPILOGUE_END = getattr(fw, 'EPILOGUE_END', '2026-06-30')  # fin del epílogo (= build_analysis.EPILOGUE_END)
+REPLAY_DRAWS = fw.REPLAY_DRAWS
+DESERVED_P = fw.DESERVED_P
+BALANCE_PTS = fw.BALANCE_PTS
+EPILOGUE_END = fw.EPILOGUE_END
 APERTURA_FIRST_MONTH = 7       # julio–diciembre = Apertura; enero–junio = Clausura
 POINTS = {'G': 3, 'E': 1, 'P': 0}
 NOTE = ('Repetición con el xG de los tiros reales: interpretación, no pronóstico. Penales con su xG, '

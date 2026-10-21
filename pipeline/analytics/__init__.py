@@ -9,12 +9,16 @@ from __future__ import annotations
 
 import json
 import pathlib
+from collections import OrderedDict
 from dataclasses import dataclass, field
 from typing import Any, Callable, Optional  # noqa: UP035 - Python 3.9: sin "X | Y"
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 EXTRACT = ROOT / 'data' / 'extract'
 CACHE = ROOT / 'data' / 'cache'
+
+# Un partido de eventos v8 parseado pesa ~18 MB: la caché se acota y se vacía al terminar cada entidad.
+EVENTS_CACHE_SIZE = 100
 
 BuildFn = Callable[['EntityContext'], dict[str, Any]]
 _REGISTRY: dict[str, BuildFn] = {}
@@ -60,6 +64,29 @@ class EntityContext:
     load_f360: Callable[[int], Optional[dict[str, Any]]] = load_f360
     load_events: Callable[[int], Optional[list[dict[str, Any]]]] = load_events
     league_ref: dict[str, Any] = field(default_factory=dict)
+    events_cache_size: int = EVENTS_CACHE_SIZE
+    _events: OrderedDict = field(default_factory=OrderedDict, init=False, repr=False)
+    _raw_load_events: Optional[Callable] = field(default=None, init=False, repr=False)
+
+    def __post_init__(self) -> None:
+        """Envuelve ``load_events`` en una LRU por partido (los temas comparten las lecturas; no deben mutar los eventos)."""
+        if self.events_cache_size > 0:
+            self._raw_load_events = self.load_events
+            self.load_events = self._cached_events
+
+    def _cached_events(self, mid: int) -> Optional[list[dict[str, Any]]]:
+        if mid in self._events:
+            self._events.move_to_end(mid)
+            return self._events[mid]
+        events = self._raw_load_events(mid)
+        self._events[mid] = events
+        if len(self._events) > self.events_cache_size:
+            self._events.popitem(last=False)
+        return events
+
+    def clear_events_cache(self) -> None:
+        """Libera los eventos en memoria (al terminar la entidad)."""
+        self._events.clear()
 
     def match_ids(self, window: Optional[str] = None) -> list[int]:
         """Ids de partido, opcionalmente filtrados por ventana (oficial|epilogo|temprano)."""
@@ -83,7 +110,7 @@ def topics() -> list[str]:
 def build_all(ctx: EntityContext, only: Optional[list[str]] = None) -> dict[str, Any]:
     """Corre cada módulo registrado sobre ``ctx``; un fallo queda como {'error': ...} sin tumbar al resto."""
     out: dict[str, Any] = {}
-    for topic, fn in _REGISTRY.items():
+    for topic, fn in list(_REGISTRY.items()):
         if only is not None and topic not in only:
             continue
         try:

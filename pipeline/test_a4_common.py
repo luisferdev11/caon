@@ -88,6 +88,13 @@ class TestReference(unittest.TestCase):
         self.assertEqual(set(units), {f'{fx.US}:A', f'{fx.THEM}:A'})
         self.assertEqual(units[f'{fx.US}:A']['partidos'], 2)
 
+    def test_official_only_drops_matches_after_the_window_and_without_date(self):
+        dates = {1: '2025-06-30', 2: '2025-07-01', 3: '2023-08-01'}
+        self.assertEqual(ar.official_only([1, 2, 3, 4], dates, '2025-06-30'), [1, 3])
+
+    def test_reference_is_labelled_official_window(self):
+        self.assertIn('ventana oficial', ar.REF_LABEL)
+
     def test_populations_apply_values_fn(self):
         units = {'a': {'x': 1}, 'b': {'x': 3}, 'c': {'x': 0}}
         pops = ar.populations(units, lambda n: {'k': (n['x'] or None, 1)})
@@ -100,7 +107,8 @@ class TestReference(unittest.TestCase):
     def test_disk_cache_signature(self):
         with tempfile.TemporaryDirectory() as d:
             p = pathlib.Path(d) / 'ref.json'
-            p.write_text(json.dumps({'firma': ar.signature(ar.an_match_ids()), 'unidades': {'u': {}}}),
+            p.write_text(json.dumps({'firma': ar.signature(ar.official_only(ar.an_match_ids(), ar.match_dates())),
+                                     'unidades': {'u': {}}}),
                          encoding='utf-8')
             self.assertEqual(ar.load_units(p, build=False), {'u': {}})
             p.write_text(json.dumps({'firma': 'otra', 'unidades': {'u': {}}}), encoding='utf-8')

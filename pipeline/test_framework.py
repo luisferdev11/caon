@@ -107,6 +107,44 @@ class RegistryTests(unittest.TestCase):
         self.assertEqual(ctx.match_ids('oficial'), [1])
         self.assertEqual(ctx.match_ids('epilogo'), [])
 
+    def test_registering_a_topic_during_the_run_does_not_break_it(self):
+        analytics._clear_registry_for_tests()
+
+        def first(ctx):
+            analytics.register('late', lambda c: {'late': True})
+            return {'ok': 1}
+        analytics.register('first', first)
+        ctx = analytics.EntityContext('e', 'E', 'T', 'C')
+        out = analytics.build_all(ctx)
+        self.assertEqual(out['first'], {'ok': 1})
+        self.assertIn('late', analytics.topics())
+
+    def test_events_cache_loads_each_match_once_and_is_bounded(self):
+        calls = []
+
+        def loader(mid):
+            calls.append(mid)
+            return [{'mid': mid}]
+        ctx = analytics.EntityContext('e', 'E', 'T', 'C', load_events=loader, events_cache_size=2)
+        for mid in (1, 2, 1, 2, 1):
+            ctx.load_events(mid)
+        self.assertEqual(calls, [1, 2])
+        ctx.load_events(3)          # expulsa el menos reciente
+        ctx.load_events(1)          # 1 se usó después que 2: sigue en caché
+        ctx.load_events(2)          # 2 ya salió: se vuelve a leer
+        self.assertEqual(calls, [1, 2, 3, 2])
+        ctx.clear_events_cache()
+        ctx.load_events(1)
+        self.assertEqual(calls[-1], 1)
+        self.assertEqual(len(calls), 5)
+
+    def test_events_cache_can_be_disabled(self):
+        calls = []
+        ctx = analytics.EntityContext('e', 'E', 'T', 'C', load_events=lambda m: calls.append(m) or [], events_cache_size=0)
+        ctx.load_events(1)
+        ctx.load_events(1)
+        self.assertEqual(calls, [1, 1])
+
 
 
 class MarcoDocTests(unittest.TestCase):

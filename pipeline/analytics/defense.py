@@ -80,9 +80,9 @@ def _recoveries(rec: ac.Recorder, v: ac.Values, agg: dict[str, Any]) -> dict[str
     return {
         'rec_campo_rival': rec.from_values(v, 'rec_campo_rival', 'rec_campo_rival', 'robos por partido'),
         'rec_alta': rec.from_values(v, 'rec_alta', 'rec_alta', 'robos por partido'),
-        'rec_campo_rival_con_tiro': rec.from_values(v, 'rec_campo_rival_tiro', 'presion_alta_tiros',
+        'rec_campo_rival_con_tiro': rec.from_values(v, 'rec_campo_rival_tiro', 'rec_tiro',
                                                     'posesiones con tiro ≤15 s por partido', scope='robo_x60'),
-        'rec_alta_con_tiro': rec.from_values(v, 'rec_alta_tiro', 'presion_alta_tiros',
+        'rec_alta_con_tiro': rec.from_values(v, 'rec_alta_tiro', 'rec_tiro',
                                              'posesiones con tiro ≤15 s por partido', scope='robo_x80'),
         'por_zona': [zones.get(str(z), 0) for z in range(N_ZONES)],
         'por_zona_por_partido': [ac.rnd(ac.ratio(zones.get(str(z), 0), m), 3) for z in range(N_ZONES)],

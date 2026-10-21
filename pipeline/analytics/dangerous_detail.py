@@ -10,7 +10,7 @@ from typing import Any, Optional
 
 import framework as fw
 
-MAX_ACTIONS = 15
+MAX_ACTIONS = fw.DANGEROUS_MAX_ACTIONS
 ACTION_ES = {'Pass': 'Pase', 'Carry': 'Conducción', 'Dribble': 'Regate', 'Shot': 'Tiro',
              'Ball Recovery': 'Recuperación', 'Interception': 'Intercepción', 'Clearance': 'Despeje',
              'Block': 'Bloqueo', 'Duel': 'Duelo', 'Pressure': 'Presión', 'Dispossessed': 'Pérdida por entrada',

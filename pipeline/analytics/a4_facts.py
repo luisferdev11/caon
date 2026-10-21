@@ -21,7 +21,7 @@ from analytics import a4_transition_facts as trf
 
 Event = dict[str, Any]
 RESTART_PASS_TYPES = frozenset({'Goal Kick', 'Corner', 'Free Kick', 'Throw-in', 'Kick Off'})
-LONG_PASS_YD = 35.0          # pase largo (convención StatsBomb "long ball": ≥ 35 yd)
+LONG_PASS_YD = fw.LONG_PASS_YD
 GK_POSITION = 'Goalkeeper'
 ORIGIN_GROUP = {'gk': 'portero', 'keeper': 'portero', 'regain_open': 'robo'}
 OBV_GROUP = {'Pass': 'pase', 'Carry': 'conduccion', 'Dribble': 'conduccion', 'Shot': 'tiro',

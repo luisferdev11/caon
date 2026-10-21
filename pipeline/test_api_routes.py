@@ -11,6 +11,9 @@ from fastapi.testclient import TestClient
 
 from app import main
 
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+import labels
+
 
 def _write(path: pathlib.Path, obj) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -86,11 +89,57 @@ class RouteTests(unittest.TestCase):
         self.assertEqual(self.client.get('/api/explorer/team/america').json()['n'], 3)
         self.assertEqual(self.client.get('/api/explorer/coach/andre-jardine').json()['n'], 9)
 
+    def test_explorer_lists_are_light_and_details_are_full(self):
+        team = {'key': 'america', 'team': 'América', 'n': 10, 'temporadas': [{'x': 1}] * 5, 'entidades': ['a'],
+                'metrics': {'xg': {'id': 'xg', 'nombre': 'xG', 'unit': 'u', 'source': 's', 'prior_value': 1,
+                                   'value': 1.2, 'raw': 1.1, 'ci': [1, 2], 'ref_pct': 40, 'n': 9, 'window': 'oficial'}}}
+        coach = {'key': 'jardine', 'coach': 'Jardine', 'n': 9, 'tenencias': [{'x': 1}] * 5, 'temporadas': [1]}
+        _write(self.root / 'explorer.json', {'equipos': [team], 'entrenadores': [coach], 'metricas': [{'id': 'xg'}],
+                                             'metodo': {'k': 8}, 'version': 'explorer.v3'})
+        lst = self.client.get('/api/explorer/teams').json()[0]
+        self.assertNotIn('temporadas', lst)
+        self.assertNotIn('entidades', lst)
+        self.assertEqual(lst['metrics']['xg'], {'id': 'xg', 'value': 1.2, 'raw': 1.1, 'ci': [1, 2], 'ref_pct': 40,
+                                                 'n': 9, 'window': 'oficial'})
+        self.assertNotIn('tenencias', self.client.get('/api/explorer/coaches').json()[0])
+        self.assertEqual(len(self.client.get('/api/explorer/team/america').json()['temporadas']), 5)
+        self.assertEqual(len(self.client.get('/api/explorer/coach/jardine').json()['tenencias']), 5)
+        self.assertIn('nombre', self.client.get('/api/explorer/team/america').json()['metrics']['xg'])
+
+    def test_explorer_catalog_route(self):
+        _write(self.root / 'explorer.json', {'equipos': [], 'entrenadores': [], 'metricas': [{'id': 'xg'}],
+                                             'metodo': {'k': 8}, 'version': 'explorer.v3'})
+        cat = self.client.get('/api/explorer/catalog').json()
+        self.assertEqual(cat['metricas'], [{'id': 'xg'}])
+        self.assertEqual(cat['metodo'], {'k': 8})
+
+    def test_replay_route_serves_the_per_entity_file_and_summary_fallback(self):
+        _write(self.root / 'replay' / 'ame_jardine.json', {'partidos': [{'match_id': 7, 'xpts': 3}]})
+        self.assertEqual(self.client.get('/api/replay/ame_jardine').json()['partidos'][0]['xpts'], 3)
+        (self.root / 'replay' / 'ame_jardine.json').unlink()
+        self.assertEqual(self.client.get('/api/replay/ame_jardine').json()['matches'][0]['xpts'], 1.5)
+        self.assertEqual(self.client.get('/api/replay/nadie').status_code, 404)
+
+    def test_xg_grid_route(self):
+        self.assertEqual(self.client.get('/api/xg_grid').status_code, 404)
+        _write(self.root / 'xg_grid.json', {'version': 'xg_grid.v2', 'coef': {'intercepto': 0}})
+        res = self.client.get('/api/xg_grid')
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(res.json()['version'], 'xg_grid.v2')
+
     def test_framework_route(self):
         res = self.client.get('/api/framework')
         self.assertIn(res.status_code, (200, 503))
         if res.status_code == 200:
             self.assertIsInstance(res.json()['definitions'], dict)
+
+    def test_framework_route_exposes_label_names(self):
+        res = self.client.get('/api/framework')
+        self.assertEqual(res.status_code, 200)
+        et = res.json()['etiquetas']
+        self.assertEqual(et['cuadrantes']['dfn']['tr'], labels.QUADRANTS['dfn']['tr'])
+        self.assertEqual(et['cuadrantes'], {k: dict(v) for k, v in labels.QUADRANTS.items()})
+        self.assertEqual({k: list(v) for k, v in et['ejes'].items()}, {k: list(v) for k, v in labels.AXES.items()})
 
 
 if __name__ == '__main__':

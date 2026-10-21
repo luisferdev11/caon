@@ -21,18 +21,18 @@ import numpy as np
 from analytics import register
 from analytics.context_io import STYLE_COLS, load_league, style_values
 
-BOOT_DRAWS = 1000
+BOOT_DRAWS = fw.BOOT_DRAWS
 PCT = 100.0
 MIN_S = 60.0
 PER_90 = 90.0
-REGULAR_STAGES = {'Regular Season', 'Apertura', 'Clausura'}   # lo demás (play-in, reclasificación, liguilla)
+REGULAR_STAGES = fw.REGULAR_STAGES
 MATCH_METRICS = ('puntos', 'xg', 'xga', 'xg_dif', 'field_tilt', 'posesion', 'verticalidad', 'ritmo', 'linea',
                  'volumen_presion', 'presion')
 POSS_METRICS = ('xg_90', 'xga_90', 'field_tilt')
-METRIC_META = {   # id del framework (None = pendiente en DEFINITIONS), unidad y fuente
-    'puntos': (None, 'puntos por partido', 'eventos'), 'xg': ('xg', 'xG sin penales por partido', 'team-stats'),
+METRIC_META = {   # id del framework, unidad y fuente
+    'puntos': ('puntos', 'puntos por partido', 'eventos'), 'xg': ('xg', 'xG sin penales por partido', 'team-stats'),
     'xga': ('xga', 'xG sin penales concedido por partido', 'team-stats'),
-    'xg_dif': (None, 'xG − xG en contra por partido', 'team-stats'),
+    'xg_dif': ('xg_dif', 'xG − xG en contra por partido', 'team-stats'),
     'field_tilt': ('field_tilt', '% de acciones en el último tercio', 'eventos'),
     'xg_90': ('xg', 'xG sin penales por 90 min en ese estado', 'eventos'),
     'xga_90': ('xg_concedido', 'xG sin penales concedido por 90 min en ese estado', 'eventos'),
@@ -43,11 +43,11 @@ MATCH_DIMS = (('localia', 'venue'), ('rival', 'rival_tier'), ('fase', 'fase'))
 POSS_DIMS = ('marcador', 'minuto')
 FLIP_STATE = {'ganando': 'perdiendo', 'perdiendo': 'ganando', 'empatando': 'empatando'}
 CONSISTENCY_KEYS = ('xg', 'xga', 'posesion', 'presion', 'verticalidad')
-CONSISTENCY_MIN_INSIDE = 3      # partido "a su manera": ≥3 de los 5 rasgos dentro del IQR propio
-CONSISTENCY_MIN_MATCHES = 10    # mínimo de partidos para el índice (y para un equipo-temporada de referencia)
+CONSISTENCY_MIN_INSIDE = fw.CONSISTENCY_MIN_INSIDE
+CONSISTENCY_MIN_MATCHES = fw.CONSISTENCY_MIN_MATCHES
 IQR_Q = (0.25, 0.75)
 COMPARISON_TARGETS = ('ame_jardine',)
-FINDINGS_TOP = 12
+FINDINGS_TOP = fw.FINDINGS_TOP
 MIN_GROUP_MATCHES = fw.CONFIDENCE_BANDS[0][0]   # <5 partidos (confianza "muy baja"): nunca "supera el ruido"
 NOTE = ('Descriptivo: diferencias contra el resto de partidos de la misma ventana con banda bootstrap del 80 %; '
         'no controla plantilla, calendario ni rival. Nivel del rival por xG diferencial de su temporada (circular).')
@@ -243,9 +243,6 @@ def findings(dims: dict[str, dict[str, Any]], top: int) -> list[dict[str, Any]]:
 # ---------------------------------------------------------------- general y consistencia
 def _record(key: str, value: Optional[float], n: int, window: str, entity: str, **extra: Any) -> dict[str, Any]:
     mid, unit, source = METRIC_META[key]
-    if mid is None:   # id pendiente en el registro: se publica sin id (no es un registro del contrato)
-        return dict({'value': None if value is None else round(value, fw.ROUND_DIGITS), 'n': n, 'unit': unit,
-                     'source': source, 'id_pendiente': key}, **extra)
     return fw.metric(mid, value, n, unit, source, window, entity=entity, scope=f'contexto:{key}', **extra)
 
 

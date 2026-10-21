@@ -1,4 +1,5 @@
 """Tests de download_360.py (backoff, trabajos, corrida) y download_all.py (plan por prioridad)."""
+import json
 import pathlib
 import sys
 import tempfile
@@ -140,6 +141,22 @@ class TestPlan(unittest.TestCase):
         plan = [(1, 1, ('events', 'lineups', '360'))]
         jobs = A.plan_jobs(plan, {1: self.ms[0]})
         self.assertEqual(jobs, [(1, 'v8/events/1'), (1, 'v4/lineups/1'), (1, 'v2/360-frames/1')])
+
+    def test_ids_jobs_events_lineups_and_missing(self):
+        by = {1: self.ms[0], 100: self.ms[4]}
+        jobs = A.ids_jobs([100, 1, 777], by, ('events', 'lineups'))
+        self.assertEqual(jobs, ['v8/events/1', 'v4/lineups/1', 'v8/events/100', 'v4/lineups/100'])
+
+    def test_ids_jobs_360_only_where_available(self):
+        by = {5: _m(5, 281, 'A', 'B', s360='unscheduled')}
+        self.assertEqual(A.ids_jobs([5], by, ('events', '360')), ['v8/events/5'])
+
+    def test_parse_ids_arg(self):
+        self.assertEqual(A.parse_ids('3,1, 2'), [1, 2, 3])
+        with tempfile.TemporaryDirectory() as tmp:
+            f = pathlib.Path(tmp) / 'n.json'
+            f.write_text(json.dumps({'match_ids': [9, 4]}), encoding='utf-8')
+            self.assertEqual(A.parse_ids('@' + str(f)), [4, 9])
 
 
 class TestCoverage(unittest.TestCase):

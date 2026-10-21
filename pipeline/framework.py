@@ -80,6 +80,31 @@ FREE_OPTION_MARGIN_YD = 3.0   # opción libre si ningún defensor está a ≤3 y
 PAIRING_RADIUS_YD = 1.5       # atacante emparejado si un defensor está a ≤1.5 yd
 
 OFFICIAL_END = '2025-06-30'
+
+# --- Analítica por tema (constantes movidas desde analytics/*: un solo valor por concepto) ------------
+REPLAY_DRAWS = 20000          # sorteos por partido de la repetición con xG
+DESERVED_P = 0.50             # "mereció ganar / perder" si esa probabilidad es >= 0.50
+BALANCE_PTS = 1.0             # |puntos - xPts| <= 1 -> resultado acorde a las ocasiones
+BIG_CHANCE_XG = 0.30          # "gran ocasion": tiro con xG >= 0.30
+EPILOGUE_END = '2026-06-30'   # fin del epilogo (temporada 2025/26); despues = evidencia temprana
+REF_MIN_MATCHES = 10          # partidos minimos de un equipo-temporada para entrar a una referencia
+LONG_PASS_YD = 35.0           # pase largo (convencion StatsBomb "long ball")
+DANGEROUS_TOP_N = 10          # jugadas peligrosas publicadas por categoria
+DANGEROUS_MAX_ACTIONS = 15    # acciones dibujadas por jugada peligrosa
+DANGEROUS_PAYLOAD_MAX_BYTES = 250_000
+PROGRESSORS_TOP = 8           # jugadores listados en progresion
+LOSS_PLAYERS_TOP = 10         # jugadores listados en perdidas
+SHORT_CORNER_YD = 15.0        # corner corto: pase de menos de 15 yd (= extract.corner_target)
+CONTACT_SCAN_EVENTS = 8       # eventos tras el corner en los que se busca el primer contacto
+SETPIECES_TOP_N = 5           # rematadores y zonas listados en balon parado
+BOOT_DRAWS = 1000             # remuestreos bootstrap de las bandas del contexto
+REGULAR_STAGES = ('Regular Season', 'Apertura', 'Clausura')  # lo demas (play-in, liguilla) va aparte
+CONSISTENCY_MIN_INSIDE = 3    # partido "a su manera": >=3 de los 5 rasgos dentro del IQR propio
+CONSISTENCY_MIN_MATCHES = REF_MIN_MATCHES   # minimo de partidos para el indice de consistencia
+FINDINGS_TOP = 12             # hallazgos de contexto ordenados que se publican
+XI_SIZE = 11                  # once titular
+SQUAD_TOP = 25                # jugadores listados en la plantilla
+HALFTIME_MINUTE = 45          # minuto de StatsBomb al reanudar el segundo tiempo
 WINDOWS = ('oficial', 'epilogo', 'temprano')
 SOURCES = ('eventos', 'team-stats', '360')
 MINUTE_BINS = ((15, '0-15'), (30, '16-30'))

@@ -18,6 +18,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import NamedTuple
 
+import labels
+
 ROOT = Path(__file__).resolve().parents[1]
 OK, FAIL, PENDING = 'ok', 'fail', 'pending'
 SYMBOL = {OK: '✅', FAIL: '❌', PENDING: '⏳'}
@@ -57,8 +59,13 @@ def md_sections(text: str) -> list[str]:
 
 
 # (rule id, predicate over a label row, explanation)
-_FAST, _SLOW = ('Dominio vertical', 'Contragolpe'), ('Posesión elaborada', 'Reactivo')
-_PRESS, _WAIT = ('Presión alta', 'Bloque medio agresivo'), ('Bloque bajo', 'Línea alta, presión selectiva')
+# Los nombres de cuadrante salen de labels (QUADRANTS, DFN_QUALIFIED): una sola fuente.
+_QO, _QD, _QQ = labels.QUADRANTS['off'], labels.QUADRANTS['dfn'], labels.DFN_QUALIFIED
+_FAST, _SLOW = (_QO['tr'], _QO['br']), (_QO['tl'], _QO['bl'])
+_PRESS = (_QD['tr'], _QD['tl'], _QQ[('alta', 'sin_robo')], _QQ[('baja', 'sin_robo')])
+_WAIT = (_QD['bl'], _QD['br'], _QQ[('alta', 'selectiva')], _QQ[('baja', 'selectiva')])
+LINE_HIGH = (_QD['tr'], _QD['br'], _QQ[('alta', 'sin_robo')], _QQ[('alta', 'selectiva')])
+LINE_LOW = (_QD['bl'], _QD['tl'], _QQ[('baja', 'sin_robo')], _QQ[('baja', 'selectiva')])
 CONTRADICTION_RULES = [
     ('pase_corto_vs_muy_vertical', lambda r: r['build'] == 'Pase corto' and 'Muy vertical' in r['tags'],
      'Salida "Pase corto" junto a la etiqueta "Muy vertical"'),
@@ -66,8 +73,8 @@ CONTRADICTION_RULES = [
      'Etiqueta "Ataques rápidos" con cuadrante ofensivo pausado'),
     ('ataques_pausados_vs_mapa_rapido', lambda r: 'Ataques pausados' in r['tags'] and r['q_off'] in _FAST,
      'Etiqueta "Ataques pausados" con cuadrante ofensivo rápido'),
-    ('contragolpe_vs_posesion', lambda r: r['build'] == 'Contragolpe' and r['q_off'] == 'Posesión elaborada',
-     'Salida "Contragolpe" en cuadrante "Posesión elaborada"'),
+    ('contragolpe_vs_posesion', lambda r: r['build'] == 'Contragolpe' and r['q_off'] == _QO['tl'],
+     f'Salida "Contragolpe" en cuadrante "{_QO["tl"]}"'),
     ('cede_vs_domina', lambda r: 'Cede el balón' in r['tags'] and (r['map_off'] or [0, 0])[1] >= 50,
      '"Cede el balón" pero el mapa lo ubica dominando el balón'),
     ('dueno_vs_cede', lambda r: 'Dueño del balón' in r['tags'] and (r['map_off'] or [0, 100])[1] < 50,
@@ -76,9 +83,9 @@ CONTRADICTION_RULES = [
      'Tarjeta defensiva "Alto" con línea baja en el mapa'),
     ('def_profundo_vs_mapa_alto', lambda r: r['def'] == 'Profundo' and (r['map_dfn'] or [0, 0])[0] >= 50,
      'Tarjeta defensiva "Profundo" con línea alta en el mapa'),
-    ('linea_alta_vs_mapa', lambda r: 'Línea muy alta' in r['tags'] and r['q_dfn'] in ('Bloque bajo', 'Bloque medio agresivo'),
+    ('linea_alta_vs_mapa', lambda r: 'Línea muy alta' in r['tags'] and r['q_dfn'] in LINE_LOW,
      '"Línea muy alta" en cuadrante de línea baja'),
-    ('bloque_bajo_vs_mapa', lambda r: 'Bloque bajo' in r['tags'] and r['q_dfn'] in ('Presión alta', 'Línea alta, presión selectiva'),
+    ('bloque_bajo_vs_mapa', lambda r: 'Bloque bajo' in r['tags'] and r['q_dfn'] in LINE_HIGH,
      'Etiqueta "Bloque bajo" en cuadrante de línea alta'),
     ('asfixiante_vs_espera', lambda r: 'Presión asfixiante' in r['tags'] and r['q_dfn'] in _WAIT,
      '"Presión asfixiante" en cuadrante que espera'),
@@ -97,9 +104,9 @@ def _card_family(card: str) -> str:
 
 
 def _quad_family(quad: str) -> str:
-    if quad in ('Presión alta', 'Línea alta, presión selectiva'):
+    if quad in LINE_HIGH:
         return 'alta'
-    return 'baja' if quad == 'Bloque bajo' else 'media'
+    return 'baja' if quad == _QD['bl'] else 'media'
 
 
 def label_contradictions(row: dict) -> list[dict]:
@@ -147,7 +154,7 @@ const js = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(x => x[1]).jo
 const cut = (a, b) => js.slice(js.indexOf(a), js.indexOf(b, js.indexOf(a)));
 const code = cut('  function fcLabels(', '  /* ---------- selector') + cut('  const MAPS = {', '  function renderMap(');
 const M = JSON.parse(fs.readFileSync(process.argv[1] + '/model/model.json', 'utf8'));
-const c = { M }; vm.createContext(c);
+const c = { M, ETIQ: JSON.parse(process.argv[2]) }; vm.createContext(c);
 vm.runInContext(code + `\nthis.rows = M.entities.map(e => { const l = fcLabels(e.style || {}), m = e.map || {};
   return { id: e.id, kind: 'entidad', build: l.build, def: l.def, att: l.att, tags: tags(e.style || {}),
     q_off: quadName('off', m.off), q_dfn: quadName('dfn', m.dfn), map_off: m.off || null, map_dfn: m.dfn || null }; })
@@ -159,7 +166,8 @@ process.stdout.write(JSON.stringify(c.rows));
 
 def frontend_label_rows(root: Path) -> list[dict]:
     """Evaluate the current inline label functions of frontend/lab.html for every entity and map unit."""
-    proc = subprocess.run(['node', '-e', LABEL_JS, str(root)], capture_output=True, text=True, check=True)
+    names = json.dumps({'cuadrantes': labels.QUADRANTS, 'ejes': labels.AXES}, ensure_ascii=False)
+    proc = subprocess.run(['node', '-e', LABEL_JS, str(root), names], capture_output=True, text=True, check=True)
     return json.loads(proc.stdout)
 
 

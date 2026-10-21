@@ -44,6 +44,8 @@ AXES = {'off': ('Velocidad del ataque', 'Posesión'), 'dfn': ('Altura de línea'
 SELECTIVE = 'Presión selectiva: pocas presiones, pero roba pronto (PPDA bajo)'
 SIN_ROBO = 'Presiona mucho, pero roba poco (PPDA alto)'
 COMBINED = 'Directo pero paciente'
+# Texto del control `presion` (percentil invertido: alto = PPDA bajo = el rival hace pocos pases). Provisional: lo revisa el advisor.
+PPDA_LABEL = 'Presión por PPDA (alto = deja pocos pases)'
 
 
 def _ge(x: float) -> tuple:

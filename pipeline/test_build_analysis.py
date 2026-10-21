@@ -23,10 +23,6 @@ class BuildAnalysisTests(unittest.TestCase):
         self.assertEqual(rows, [{'id': 7, 'date': '2024-03-01', 'window': 'oficial', 'venue': 'local',
                                  'opponent': 'Pachuca', 'score': [2, 1], 'team_id': 1}])
 
-    def test_replay_meta(self):
-        meta = ba.replay_meta(SB_MATCH)
-        self.assertEqual((meta['home_id'], meta['away_id'], meta['home_score'], meta['match_id']), (1, 2, 2, 7))
-
     def test_entities_to_build(self):
         ents = [{'id': 'ame_jardine', 'kind': 'real'}, {'id': 'x', 'kind': 'real'}, {'id': 'barca', 'kind': 'opendata'}]
         self.assertEqual(ba.entities_to_build(ents, has_data=lambda e: e['id'] == 'x'), ['ame_jardine', 'x'])
@@ -46,10 +42,57 @@ class BuildAnalysisTests(unittest.TestCase):
         self.assertEqual(list(out), ['juarez_lema'])
         self.assertEqual(out['juarez_lema']['coach'], 'Lema')
 
-    def test_run_build_step_ends_with_analysis(self):
+    def test_run_build_step_runs_analysis_after_model(self):
         import run
-        self.assertTrue(run.STEPS['build'][0][-1].endswith('build_model.py'))
-        self.assertTrue(run.STEPS['build'][-1][-1].endswith('build_analysis.py'))
+        names = [c[-1].rsplit('/', 1)[-1] for c in run.STEPS['build']]
+        self.assertLess(names.index('build_model.py'), names.index('build_analysis.py'))
+        self.assertEqual(names[-1], 'story.py')
+
+    def test_replay_has_no_adapter_any_more(self):
+        self.assertFalse(hasattr(ba, 'replay_ctx'))
+        self.assertFalse(hasattr(ba, 'replay_meta'))
+
+
+REPLAY = {'resumen': {'n': 2}, 'por_torneo': [], 'por_ventana': {}, 'textos': {'veredicto': {}},
+          'partidos': [{'match_id': 7, 'xpts': 1.5, 'ficha': {'merecio': {}}}, {'match_id': 8, 'xpts': 0.4, 'ficha': {}}]}
+
+
+class ReplaySplitTests(unittest.TestCase):
+    def test_split_replay_separates_summary_rows_and_cards(self):
+        summary, light, cards = ba.split_replay(REPLAY, 'ame_jardine')
+        self.assertNotIn('partidos', summary)
+        self.assertEqual(summary['resumen'], {'n': 2})
+        self.assertEqual(summary['archivo'], 'replay/ame_jardine.json')
+        self.assertTrue(all('ficha' not in r for r in light['partidos']))
+        self.assertEqual(sorted(cards), [7, 8])
+        self.assertIn('ficha', cards[7])
+        self.assertIn('textos', cards[7])
+
+    def test_publish_replay_writes_files_and_first_entity_keeps_the_card(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as tmp:
+            root = pathlib.Path(tmp)
+            written: set = set()
+            ba.publish_replay(root, 'ame_jardine', REPLAY, cards=True, written=written)
+            other = json.loads(json.dumps(REPLAY))
+            other['partidos'][0]['xpts'] = 9
+            ba.publish_replay(root, 'pac_almada', other, cards=True, written=written)
+            self.assertTrue((root / 'replay' / 'ame_jardine.json').exists())
+            self.assertTrue((root / 'replay' / 'pac_almada.json').exists())
+            self.assertEqual(json.loads((root / 'matches' / '7.json').read_text(encoding='utf-8'))['xpts'], 1.5)
+            self.assertNotIn('ficha', json.loads((root / 'replay' / 'ame_jardine.json').read_text(encoding='utf-8'))['partidos'][0])
+
+    def test_publish_replay_without_cards_writes_only_the_replay_file(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as tmp:
+            root = pathlib.Path(tmp)
+            ba.publish_replay(root, 'x', REPLAY, cards=False, written=set())
+            self.assertTrue((root / 'replay' / 'x.json').exists())
+            self.assertFalse((root / 'matches').exists())
+
+    def test_replay_error_payload_is_left_untouched(self):
+        summary, light, cards = ba.split_replay({'error': 'boom'}, 'x')
+        self.assertEqual((summary, light, cards), ({'error': 'boom'}, None, {}))
 
 
 if __name__ == '__main__':

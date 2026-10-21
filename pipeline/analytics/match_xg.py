@@ -10,7 +10,7 @@ from typing import Any, Optional
 
 import framework as fw
 
-BIG_CHANCE_XG = 0.30           # "gran ocasión": tiro con xG >= 0.30
+BIG_CHANCE_XG = fw.BIG_CHANCE_XG
 
 ON_BALL = ('Pass', 'Carry', 'Dribble', 'Shot')
 Event = dict[str, Any]

@@ -23,7 +23,7 @@ WINDOW_S = fw.SUB_WINDOW_MIN * MIN_S
 GAP_S = fw.SUB_GAP_MIN * MIN_S
 FLOW_KEYS = ('xg_favor', 'xg_contra', 'obv', 'field_tilt')
 PCT = 100.0
-HALFTIME_MINUTE = 45                          # minuto de StatsBomb al reanudar el segundo tiempo
+HALFTIME_MINUTE = fw.HALFTIME_MINUTE
 
 
 def _tname(e: dict) -> str:

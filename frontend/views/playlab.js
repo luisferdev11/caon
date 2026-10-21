@@ -140,6 +140,20 @@ export function zoneXG(league, p) {
   return sh[k][z] > 0 ? xg[k][z] / sh[k][z] : null;
 }
 
+/* Mismo modelo que pipeline/xg_grid.py: p = 1/(1+exp(-(b0 + b1·distancia + b2·ángulo + b3·cabeza))). */
+const GOAL = { x: 120, y: 40, post: 4 }, PITCH = { x: 120, y: 80 };
+
+/** xG del modelo propio en el punto del remate (coeficientes de /api/xg_grid); null si no hay rejilla. */
+export function gridXG(grid, p, head) {
+  const c = grid && grid.coef;
+  if (!c || !p) return null;
+  const x = Math.min(Math.max(p[0], 0), PITCH.x), y = Math.min(Math.max(p[1], 0), PITCH.y);
+  const dx = Math.max(GOAL.x - x, 0);
+  const dist = Math.hypot(dx, GOAL.y - y);
+  const angle = Math.abs(Math.atan2(GOAL.y + GOAL.post - y, dx) - Math.atan2(GOAL.y - GOAL.post - y, dx));
+  return 1 / (1 + Math.exp(-(c.intercepto + c.distancia * dist + c.angulo * angle + c.cabeza * (head ? 1 : 0))));
+}
+
 /* ---------- animación ---------- */
 function ballAt(seg, t) {
   const p = lerp(seg.from, seg.to, t);
@@ -187,16 +201,17 @@ function stepsHTML(play, fmt) {
     (s.zone ? ` · ${fmt.esc(ZONE_ES[s.zone] || s.zone)}` : '') + (s.outcome ? ` → <b>${fmt.esc(OUTCOME_ES[s.outcome])}</b>` : '') + '</li>').join('')}</ol>`;
 }
 
-function interpHTML(play, segs, ent, league, teamLabel, fmt) {
+export function interpHTML(play, segs, ent, league, teamLabel, fmt, grid = null) {
   const shot = [...segs].reverse().find((s) => s.type === 'shot' || s.type === 'header');
-  const xg = shot ? zoneXG(league, shot.from) : null;
+  const byGrid = shot ? gridXG(grid, shot.from, shot.type === 'header') : null;
+  const xg = byGrid !== null ? byGrid : (shot ? zoneXG(league, shot.from) : null);
   const r = ent && ent.att ? pathTypicality(segs, ent.att.mv, league && league.mv) : null;
   const typ = r == null ? 'sin datos suficientes del equipo'
     : r >= SIMILAR_HI ? `${fmt.num(r, 1)} veces más frecuente que en el promedio de la liga`
       : r <= 1 / SIMILAR_HI ? `${fmt.num(1 / r, 1)} veces menos frecuente que en el promedio de la liga`
         : 'tan frecuente como en el promedio de la liga';
   return `<div class="card pl-interp"><h3>Interpretación (no es una predicción)</h3><ul class="pl-list">
-    <li>${shot ? `Un remate desde esa zona vale en promedio <b>${xg == null ? fmt.NA : fmt.num(xg, 2)} xG</b> en la liga (juego abierto${shot.type === 'header' ? '; los cabezazos suelen valer menos' : ''}).` : 'La jugada no termina en remate.'}</li>
+    <li>${shot ? `Un remate desde ese punto vale en promedio <b>${xg == null ? fmt.NA : fmt.num(xg, 2)} xG</b> en la liga (modelo propio de distancia y ángulo, sin penales${shot.type === 'header' ? '; los cabezazos suelen valer menos' : ''}).` : 'La jugada no termina en remate.'}</li>
     <li>¿Qué tan típica es esta ruta para ${fmt.esc(teamLabel)}? La secuencia de zonas es <b>${typ}</b>.</li></ul>
     <p class="muted">Interpretación: <b>${fmt.esc(RESTART_ES[play.start.restart] || '')}</b> · fuente: ${play.source === 'llm' ? 'modelo de lenguaje' : 'intérprete de reglas'} · confianza ${fmt.pct(play.confidence)}.</p></div>`;
 }
@@ -236,8 +251,9 @@ export async function render(root, ctx) {
     const mode = $('pl-mode') ? $('pl-mode').value : 'rules';
     $('pl-out').innerHTML = '<p class="muted">Interpretando…</p>';
     $('pl-legend').innerHTML = legendHTML([{ side: 'protag', label: label(team) }, { side: 'rival', label: label(oppId) }]);
-    const [res, ent, rival, model] = await Promise.all([postParse({ text: $('pl-text').value, team, opponent: oppId, mode }),
-      api.tryJSON('/api/teams/' + encodeURIComponent(team)), api.tryJSON('/api/teams/' + encodeURIComponent(oppId)), api.tryJSON('/api/model')]);
+    const [res, ent, rival, model, grid] = await Promise.all([postParse({ text: $('pl-text').value, team, opponent: oppId, mode }),
+      api.tryJSON('/api/teams/' + encodeURIComponent(team)), api.tryJSON('/api/teams/' + encodeURIComponent(oppId)), api.tryJSON('/api/model'),
+      api.tryJSON('/api/xg_grid')]);
     if (!res.ok) {
       const d = res.data.detail || {};
       $('pl-out').innerHTML = `<div class="panel err"><p>${fmt.esc(d.mensaje || 'No pudimos interpretar la jugada.')}</p>` +
@@ -252,7 +268,7 @@ export async function render(root, ctx) {
       (play.warnings || []).map((w) => `<p class="muted">${fmt.esc(WARN_ES[w] || '')}</p>`).join('');
     const entFull = model && model.entities ? model.entities.find((e) => e.id === team) : null;
     const teamLabel = (list.find((t) => t.id === team) || {}).label || team;
-    $('pl-interp').innerHTML = interpHTML(play, segs, entFull, model && model.league, teamLabel, fmt);
+    $('pl-interp').innerHTML = interpHTML(play, segs, entFull, model && model.league, teamLabel, fmt, grid);
     last = { shapes, segs };
     animate($('pl-stage'), shapes, segs);
   }

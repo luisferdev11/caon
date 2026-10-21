@@ -24,7 +24,11 @@ DEF_BASE: dict[str, dict[str, str]] = {
     'tercio': _d('Tercio', 'Propio x<40, medio 40–80, final x≥80.', 'umbral en x', 'tercio', 'Marco propio.', EV),
     'secuencia': _d('Posesión (secuencia ofensiva)', 'Posesión de StatsBomb con al menos una acción con balón '
                     '(pase, conducción, regate o tiro) del equipo poseedor; se ignoran las solo administrativas.',
-                    'possession id con ≥1 acción con balón', 'posesiones', 'Aproximada desde eventos.', EV),
+                    'possession id con ≥1 acción con balón', 'posesiones',
+                    'Aproximada desde eventos. Se excluye un tiro hecho dentro de una posesión rival (1 de 2,241 tiros '
+                    'y 0.003 % del xG en los 91 partidos de Jardine; se mide en rival_shots de cada an_). La '
+                    'jugada que reanuda (córner, tiro libre, saque de banda o de puerta, inicial) no cuenta como '
+                    'progresión.', EV),
     'origen': _d('Origen de la posesión', 'Robo en juego, portero, banda, tiro libre, córner, saque inicial u otro.',
                  'tipo de reanudación + posesión previa', 'categoría', 'Robo = posesión previa rival en juego.', EV),
     'salida_limpia': _d('Salida limpia', 'Posesión en juego que nace en x<40 y llega a x≥60 sin perder el balón.',
@@ -67,7 +71,8 @@ DEF_BASE: dict[str, dict[str, str]] = {
                        '40–80, bajo x<40.', 'presiones+acciones def. / acciones rivales en la banda', 'por acción',
                        'Marco propio.', EV),
     'ppda': _d('PPDA', 'Pases rivales permitidos por acción defensiva propia en campo de presión.',
-               'pases rivales x<72 (su marco) / (intercepción+falta+entrada) x≥48', 'pases', 'Menor = más presión.', EV),
+               'pases rivales x<72 (su marco) / (intercepción+falta+entrada+regate superado) x≥48', 'pases',
+               'Menor = más presión. Con el regate superado correlaciona r=0.985 con el PPDA de StatsBomb.', EV),
     'contrapresion': _d('Contrapresión', 'Presiones marcadas como contrapresión por StatsBomb (en los 5 s '
                         'siguientes a perder el balón).', 'presiones con counterpress', 'presiones/partido',
                         STYLE_NOTE, EV),
@@ -83,6 +88,21 @@ DEF_BASE: dict[str, dict[str, str]] = {
                                      'Etiquetas: penal, balón parado, transición, ataque establecido.', EV),
     'xg_concedido': _d('xG concedido', 'Suma de xG de los tiros rivales (por tipo de jugada).', 'Σ xG rival',
                        'xG por partido', 'Sin penales salvo que se indique.', EV),
+    'puntos': _d('Puntos por partido', 'Puntos reales del partido: victoria 3, empate 1, derrota 0 (la tanda de '
+                'penales no cuenta).', 'Σ puntos / partidos', 'puntos por partido', 'Resultado en tiempo regular.', EV),
+    'xg_dif': _d('Diferencia de xG', 'xG sin penales a favor menos xG sin penales en contra, por partido.',
+                 'xg − xga', 'xG por partido', 'Usa el xG de team-stats; ver xg y xga.', TS),
+    'salida_portero': _d('Salida larga del portero (eventos)', 'Porcentaje de saques de puerta largos y de pases '
+                         'largos del portero en juego, contados desde los eventos (largo = 35 yd o más).',
+                         'saques o pases largos / saques o pases del portero', '% de acciones',
+                         'Distinta de saque_largo (team-stats, proporción del portero).', EV),
+    'xg_origen': _d('xG por origen de la jugada', 'xG sin penales por partido de las posesiones que nacen en cada '
+                    'origen: robo, portero, banda, tiro libre, córner u otro.', 'Σ xG de posesiones de ese origen / '
+                    'partidos', 'xG por partido', 'Desde eventos; no suma exactamente el xG de team-stats.', EV),
+    'rec_tiro': _d('Posesiones con tiro tras recuperación', 'Posesiones que terminan en tiro en los 15 s '
+                   'siguientes a una recuperación en campo rival (x≥60) o alta (x≥80).',
+                   'posesiones con tiro ≤15 s tras robo / partidos', 'posesiones por partido',
+                   'Distinta de presion_alta_tiros (team-stats).', EV),
     'x_media_tiros_concedidos': _d('Distancia de los tiros concedidos', 'x media de los tiros rivales vista desde '
                                    'nuestra portería (x=0); menor = más cerca de nuestro arco.', 'media x (marco '
                                    'del protagonista)', 'yardas', 'Marco del protagonista.', EV),
@@ -106,7 +126,10 @@ DEF_CONTEXT: dict[str, dict[str, str]] = {
     'obv': _d('OBV', 'Valor añadido por acción (On-Ball Value) de StatsBomb.', 'Σ obv_total_net',
               'goles esperados', 'Validado contra team_match_obv.', EV),
     'ventana': _d('Ventana', 'Oficial (≤2025-06-30, Ap2021–Cl2025), epílogo o temprano. Las conclusiones solo usan '
-                  'la oficial.', 'fecha ≤ 2025-06-30', 'categoría', 'Lo demás lleva la insignia "Fuera de ventana".', EV),
+                  'la oficial.', 'fecha ≤ 2025-06-30', 'categoría',
+                  'Lo demás lleva la insignia "Fuera de ventana". Los percentiles de las conclusiones comparan '
+                  'contra equipos-temporada de la ventana oficial; solo el explorador usa la referencia ampliada '
+                  '(y lo dice).', EV),
     'encogimiento': _d('Encogimiento hacia el prior', 'Promedio corregido por muestra chica hacia la carrera previa '
                        'del DT o la liga; intervalo del 80%.', '(n·x̄ + 8·μ0)/(n+8)', 'según métrica',
                        'Confianza: <5 muy baja, 5–11 baja, 12–24 media, ≥25 alta.', TS),
