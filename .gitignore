@@ -9,3 +9,9 @@ __pycache__/
 venv/
 node_modules/
 .DS_Store
+
+# Respaldos locales verificados y temporales de regeneración
+model/model.json.pre-build-*.gz
+model/model.json.pre-fix-*
+model/model.json.pending.gz
+model/model.json.tmp

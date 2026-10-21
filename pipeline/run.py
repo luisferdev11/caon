@@ -11,11 +11,11 @@ import subprocess, sys
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
-PY = [sys.executable, '-I']
+PY = [sys.executable, '-I', '-X', 'utf8']
 STEPS = {
     'download': [PY + [str(HERE / 'download.py')], PY + [str(HERE / 'download_lineups.py')], PY + [str(HERE / 'download_opendata.py')]],
     'extract': [PY + [str(HERE / 'extract.py')]],
-    'build': [PY + [str(HERE / 'build_model.py')], PY + [str(HERE / 'targets.py')]],
+    'build': [PY + [str(HERE / 'build_model.py')], PY + [str(HERE / 'check_model.py')], PY + [str(HERE / 'targets.py')]],
     'validate': [['node', str(HERE / 'validate.js'), '600']],
     'referee': [['node', str(HERE / 'referee.js'), '3']],
 }

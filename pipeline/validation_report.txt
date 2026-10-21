@@ -1,0 +1,51 @@
+unidad de tiempo muerto (s): 29.7
+Liga promedio (n=890) G 1.28-1.08 xG 1.16-1.19 tiros 13.1-12.3 pos 50% W/D/L 44%/27%/29%
+  real G 1.33-1.38 npxG 1.13-1.13 tiros sin penal 13.23 pos 50%
+América · Jardine (Tricampeonato) (n=70) G 1.56-1.11 xG 1.44-1.10 tiros 12.2-13.1 pos 53% W/D/L 46%/27%/27%
+  real G 1.76-0.89 npxG 1.48-0.86 tiros sin penal 13.13 pos 54%
+América · Almada (n=10) G 1.35-1.17 xG 1.40-1.14 tiros 15.3-11.3 pos 53% W/D/L 38%/32%/30%
+  real G 2.20-1.10 npxG 1.47-1.20 tiros sin penal 19.20 pos 56%
+Chivas · Paunović (n=42) G 1.18-1.06 xG 1.14-1.03 tiros 12.7-13.0 pos 47% W/D/L 35%/32%/33%
+  real G 1.29-1.17 npxG 0.97-1.02 tiros sin penal 12.64 pos 48%
+Chivas · Gago (n=32) G 1.48-1.15 xG 1.21-1.11 tiros 12.6-11.7 pos 52% W/D/L 46%/27%/27%
+  real G 1.22-0.91 npxG 1.08-0.90 tiros sin penal 12.97 pos 53%
+Chivas · Milito (n=51) G 1.58-1.04 xG 1.54-1.04 tiros 14.8-11.1 pos 54% W/D/L 50%/22%/28%
+  real G 1.69-1.18 npxG 1.54-0.85 tiros sin penal 15.65 pos 57%
+Atlas · Cocca (Bicampeonato) (n=46) G 1.06-1.12 xG 1.11-1.02 tiros 12.6-11.8 pos 50% W/D/L 31%/29%/40%
+  real G 1.20-0.83 npxG 0.90-0.90 tiros sin penal 11.94 pos 49%
+Atlante · Miguel Herrera (n=12) G 1.06-1.36 xG 1.25-1.30 tiros 13.2-13.7 pos 47% W/D/L 28%/28%/44%
+  real G 1.08-1.58 npxG 1.14-1.15 tiros sin penal 14.50 pos 44%
+Atlas · Hernán Crespo (n=11) G 1.22-1.67 xG 1.26-1.48 tiros 11.8-13.0 pos 49% W/D/L 21%/31%/48%
+  real G 1.36-1.46 npxG 1.22-1.31 tiros sin penal 12.64 pos 52%
+San Luis · Diego Mejía (n=11) G 1.32-1.17 xG 1.16-1.26 tiros 12.1-14.3 pos 52% W/D/L 41%/26%/33%
+  real G 1.27-1.82 npxG 1.14-1.26 tiros sin penal 12.46 pos 53%
+Cruz Azul · Joel Huiqui (n=18) G 1.26-1.30 xG 1.41-1.18 tiros 15.6-12.9 pos 53% W/D/L 33%/28%/39%
+  real G 1.94-1.56 npxG 1.43-1.08 tiros sin penal 17.94 pos 53%
+Juárez · Gustavo Lema (n=5) G 1.43-1.53 xG 1.35-1.37 tiros 11.8-12.7 pos 50% W/D/L 37%/26%/37%
+  real G 1.00-1.40 npxG 1.05-1.41 tiros sin penal 10.00 pos 49%
+León · Javier Gandolfi (n=17) G 1.34-1.24 xG 1.26-1.21 tiros 13.1-13.0 pos 52% W/D/L 40%/26%/34%
+  real G 1.47-1.24 npxG 1.20-1.02 tiros sin penal 14.65 pos 53%
+Monterrey · Matías Almeyda (n=10) G 1.26-1.15 xG 1.21-1.08 tiros 14.1-10.8 pos 53% W/D/L 41%/24%/35%
+  real G 1.70-1.50 npxG 1.35-1.36 tiros sin penal 16.70 pos 55%
+Necaxa · Juan Reynoso (n=4) G 1.42-1.61 xG 1.35-1.59 tiros 13.0-13.1 pos 50% W/D/L 34%/24%/42%
+  real G 1.50-3.00 npxG 1.58-1.80 tiros sin penal 15.00 pos 46%
+Pachuca · Benjamín Mora (n=11) G 1.37-1.29 xG 1.30-1.28 tiros 13.2-12.8 pos 49% W/D/L 37%/27%/36%
+  real G 1.64-1.27 npxG 1.36-1.37 tiros sin penal 15.73 pos 48%
+Puebla · Gerardo Espinoza (n=12) G 1.05-1.39 xG 1.04-1.28 tiros 12.6-14.2 pos 47% W/D/L 29%/23%/48%
+  real G 1.00-1.08 npxG 0.78-1.21 tiros sin penal 12.75 pos 43%
+Pumas · Esteban Solari (n=12) G 1.13-1.49 xG 1.18-1.32 tiros 12.2-13.2 pos 49% W/D/L 25%/28%/47%
+  real G 1.58-1.67 npxG 0.99-1.18 tiros sin penal 11.75 pos 47%
+Querétaro · Esteban González (n=27) G 1.31-1.35 xG 1.35-1.32 tiros 13.0-14.5 pos 41% W/D/L 37%/27%/36%
+  real G 1.15-1.07 npxG 1.28-1.23 tiros sin penal 13.48 pos 39%
+Santos · Renato Paiva (n=11) G 1.27-1.52 xG 1.32-1.29 tiros 13.3-14.4 pos 48% W/D/L 30%/31%/39%
+  real G 1.00-1.46 npxG 1.40-1.31 tiros sin penal 14.54 pos 50%
+Tigres · Víctor Vucetich (n=7) G 1.42-1.24 xG 1.30-1.23 tiros 13.3-12.6 pos 50% W/D/L 46%/23%/31%
+  real G 1.00-0.71 npxG 1.21-1.17 tiros sin penal 14.71 pos 50%
+Tijuana · Sebastián Abreu (n=48) G 1.44-1.52 xG 1.29-1.34 tiros 11.6-12.6 pos 48% W/D/L 40%/19%/41%
+  real G 1.35-1.25 npxG 0.98-1.22 tiros sin penal 11.73 pos 47%
+Toluca · Antonio Mohamed (n=76) G 1.78-0.99 xG 1.66-0.99 tiros 15.5-11.0 pos 54% W/D/L 55%/27%/18%
+  real G 1.90-1.12 npxG 1.60-0.90 tiros sin penal 16.36 pos 55%
+Barcelona 2009–11 (Guardiola) (n=68) G 1.68-0.73 xG 1.74-0.81 tiros 14.5-8.0 pos 68% W/D/L 60%/23%/17%
+Autobús y contra (arquetipo tipo Atlético) (n=60) G 1.33-0.81 xG 1.46-0.89 tiros 13.5-9.5 pos 43% W/D/L 54%/23%/23%
+Resumen: evaluadas=25, correctas=25, advertencias=0, errores=0, métricas no disponibles=0
+Coherencia numérica comprobada; las diferencias contra datos reales son descriptivas, sin prueba de ajuste estadístico.

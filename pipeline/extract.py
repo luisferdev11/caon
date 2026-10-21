@@ -23,6 +23,9 @@ Salida: data/extract/<fuente>_<match>.json. Solo conteos agregados.
 """
 import sys, json, pathlib, collections
 from multiprocessing import Pool
+from functools import lru_cache
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+from contextual import extract_context, ordered_events, score_timeline, state_for, defensive_action
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 CACHE = ROOT / 'data' / 'cache'
@@ -39,9 +42,39 @@ CORNER_TARGETS = ('corto', 'primer palo', 'área chica', 'segundo palo', 'punto 
 PH_KEYS = ('n', 'shot', 'xg', 'spC', 'spF', 'pen', 'keepF', 'keepT', 'lossO', 'lossXT', 'lossXG', 'lossXF')
 LTO_KEYS = ('ltoO', 'ltoXT', 'ltoXG', 'ltoXF', 'ltoKF', 'ltoKT')
 
+def _read_json_file(path):
+    raw = pathlib.Path(path).read_bytes()
+    try:
+        text = raw.decode('utf-8')
+    except UnicodeDecodeError:
+        text = raw.decode('cp1252')
+    return json.loads(text)
+
+@lru_cache(maxsize=2)
+def _metadata_index(src):
+    paths = CACHE.glob('v6_competitions_73_seasons_*_matches.json') if src == 'mx' else OD.glob('matches_*.json')
+    out = {}
+    for path in paths:
+        for match in _read_json_file(path): out[match['match_id']] = match
+    return out
+
+
+def _match_metadata(mid, src='mx'):
+    return _metadata_index(src).get(mid)
+
+
+def _score_context(events):
+    ordered = ordered_events(events)
+    ids = {e.get('team', {}).get('id') for e in ordered}
+    before, _, _ = score_timeline(ordered, ids)
+    return {e.get('index'): score for e, score in zip(ordered, before)}
+
+
+_state_for = state_for
+
+
 def zone(loc):
-    x = min(max(loc[0], 0), 119.999)
-    y = min(max(loc[1], 0), 79.999)
+    x = min(max(loc[0], 0), 119.999); y = min(max(loc[1], 0), 79.999)
     return int(x // 20) * NY + int(y // (80 / 3))
 
 def ts(e):
@@ -64,10 +97,8 @@ def is_admin(pe):
 
 def is_sp(pe):
     pp = pe[0]['play_pattern']['name']
-    if has_pen(pe):
-        return False
-    if pp == 'From Corner':
-        return True
+    if has_pen(pe): return False
+    if pp == 'From Corner': return True
     if pp == 'From Free Kick':
         f = first_onball(pe)
         return bool(f and f['location'][0] >= 80)
@@ -95,83 +126,36 @@ def new_team():
              fouls=0, yellow=0, second_yellow=0, red=0, bb_yellow=0, bb_red=0,
              actors=collections.defaultdict(lambda: [0] * NZ), avgpos=collections.defaultdict(lambda: [0.0, 0.0, 0, 0.0, 0.0, 0]),
              takers=dict(corner=collections.Counter(), fk=collections.Counter(), pen=collections.Counter(), sp_shooter=collections.Counter()),
-             m=collections.Counter())
+             m=collections.Counter(),
+             context=dict(score_state={}, venue={}))
     for k in LTO_KEYS: d[k] = [[0] * NZ for _ in range(NZ)]
-    # New dict for open‑play signatures
-    d['plays_open'] = collections.defaultdict(lambda: [0, 0.0, 0])  # [count, xg, goals]
     return d
 
-def classify_open(pe, acts, regain, prev):
-    """Return a key 'inicio|carril|definicion' for an open‑play possession."""
-    pp = pe[0]['play_pattern']['name']
-    first_act = acts[0] if acts else None
-    if pp == 'Regular Play' and first_act and first_act['location'][0] >= 60:
-        inicio = 'robo_alto'
-    elif pp == 'Regular Play':
-        inicio = 'robo_bajo'
-    elif pp == 'From Keeper':
-        inicio = 'salida_portero'
-    elif pp == 'From Throw In':
-        inicio = 'saque_banda'
-    elif pp == 'From Free Kick' and first_act and first_act['location'][0] >= 80:
-        inicio = 'tiro_libre'
-    elif pp == 'From Counter':
-        inicio = 'continuidad'
-    else:
-        inicio = 'otro'
-
-    lane = 'centro'
-    if first_act and first_act['location'][0] >= 80:
-        z = zone(first_act['location'])
-        col = z % NY
-        if col == 0:
-            lane = 'izquierda'
-        elif col == 2:
-            lane = 'derecha'
-
-    definition = 'individual'
-    last_pass = None
-    for e in reversed(acts):
-        if e['type']['name'] == 'Pass':
-            last_pass = e
-            break
-    if last_pass:
-        start_z = zone(last_pass['location'])
-        end_z = zone(last_pass['pass']['end_location'])
-        if start_z // NY == 0 and end_z // NY == 2:
-            definition = 'centro'
-        elif last_pass['location'][0] < 80 and end_z // NY == 2:
-            definition = 'pase_profundo'
-        elif start_z // NY == 2 and end_z // NY == 2:
-            definition = 'combinacion'
-        else:
-            definition = 'conduccion'
-    return f"{inicio}|{lane}|{definition}"
-
-
-def process(args):
+def _process(args):
     src, mid = args
     out = OUT / f'{src}_{mid}.json'
-    if out.exists(): return str(out)
+    if out.exists() and '--force' not in sys.argv:
+        if _read_json_file(out).get('extract_version') == 2: return str(out)
     if src == 'mx':
-        E = json.load(open(CACHE / f'v8_events_{mid}.json', encoding='utf-8', errors='ignore'))
-        try:
-            L = json.load(open(CACHE / f'v4_lineups_{mid}.json', encoding='utf-8', errors='ignore'))
-        except Exception:
-            L = []
+        E = _read_json_file(CACHE / f'v8_events_{mid}.json'); L = _read_json_file(CACHE / f'v4_lineups_{mid}.json')
     else:
-        E = json.load(open(OD / f'events_{mid}.json', encoding='utf-8', errors='ignore'))
+        E = _read_json_file(OD / f'events_{mid}.json')
         try:
-            L = json.load(open(OD / f'lineups_{mid}.json', encoding='utf-8', errors='ignore'))
-        except Exception:
+            L = _read_json_file(OD / f'lineups_{mid}.json')
+        except (OSError, UnicodeError, json.JSONDecodeError):
             L = []
     nick = {}
     for t in L:
         for p in t['lineup']: nick[p['player_id']] = (p.get('player_nickname') or p['player_name'], p.get('jersey_number'))
-    E = [e for e in E if e['period'] <= 4]
+    E = ordered_events(E)
     teams = {}
     for e in E: teams.setdefault(e['team']['id'], e['team']['name'])
+    metadata = _match_metadata(mid, src)
+    contexts, context_status = extract_context(E, metadata, is_sp=is_sp)
     T = {tid: new_team() for tid in teams}
+    for tid in T:
+        T[tid]['context'] = contexts.get(tid, {})
+        T[tid]['context_status'] = context_status
     xi = {}
     for e in E:
         if e['type']['name'] == 'Starting XI':
@@ -180,8 +164,8 @@ def process(args):
                                                     name=nick.get(p['player']['id'], (p['player']['name'], None))[0],
                                                     jersey=p.get('jersey_number') or nick.get(p['player']['id'], (None, None))[1]) for p in e['tactics']['lineup']])
     other = {a: b for a in teams for b in teams if a != b}
-    # ---------- posiciones medias, métricas, faltas y tarjetas ----------
-    for e in E:
+    # ---------- posiciones medias, métricas, faltas, tarjetas y contexto ----------
+    for event_index, e in enumerate(E):
         tid = e['team']['id']; A = T[tid]; t = e['type']['name']
         if 'location' in e and 'position' in e:
             a = A['avgpos'][e['position']['name']]
@@ -198,7 +182,7 @@ def process(args):
             if e['pass'].get('cross') and el[0] >= 102 and 18 <= el[1] <= 62: m['crosses_box'] += 1
         if t in DEF_TYPES and 'location' in e:
             m['def_n'] += 1; m['def_x'] += e['location'][0]
-            if e['location'][0] >= 48 and (t in ('Interception', 'Foul Committed') or (t == 'Duel' and e.get('duel', {}).get('type', {}).get('name') == 'Tackle')):
+            if e['location'][0] >= 48 and defensive_action(e):
                 m['ppda_den'] += 1
         if t == 'Pressure':
             m['pressures'] += 1
@@ -243,17 +227,6 @@ def process(args):
                     el = e['pass']['end_location'] if e['type']['name'] == 'Pass' else e['carry']['end_location']
                     fwd += max(0.0, el[0] - e['location'][0]); tot += ((el[0] - e['location'][0]) ** 2 + (el[1] - e['location'][1]) ** 2) ** 0.5
             A['m']['dir_fwd'] += fwd; A['m']['dir_tot'] += tot
-            # Classify open‑play signature and accumulate stats
-            key = classify_open(pe, acts, regain, prev)
-            # Ensure entry exists
-            stats = A['plays_open'][key]
-            stats[0] += 1  # count
-            # xG from shots in this possession
-            shot_xg = sum(e['shot']['statsbomb_xg'] for e in acts if e['type']['name'] == 'Shot')
-            stats[1] += shot_xg
-            # Goals from shots with outcome Goal
-            goals = sum(1 for e in acts if e['type']['name'] == 'Shot' and e['shot']['outcome']['name'] == 'Goal')
-            stats[2] += goals
         if regain and acts[0]['location'][0] >= 80:
             A['m']['high_press_shots'] += sum(1 for e in acts if e['type']['name'] == 'Shot')
         shots_np = [e for e in acts if e['type']['name'] == 'Shot']
@@ -337,7 +310,7 @@ def process(args):
                 A['mv'][ph][z][gz] += 1   # el mismo equipo sigue en juego abierto
             else:
                 A['n'][ph][z] -= 1
-    res = dict(src=src, mid=mid, teams={}, names={str(k): v for k, v in nick.items()})
+    res = dict(src=src, mid=mid, extract_version=2, context_status=context_status, teams={}, names={str(k): v for k, v in nick.items()})
     for tid, A in T.items():
         A['m']['opp_passes_own60'] = T[other[tid]]['m']['passes_own60'] if tid in other else 0
         A['m']['opp_passes'] = T[other[tid]]['m']['passes'] if tid in other else 0
@@ -348,8 +321,22 @@ def process(args):
         d['name'] = teams[tid]; d['xi'] = xi.get(tid)
         d['xg'] = [[round(v, 4) for v in row] for row in d['xg']]
         res['teams'][str(tid)] = d
-    out.write_text(json.dumps(res, separators=(',', ':'), ensure_ascii=False), encoding='utf-8', errors='ignore')
+    out.write_text(json.dumps(res, separators=(',', ':'), ensure_ascii=False, allow_nan=False), encoding='utf-8')
     return str(out)
+
+def process(args):
+    """Quarantine incomplete matches instead of producing partial simulator counts."""
+    try:
+        return _process(args)
+    except (KeyError, TypeError, ValueError, OSError) as exc:
+        src, mid = args
+        out = OUT / f'{src}_{mid}.json'
+        failed = dict(src=src, mid=mid, extract_version=2, teams={},
+                      status='invalid', reason=f'{type(exc).__name__}: {exc}')
+        out.write_text(json.dumps(failed, ensure_ascii=False, allow_nan=False), encoding='utf-8')
+        print(f'WARN: {src}/{mid}: {failed["reason"]}', flush=True)
+        return str(out)
+
 
 def jobs():
     sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
@@ -361,8 +348,6 @@ def jobs():
 
 if __name__ == '__main__':
     J = jobs()
-    if '--force' in sys.argv:
-        for s, m in J: (OUT / f'{s}_{m}.json').unlink(missing_ok=True)
     with Pool(8) as p:
         for k, _ in enumerate(p.imap_unordered(process, J, chunksize=4)):
             if k % 100 == 0: print(k, len(J), flush=True)
