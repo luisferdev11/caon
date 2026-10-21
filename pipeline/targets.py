@@ -10,6 +10,7 @@ from metric_utils import finite
 from build_model import ascii_id, display
 
 C = ['team_match_goals', 'team_match_np_xg', 'team_match_np_xg_conceded', 'team_match_possession', 'team_match_np_shots', 'team_match_np_shots_conceded', 'team_match_sp_xg', 'team_match_goals_conceded']
+<<<<<<< HEAD
 
 
 def agg(rows):
@@ -45,3 +46,29 @@ def main():
 
 
 if __name__ == '__main__': main()
+=======
+def agg(rs):
+    result = {}
+    for c in C:
+        values = [r[c] for r in rs if r.get(c) is not None]
+        key = c.replace('team_match_', '')
+        if values:
+            result[key] = round(st.mean(values), 3)
+        else:
+            result[key] = None
+    return result
+out = {'league': agg(rows)}
+# empates de liga
+by = {}
+for r in rows: by.setdefault(r['_mid'], []).append(r['team_match_goals'])
+g = [v for v in by.values() if len(v) == 2]
+out['league']['draw_rate'] = round(sum(a == b for a, b in g) / len(g), 3)
+import importlib.util
+spec = importlib.util.spec_from_file_location('bm', str(pathlib.Path(__file__).parent / 'build_model.py')); bm = importlib.util.module_from_spec(spec); spec.loader.exec_module(bm)
+for e in ents:
+    mids = {x['mid'] for x in e['matches']}
+    rs = [r for r in rows if r['_mid'] in mids and r['team_name'] == e['team']]
+    out[bm.ascii_id(bm.display(e)[0])] = agg(rs)
+json.dump(out, open(pathlib.Path(__file__).parent / 'targets.json', 'w'), indent=1, ensure_ascii=False)
+print(out['league'])
+>>>>>>> origin/main

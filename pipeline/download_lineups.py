@@ -15,10 +15,14 @@ RAW = 'https://raw.githubusercontent.com/statsbomb/open-data/master/data'
 od = [int(p.stem.split('_')[1]) for p in OD.glob('events_*.json')]
 def g(m):
     p = OD / f'lineups_{m}.json'
+<<<<<<< HEAD
     if not p.exists():
         response = requests.get(f'{RAW}/lineups/{m}.json', timeout=60)
         response.raise_for_status()
         data = json.loads(response.content.decode('utf-8-sig'))
         p.write_text(json.dumps(data, ensure_ascii=False, allow_nan=False), encoding='utf-8')
+=======
+    if not p.exists(): p.write_text(requests.get(f'{RAW}/lineups/{m}.json', timeout=60).text, encoding='utf-8', errors='ignore')
+>>>>>>> origin/main
 with ThreadPoolExecutor(8) as ex: list(ex.map(g, od))
 print('done', len(ids), len(od))

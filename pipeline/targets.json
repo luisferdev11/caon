@@ -8,6 +8,7 @@
   "np_shots_conceded": 13.228,
   "sp_xg": 0.26,
   "goals_conceded": 1.375,
+<<<<<<< HEAD
   "coverage": {
    "rows": 3602,
    "valid_matches": {
@@ -1955,6 +1956,29 @@
     4063616
    ]
   }
+=======
+  "draw_rate": 0.273
+ },
+ "ame_jardine": {
+  "goals": null,
+  "np_xg": null,
+  "np_xg_conceded": null,
+  "possession": null,
+  "np_shots": null,
+  "np_shots_conceded": null,
+  "sp_xg": null,
+  "goals_conceded": null
+ },
+ "ame_almada": {
+  "goals": null,
+  "np_xg": null,
+  "np_xg_conceded": null,
+  "possession": null,
+  "np_shots": null,
+  "np_shots_conceded": null,
+  "sp_xg": null,
+  "goals_conceded": null
+>>>>>>> origin/main
  },
  "gdl_paunovic": {
   "goals": 1.286,
@@ -2235,6 +2259,7 @@
   "np_shots": 14.5,
   "np_shots_conceded": 13.917,
   "sp_xg": 0.174,
+<<<<<<< HEAD
   "goals_conceded": 1.583,
   "coverage": {
    "rows": 12,
@@ -2263,6 +2288,9 @@
     4063624
    ]
   }
+=======
+  "goals_conceded": 1.583
+>>>>>>> origin/main
  },
  "atlas_crespo": {
   "goals": 1.364,
@@ -2272,6 +2300,7 @@
   "np_shots": 12.636,
   "np_shots_conceded": 13.727,
   "sp_xg": 0.396,
+<<<<<<< HEAD
   "goals_conceded": 1.455,
   "coverage": {
    "rows": 11,
@@ -2335,6 +2364,19 @@
     4063619
    ]
   }
+=======
+  "goals_conceded": 1.455
+ },
+ "sanluis_mejia": {
+  "goals": null,
+  "np_xg": null,
+  "np_xg_conceded": null,
+  "possession": null,
+  "np_shots": null,
+  "np_shots_conceded": null,
+  "sp_xg": null,
+  "goals_conceded": null
+>>>>>>> origin/main
  },
  "cruzazul_huiqui": {
   "goals": 1.944,
@@ -2380,6 +2422,7 @@
   }
  },
  "juarez_lema": {
+<<<<<<< HEAD
   "goals": 1,
   "np_xg": 1.055,
   "np_xg_conceded": 1.412,
@@ -2450,6 +2493,26 @@
     4063614
    ]
   }
+=======
+  "goals": null,
+  "np_xg": null,
+  "np_xg_conceded": null,
+  "possession": null,
+  "np_shots": null,
+  "np_shots_conceded": null,
+  "sp_xg": null,
+  "goals_conceded": null
+ },
+ "leon_gandolfi": {
+  "goals": null,
+  "np_xg": null,
+  "np_xg_conceded": null,
+  "possession": null,
+  "np_shots": null,
+  "np_shots_conceded": null,
+  "sp_xg": null,
+  "goals_conceded": null
+>>>>>>> origin/main
  },
  "monterrey_almeyda": {
   "goals": 1.7,
@@ -2494,6 +2557,7 @@
   "np_shots": 15,
   "np_shots_conceded": 15.5,
   "sp_xg": 0.231,
+<<<<<<< HEAD
   "goals_conceded": 3,
   "coverage": {
    "rows": 4,
@@ -2514,6 +2578,9 @@
     4063625
    ]
   }
+=======
+  "goals_conceded": 3
+>>>>>>> origin/main
  },
  "pachuca_mora": {
   "goals": 1.636,
@@ -2559,6 +2626,7 @@
   "np_shots": 12.75,
   "np_shots_conceded": 15.667,
   "sp_xg": 0.276,
+<<<<<<< HEAD
   "goals_conceded": 1.083,
   "coverage": {
    "rows": 12,
@@ -2587,6 +2655,9 @@
     4063623
    ]
   }
+=======
+  "goals_conceded": 1.083
+>>>>>>> origin/main
  },
  "pumas_esolari": {
   "goals": 1.583,
@@ -2596,6 +2667,7 @@
   "np_shots": 11.75,
   "np_shots_conceded": 13.833,
   "sp_xg": 0.226,
+<<<<<<< HEAD
   "goals_conceded": 1.667,
   "coverage": {
    "rows": 12,
@@ -2676,6 +2748,19 @@
     4063615
    ]
   }
+=======
+  "goals_conceded": 1.667
+ },
+ "queretaro_gonzalez": {
+  "goals": null,
+  "np_xg": null,
+  "np_xg_conceded": null,
+  "possession": null,
+  "np_shots": null,
+  "np_shots_conceded": null,
+  "sp_xg": null,
+  "goals_conceded": null
+>>>>>>> origin/main
  },
  "santos_paiva": {
   "goals": 1,
@@ -2753,6 +2838,7 @@
   "np_shots": 11.729,
   "np_shots_conceded": 13.271,
   "sp_xg": 0.262,
+<<<<<<< HEAD
   "goals_conceded": 1.25,
   "coverage": {
    "rows": 48,
@@ -2817,6 +2903,9 @@
     4063623
    ]
   }
+=======
+  "goals_conceded": 1.25
+>>>>>>> origin/main
  },
  "toluca_mohamed": {
   "goals": 1.895,

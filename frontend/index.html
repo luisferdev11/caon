@@ -200,15 +200,104 @@ canvas { display: block; width: 100%; max-width: 100%; border-radius: 8px; }
 .temporal-card .warn { color: #F2D024; }
 @media (max-width: 960px) { .temporal { grid-template-columns: minmax(0, 1fr); } }
 
+/* jugadas insignia por entrenador */
+.dt-pick { display: flex; flex-direction: column; gap: 6px; min-width: min(100%, 340px); }
+.dt-pick label { font-family: var(--font-display); font-size: 13px; letter-spacing: 2px; text-transform: uppercase; font-weight: 600; color: var(--ink-2); }
+.dt-pick select.team { border-left: 4px solid var(--home-ink); }
+.dt-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; background: linear-gradient(90deg, #232C3D, rgba(29, 37, 52, 0.35)); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; }
+.dt-head h3 { font-size: 24px; }
+.dt-head .sub { color: var(--ink-2); font-size: 14px; margin-top: 2px; }
+.dt-head .chips { margin-top: 6px; }
+.dt-head .acts { display: flex; gap: 8px; flex-wrap: wrap; }
+.dt { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 18px; }
+.dt-col { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.dt-col > h3 { font-size: 18px; color: var(--ink-2); }
+.dt-col .hint { font-size: 12.5px; color: var(--muted); margin: -4px 0 0; }
+.plays { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; counter-reset: play; }
+.play { position: relative; background: var(--panel-2); border: 1px solid transparent; border-radius: 10px; padding: 10px 12px 10px 50px; display: flex; flex-direction: column; gap: 6px; animation: playIn 380ms ease both; transition: border-color 160ms ease, transform 160ms ease; }
+.play:hover { border-color: var(--line); transform: translateY(-1px); }
+.play::before { counter-increment: play; content: counter(play); position: absolute; left: 12px; top: 10px; width: 26px; height: 26px; border-radius: 8px; display: grid; place-items: center; font-family: var(--font-display); font-weight: 800; font-size: 16px; background: #232C3D; color: var(--ink-2); }
+.play.hot::before { background: var(--home); color: #1A1204; }
+.play .t { display: flex; justify-content: space-between; gap: 8px; align-items: center; flex-wrap: wrap; }
+.play .t b { font-size: 15.5px; }
+.play .t small { display: block; font-size: 13px; color: var(--ink-2); font-weight: 500; }
+.play .meter { height: 6px; border-radius: 3px; background: #232C3D; overflow: hidden; }
+.play .meter i { display: block; height: 100%; width: 0; border-radius: 3px; background: linear-gradient(90deg, var(--away), var(--away-ink)); transition: width 700ms cubic-bezier(0.2, 0.8, 0.2, 1); }
+.play.hot .meter i { background: linear-gradient(90deg, var(--home), var(--home-ink)); }
+.play .stats { display: flex; gap: 6px; flex-wrap: wrap; font-size: 12.5px; color: var(--ink-2); }
+.play .stats span { padding: 1px 7px; border-radius: 6px; background: #232C3D; }
+.play .stats .up { color: var(--home-ink); }
+.play .stats .down { color: var(--muted); }
+.badge { font-family: var(--font-display); font-size: 12px; letter-spacing: 1.2px; text-transform: uppercase; padding: 2px 8px; border-radius: 999px; background: color-mix(in srgb, var(--home) 22%, transparent); color: var(--home-ink); border: 1px solid color-mix(in srgb, var(--home) 55%, transparent); white-space: nowrap; }
+@keyframes playIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.takers { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.taker { background: var(--panel-2); border-radius: 10px; padding: 10px; display: flex; flex-direction: column; gap: 4px; align-items: flex-start; min-width: 0; animation: playIn 380ms ease both; }
+.taker svg { width: 22px; height: 22px; color: var(--home-ink); }
+.taker .k { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+.taker .p { font-weight: 600; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
+.taker .p b { display: inline-grid; place-items: center; min-width: 22px; height: 22px; padding: 0 4px; border-radius: 11px; background: var(--home); color: #1A1204; font-size: 12px; margin-right: 4px; }
+.aerial { font-size: 13.5px; color: var(--ink-2); background: var(--panel-2); border-radius: 10px; padding: 10px 12px; }
+.aerial b { color: var(--ink); }
+.sp-kv { background: var(--panel-2); border-radius: 10px; padding: 10px 12px; }
+.sp-kv .muted { color: var(--muted); font-weight: 500; }
+.dt-empty { color: var(--muted); font-size: 14px; background: var(--panel-2); border-radius: 10px; padding: 12px; }
+
+/* laboratorio de jugadas descritas en lenguaje natural */
+.nl-layout { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.35fr); gap: 18px; }
+.nl-form, .nl-view { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.nl-form label { font-family: var(--font-display); font-size: 13px; letter-spacing: 1.8px; text-transform: uppercase; color: var(--ink-2); font-weight: 600; }
+.nl-form textarea { width: 100%; min-height: 132px; resize: vertical; background: var(--panel-2); color: var(--ink); border: 1px solid var(--line); border-radius: 10px; padding: 12px; font: 500 16px/1.45 var(--font-body); }
+.nl-form textarea:focus { border-color: var(--home-ink); outline: 2px solid color-mix(in srgb, var(--home) 45%, transparent); outline-offset: 1px; }
+.nl-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.nl-steps { display: flex; flex-direction: column; gap: 6px; margin: 0; padding: 0; list-style: none; counter-reset: nlstep; }
+.nl-step { display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 8px; align-items: start; background: var(--panel-2); border-radius: 8px; padding: 8px 10px; }
+.nl-step::before { counter-increment: nlstep; content: counter(nlstep); display: grid; place-items: center; width: 24px; height: 24px; border-radius: 7px; background: var(--home); color: #1A1204; font: 800 15px var(--font-display); }
+.nl-step b { display: block; font-size: 14px; }
+.nl-step span { color: var(--ink-2); font-size: 12.5px; }
+.nl-canvas-wrap { background: var(--panel-2); border-radius: 10px; padding: 6px; }
+#nlCanvas { width: 100%; height: auto; cursor: pointer; }
+.nl-status { min-height: 22px; color: var(--ink-2); font-size: 13.5px; }
+.nl-status.warn { color: #F3B4A3; }
+.nl-status.ok { color: var(--home-ink); }
+.nl-feed { background: var(--panel-2); border-radius: 10px; padding: 10px; display: flex; flex-direction: column; gap: 6px; max-height: 190px; overflow-y: auto; }
+.nl-feed .it { display: grid; grid-template-columns: 36px 9px minmax(0, 1fr); gap: 7px; align-items: baseline; font-size: 13px; }
+.nl-feed .it .m { color: var(--muted); font-variant-numeric: tabular-nums; }
+.nl-feed .it i { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+.nl-feed .it.active { color: var(--home-ink); }
+.nl-legend { display: flex; gap: 14px; flex-wrap: wrap; color: var(--ink-2); font-size: 12.5px; }
+.nl-legend i { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 5px; vertical-align: -1px; }
+.danger-layout { display: grid; grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.4fr); gap: 18px; }
+.danger-list, .danger-detail { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.danger-list h3, .danger-detail h3 { font-size: 18px; color: var(--ink-2); }
+.danger-items { display: flex; flex-direction: column; gap: 7px; margin: 0; padding: 0; list-style: none; }
+.danger-item { width: 100%; text-align: left; background: var(--panel-2); color: var(--ink); border: 1px solid transparent; border-radius: 9px; padding: 10px; cursor: pointer; font: inherit; }
+.danger-item:hover, .danger-item[aria-pressed="true"] { border-color: var(--home); }
+.danger-item .top { align-items: center; }
+.danger-item .rank { display: inline-grid; place-items: center; width: 24px; height: 24px; border-radius: 7px; background: #232C3D; color: var(--ink-2); font: 800 15px var(--font-display); }
+.danger-item.goal .rank { background: var(--home); color: #1A1204; }
+.danger-item .meta { color: var(--ink-2); font-size: 12.5px; }
+.danger-item .result { color: var(--home-ink); font-weight: 700; }
+.danger-empty { color: var(--muted); background: var(--panel-2); border-radius: 9px; padding: 12px; font-size: 14px; }
+.danger-summary { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 7px; }
+.danger-pattern { background: var(--panel-2); border-radius: 8px; padding: 9px 10px; color: var(--ink-2); font-size: 13px; }
+.danger-pattern b { color: var(--ink); }
+.danger-stat { background: var(--panel-2); border-radius: 8px; padding: 8px; }
+.danger-stat b { display: block; font-size: 18px; }
+.danger-stat span { color: var(--muted); font-size: 11.5px; }
+.danger-canvas-wrap { background: var(--panel-2); border-radius: 10px; padding: 6px; }
+#dangerCanvas { display: block; width: 100%; height: auto; }
+.danger-sequence { display: flex; flex-wrap: wrap; gap: 5px; margin: 0; padding: 0; list-style: none; }
+.danger-sequence li { background: #232C3D; border-radius: 6px; padding: 4px 7px; font-size: 12px; }
+.danger-note { color: var(--muted); font-size: 12.5px; margin: 0; }
 @media (max-width: 960px) {
-  .plan, .match, .quick, .method, .maps, .mapread { grid-template-columns: minmax(0, 1fr); }
+  .plan, .match, .quick, .method, .maps, .mapread, .dt, .nl-layout, .danger-layout { grid-template-columns: minmax(0, 1fr); }
 }
 @media (max-width: 620px) {
   .matchup { grid-template-columns: minmax(0, 1fr); }
   .side.away { text-align: left; align-items: stretch; }
   .side.away .chips { justify-content: flex-start; }
   .vs { flex-direction: row; padding-top: 0; justify-content: center; }
-  .idcards, .heats, .keys { grid-template-columns: minmax(0, 1fr); }
+  .idcards, .heats, .keys, .takers, .danger-summary { grid-template-columns: minmax(0, 1fr); }
   .scoreboard .sc { font-size: 30px; }
   .scoreboard .n { font-size: 16px; }
 }
@@ -276,6 +365,7 @@ canvas { display: block; width: 100%; max-width: 100%; border-radius: 8px; }
     </div>
   </section>
 
+<<<<<<< HEAD
   <section class="section" aria-labelledby="h-context">
     <div class="section-head">
       <div>
@@ -308,6 +398,93 @@ canvas { display: block; width: 100%; max-width: 100%; border-radius: 8px; }
       </div>
     </div>
     <div class="temporal" id="personnel"></div>
+=======
+  <section class="section" aria-labelledby="h-dt">
+    <div class="section-head">
+      <div>
+        <div class="eyebrow">Jugadas insignia</div>
+        <h2 id="h-dt">Lo que más repite cada entrenador</h2>
+        <p>Posesiones de juego abierto agrupadas por cómo empiezan, por dónde entran y cómo se definen, comparadas con lo que hace la Liga MX en promedio. Marcamos como insignia las que el equipo usa claramente más que la liga.</p>
+      </div>
+      <div class="dt-pick">
+        <label for="selDT">Entrenador</label>
+        <select id="selDT" class="team"></select>
+      </div>
+    </div>
+    <div class="dt-head" id="dtHead"></div>
+    <div class="dt">
+      <div class="dt-col">
+        <h3>Juego abierto</h3>
+        <p class="hint">Barra = parte de sus posesiones. «×1.4» = la usa 1.4 veces más que la liga.</p>
+        <ol class="plays" id="dtPlays"></ol>
+      </div>
+      <div class="dt-col">
+        <h3>Balón parado</h3>
+        <div id="dtSP" style="display: flex; flex-direction: column; gap: 10px"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="h-nl">
+    <div class="section-head">
+      <div>
+        <div class="eyebrow">Laboratorio táctico</div>
+        <h2 id="h-nl">Describe una jugada</h2>
+        <p>Escribe la secuencia como la contaría un analista. El intérprete identifica recuperación, progresión, carril y finalización, y la convierte en una animación sobre la cancha.</p>
+      </div>
+    </div>
+    <div class="nl-layout">
+      <div class="nl-form">
+        <label for="nlInput">Descripción en lenguaje natural</label>
+        <textarea id="nlInput">El América recupera el balón en su propio campo, juega hacia el mediocampo, progresa por la banda derecha y termina la jugada con un centro al área.</textarea>
+        <div class="nl-actions">
+          <button class="btn primary" type="button" id="nlParse">Interpretar jugada</button>
+          <button class="btn sm" type="button" id="nlExample">Cargar ejemplo</button>
+        </div>
+        <div class="nl-status" id="nlStatus" aria-live="polite"></div>
+        <ol class="nl-steps" id="nlSteps"></ol>
+        <div class="eyebrow">Narración</div>
+        <div class="nl-feed" id="nlNarrative" aria-live="polite"></div>
+      </div>
+      <div class="nl-view">
+        <div class="nl-canvas-wrap">
+          <canvas id="nlCanvas" width="760" height="470" role="img" aria-label="Representación táctica de la jugada descrita"></canvas>
+        </div>
+        <div class="nl-actions">
+          <button class="btn sm" type="button" id="nlPlay">Reproducir</button>
+          <button class="btn sm" type="button" id="nlReset">Reiniciar</button>
+        </div>
+        <div class="nl-legend"><span><i style="background: var(--home)"></i>Equipo con balón</span><span><i style="background: var(--away)"></i>Defensa</span><span><i style="background: var(--ink)"></i>Balón</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="h-danger">
+    <div class="section-head">
+      <div>
+        <div class="eyebrow">Análisis defensivo</div>
+        <h2 id="h-danger">Jugadas peligrosas</h2>
+        <p>Top 5 de posesiones rivales que terminaron en remate contra el equipo seleccionado. Los goles tienen prioridad; las demás se ordenan por xG y zona del remate. Solo se muestran eventos observados en StatsBomb.</p>
+      </div>
+      <div class="danger-note" id="dangerCriterion"></div>
+    </div>
+    <div class="danger-layout">
+      <div class="danger-list">
+        <h3>Rival y amenaza</h3>
+        <ol class="danger-items" id="dangerItems"></ol>
+      </div>
+      <div class="danger-detail">
+        <div id="dangerHead"></div>
+        <div class="danger-summary" id="dangerSummary"></div>
+        <div class="danger-pattern" id="dangerPattern"></div>
+        <div class="danger-canvas-wrap">
+          <canvas id="dangerCanvas" width="760" height="470" role="img" aria-label="Secuencia ofensiva rival con coordenadas observadas"></canvas>
+        </div>
+        <ol class="danger-sequence" id="dangerSequence"></ol>
+        <p class="danger-note" id="dangerLimit"></p>
+      </div>
+    </div>
+>>>>>>> origin/main
   </section>
 
   <section class="section" aria-labelledby="h-map">
@@ -470,6 +647,234 @@ canvas { display: block; width: 100%; max-width: 100%; border-radius: 8px; }
     return out.sort((a, b) => b[0] - a[0]).slice(0, 4).map((x) => x[1]);
   }
 
+  /* ---------- jugadas en lenguaje natural ---------- */
+  const NL_EXAMPLE = 'El América recupera el balón en su propio campo, juega hacia el mediocampo, progresa por la banda derecha y termina la jugada con un centro al área.';
+  const nlText = (s) => s.toLocaleLowerCase('es-MX').normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  const NL_POINTS = {
+    own: [25, 55], middle: [55, 55], right: [78, 24], left: [78, 56], box: [103, 40], shot: [109, 40]
+  };
+  let nlPlay = [], nlTime = 0, nlPlaying = false, nlLast = 0, nlFrame = 0;
+  function nlAction(type, label, detail, from, to) {
+    return { type, label, detail, from, to, duration: type === 'cross' || type === 'shot' ? 1.4 : 1.8 };
+  }
+  function parseNL(text) {
+    const s = nlText(text);
+    const actions = [];
+    if (/\b(recuper|roba|intercept|gana el balon|gana la pelota)/.test(s)) {
+      actions.push(nlAction('recover', 'Recuperación', /propio campo|campo propio|campo defensivo/.test(s) ? 'En campo propio' : 'Recuperación del balón', [25, 55], [31, 55]));
+    }
+    if (/\b(mediocampo|medio campo|zona central|centro del campo)/.test(s)) {
+      actions.push(nlAction('pass', 'Pase progresivo', 'Hacia el mediocampo', actions.length ? actions[actions.length - 1].to : [31, 55], NL_POINTS.middle));
+    }
+    if (/\b(banda derecha|carril derecho|por derecha|lado derecho)/.test(s)) {
+      actions.push(nlAction('carry', 'Progresión por banda derecha', 'Ataque del carril derecho', actions.length ? actions[actions.length - 1].to : NL_POINTS.middle, NL_POINTS.right));
+    } else if (/\b(banda izquierda|carril izquierdo|por izquierda|lado izquierdo)/.test(s)) {
+      actions.push(nlAction('carry', 'Progresión por banda izquierda', 'Ataque del carril izquierdo', actions.length ? actions[actions.length - 1].to : NL_POINTS.middle, NL_POINTS.left));
+    } else if (/\b(progres|avanza|conduce|transporta)/.test(s)) {
+      actions.push(nlAction('carry', 'Progresión con balón', 'Avance hacia campo rival', actions.length ? actions[actions.length - 1].to : NL_POINTS.middle, [76, 40]));
+    }
+    if (/\b(centro|centra|centrar)/.test(s)) {
+      const from = actions.length ? actions[actions.length - 1].to : NL_POINTS.right;
+      actions.push(nlAction('cross', 'Centro al área', 'Balón dirigido al área', from, NL_POINTS.box));
+    } else if (/\b(tiro|remate|disparo|finaliza|define|gol)/.test(s)) {
+      const from = actions.length ? actions[actions.length - 1].to : NL_POINTS.box;
+      actions.push(nlAction('shot', 'Finalización', 'Tiro a portería', from, NL_POINTS.shot));
+    }
+    if (!actions.length) {
+      actions.push(nlAction('possession', 'Posesión estructurada', 'No se reconoció una acción específica', NL_POINTS.middle, [70, 40]));
+    }
+    return actions;
+  }
+  function nlTotal() { return nlPlay.reduce((n, a) => n + a.duration, 0); }
+  function nlAt(t) {
+    let elapsed = 0;
+    for (let i = 0; i < nlPlay.length; i++) {
+      const a = nlPlay[i];
+      if (t <= elapsed + a.duration || i === nlPlay.length - 1) {
+        const p = clamp((t - elapsed) / a.duration, 0, 1);
+        return { index: i, action: a, progress: p, point: [a.from[0] + (a.to[0] - a.from[0]) * p, a.from[1] + (a.to[1] - a.from[1]) * p] };
+      }
+      elapsed += a.duration;
+    }
+    return { index: 0, action: nlPlay[0], progress: 0, point: nlPlay[0].from };
+  }
+  function nlPositions(at) {
+    const baseA = [[10, 40], [25, 18], [25, 62], [38, 30], [38, 50], [50, 40], [64, 18], [64, 40], [64, 62], [82, 30], [82, 50]];
+    const baseB = [[110, 40], [95, 18], [95, 62], [82, 30], [82, 50], [70, 40], [56, 18], [56, 40], [56, 62], [38, 30], [38, 50]];
+    const shift = clamp((at.point[0] - 42) * 0.22, -5, 12);
+    const lane = clamp((at.point[1] - 40) * 0.18, -7, 7);
+    const A = baseA.map((p, i) => [clamp(p[0] + shift + (i > 5 ? shift * 0.35 : 0), 3, 117), clamp(p[1] + lane * (i % 2 ? 0.7 : 0.35), 4, 76)]);
+    const B = baseB.map((p, i) => [clamp(p[0] + shift * 0.38, 3, 117), clamp(p[1] + lane * (i % 2 ? 0.65 : 0.3), 4, 76)]);
+    const carrier = A[Math.min(10, 5 + at.index)];
+    A[Math.min(10, 5 + at.index)] = at.point;
+    return { A, B, carrier };
+  }
+  function nlNarration() {
+    const total = nlTotal(), rows = [];
+    let t = 0;
+    for (const a of nlPlay) {
+      const minute = `${Math.max(1, Math.ceil(t))}''`;
+      rows.push({ t, html: `<span class="m">${minute}</span><i style="background:${a.type === 'cross' || a.type === 'shot' ? 'var(--home-ink)' : 'var(--home)'}"></i><span><b>${a.label}.</b> ${a.detail}.</span>` });
+      t += a.duration;
+    }
+    $('nlNarrative').innerHTML = rows.map((r) => `<div class="it">${r.html}</div>`).join('');
+  }
+  function nlNarrationFrame(index) {
+    [...$('nlNarrative').children].forEach((el, i) => el.classList.toggle('active', i === index));
+    const row = $('nlNarrative').children[index];
+    if (row) row.scrollIntoView({ block: 'nearest' });
+  }
+  function nlPitch(ctx, w, h) {
+    const pad = 22, x = pad, y = pad, pw = w - pad * 2, ph = h - pad * 2;
+    const sx = (v) => x + v / 120 * pw, sy = (v) => y + v / 80 * ph;
+    ctx.fillStyle = COL.grass || '#1B3627'; ctx.fillRect(x, y, pw, ph);
+    ctx.strokeStyle = COL.chalk || 'rgba(220,240,228,.4)'; ctx.lineWidth = 1.5; ctx.strokeRect(x, y, pw, ph);
+    ctx.beginPath(); ctx.moveTo(sx(60), y); ctx.lineTo(sx(60), y + ph); ctx.stroke();
+    ctx.beginPath(); ctx.arc(sx(60), sy(40), ph * 0.12, 0, Math.PI * 2); ctx.stroke();
+    for (const side of [0, 1]) {
+      const bx = side ? 102 : 0, dir = side ? -1 : 1;
+      ctx.strokeRect(sx(bx), sy(18), (dir * 18 / 120) * pw, 44 / 80 * ph);
+      ctx.strokeRect(sx(side ? 114 : 6), sy(30), (dir * 6 / 120) * pw, 20 / 80 * ph);
+    }
+    return { sx, sy, x, y, pw, ph };
+  }
+  function nlPlayer(ctx, pitch, point, color, label, active) {
+    ctx.beginPath(); ctx.arc(pitch.sx(point[0]), pitch.sy(point[1]), active ? 8 : 5.5, 0, Math.PI * 2);
+    ctx.fillStyle = color; ctx.fill(); ctx.strokeStyle = COL.ground || '#10141C'; ctx.lineWidth = 2; ctx.stroke();
+    if (active) { ctx.fillStyle = COL.ink || '#E9EDF4'; ctx.font = '600 11px Barlow, sans-serif'; ctx.textAlign = 'center'; ctx.fillText(label, pitch.sx(point[0]), pitch.sy(point[1]) - 12); }
+  }
+  function drawNL() {
+    const canvas = $('nlCanvas'); if (!canvas || !nlPlay.length) return;
+    const ctx = canvas.getContext('2d'), w = canvas.width, h = canvas.height;
+    ctx.clearRect(0, 0, w, h); const pitch = nlPitch(ctx, w, h), now = nlAt(nlTime);
+    const positions = nlPositions(now);
+    positions.B.forEach((p) => nlPlayer(ctx, pitch, p, COL.away || '#3D8FD6', '', false));
+    positions.A.forEach((p, i) => nlPlayer(ctx, pitch, p, COL.home || '#C0870E', String(i + 1), i === Math.min(10, 5 + now.index)));
+    nlPlayer(ctx, pitch, positions.carrier, COL['home-ink'] || '#F2C55C', 'Balón', true);
+    ctx.beginPath(); ctx.arc(pitch.sx(now.point[0]), pitch.sy(now.point[1]), 4, 0, Math.PI * 2); ctx.fillStyle = COL.ink || '#E9EDF4'; ctx.fill();
+    const progress = nlPlay.slice(0, now.index).reduce((n, a) => n + a.duration, 0) + now.progress * now.action.duration;
+    ctx.fillStyle = 'rgba(16,20,28,.82)'; ctx.fillRect(pitch.x, h - 18, pitch.pw * (progress / Math.max(nlTotal(), 1)), 4);
+    nlNarrationFrame(now.index);
+  }
+  function renderNLSteps() {
+    $('nlSteps').innerHTML = nlPlay.map((a) => `<li class="nl-step"><div><b>${a.label}</b><span>${a.detail}</span></div></li>`).join('');
+  }
+  function interpretNL() {
+    nlPlaying = false; nlTime = 0; nlPlay = parseNL($('nlInput').value.trim()); renderNLSteps(); nlNarration(); drawNL();
+    const s = nlText($('nlInput').value);
+    const realHint = /\b(partido|jornada|fecha|minuto|america|america|atlas|chivas|cruz azul|pumas)\b/.test(s);
+    const status = $('nlStatus');
+    status.className = 'nl-status ' + (realHint ? 'warn' : 'ok');
+    status.textContent = realHint
+      ? `Interpretada en ${nlPlay.length} acciones. No hay una secuencia de eventos crudos indexada en este modelo para confirmar el partido real.`
+      : `Interpretada en ${nlPlay.length} acciones. Es una reconstrucción táctica basada en la descripción.`;
+    $('nlPlay').textContent = 'Reproducir';
+  }
+  function nlLoop(ts) {
+    if (!nlPlaying) return;
+    const dt = nlLast ? Math.min(0.08, (ts - nlLast) / 1000) : 0; nlLast = ts;
+    nlTime += dt * 1.2;
+    if (nlTime >= nlTotal()) { nlTime = nlTotal(); nlPlaying = false; $('nlPlay').textContent = 'Repetir'; }
+    drawNL(); if (nlPlaying) nlFrame = requestAnimationFrame(nlLoop);
+  }
+  $('nlParse').onclick = interpretNL;
+  $('nlExample').onclick = () => { $('nlInput').value = NL_EXAMPLE; interpretNL(); };
+  $('nlReset').onclick = () => { nlPlaying = false; nlTime = 0; $('nlPlay').textContent = 'Reproducir'; drawNL(); };
+  $('nlPlay').onclick = () => {
+    if (nlPlaying) { nlPlaying = false; $('nlPlay').textContent = 'Continuar'; return; }
+    if (nlTime >= nlTotal()) nlTime = 0;
+    nlPlaying = true; nlLast = 0; $('nlPlay').textContent = 'Pausa'; cancelAnimationFrame(nlFrame); nlFrame = requestAnimationFrame(nlLoop);
+  };
+
+  /* ---------- jugadas peligrosas observadas ---------- */
+  let dangerPlays = [], dangerSelected = 0;
+  const dangerEscape = (value) => String(value == null ? '—' : value).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const dangerEventLabel = (a) => {
+    const who = a.player ? ` · ${a.player}` : '';
+    if (a.type === 'Pass') return `${a.cross ? 'Centro' : 'Pase'}${who}`;
+    if (a.type === 'Carry' || a.type === 'Dribble') return `Conducción${who}`;
+    if (a.type === 'Shot') return `${a.goal ? 'Gol' : 'Remate'}${who}`;
+    return `${a.type}${who}`;
+  };
+  function dangerPitch(ctx, w, h) {
+    return nlPitch(ctx, w, h);
+  }
+  function dangerArrow(ctx, pitch, from, to, color, dashed) {
+    if (!from || !to) return;
+    const x1 = pitch.sx(from[0]), y1 = pitch.sy(from[1]), x2 = pitch.sx(to[0]), y2 = pitch.sy(to[1]);
+    ctx.save(); ctx.strokeStyle = color; ctx.fillStyle = color; ctx.lineWidth = 2;
+    ctx.setLineDash(dashed ? [5, 4] : []); ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke(); ctx.setLineDash([]);
+    const angle = Math.atan2(y2 - y1, x2 - x1), size = 7;
+    ctx.beginPath(); ctx.moveTo(x2, y2); ctx.lineTo(x2 - size * Math.cos(angle - 0.5), y2 - size * Math.sin(angle - 0.5)); ctx.lineTo(x2 - size * Math.cos(angle + 0.5), y2 - size * Math.sin(angle + 0.5)); ctx.closePath(); ctx.fill(); ctx.restore();
+  }
+  function drawDangerous() {
+    const canvas = $('dangerCanvas'); if (!canvas) return;
+    const ctx = canvas.getContext('2d'), pitch = dangerPitch(ctx, canvas.width, canvas.height);
+    ctx.clearRect(0, 0, canvas.width, canvas.height); dangerPitch(ctx, canvas.width, canvas.height);
+    const play = dangerPlays[dangerSelected];
+    if (!play) return;
+    const rival = COL.away || '#3D8FD6', defense = '#B7C0D1', shot = COL['home-ink'] || '#F2C55C';
+    for (const action of play.actions || []) {
+      const color = action.team === 'rival' ? rival : defense;
+      if (action.type === 'Pass' || action.type === 'Carry' || action.type === 'Dribble') dangerArrow(ctx, pitch, action.location, action.end_location, color, action.type !== 'Pass');
+      if (action.location) {
+        ctx.beginPath(); ctx.arc(pitch.sx(action.location[0]), pitch.sy(action.location[1]), action.type === 'Shot' ? 6 : 3.5, 0, Math.PI * 2);
+        ctx.fillStyle = action.type === 'Shot' ? shot : color; ctx.fill();
+      }
+    }
+    ctx.fillStyle = 'rgba(16,20,28,.86)'; ctx.fillRect(pitch.x, canvas.height - 25, pitch.pw, 17);
+    ctx.fillStyle = COL.ink || '#E9EDF4'; ctx.font = '600 12px Barlow, sans-serif'; ctx.textAlign = 'left';
+    ctx.fillText('Coordenadas observadas · rival', pitch.x + 7, canvas.height - 13);
+  }
+  function dangerSummary() {
+    const goals = dangerPlays.filter((p) => p.goal).length;
+    const xg = dangerPlays.reduce((n, p) => n + (p.xg || 0), 0);
+    const pressures = dangerPlays.reduce((n, p) => n + (p.defensive_context?.pressures || 0), 0);
+    const zones = dangerPlays.map((p) => p.shot_location && Math.floor(p.shot_location[1] / 20)).filter((x) => x != null);
+    const commonLane = zones.length ? zones.sort((a, b) => zones.filter((x) => x === b).length - zones.filter((x) => x === a).length)[0] : null;
+    $('dangerSummary').innerHTML = [
+      [`${goals}/${dangerPlays.length}`, 'goles en el Top 5'],
+      [fmt2(xg), 'xG acumulado'],
+      [pressures, 'presiones registradas'],
+      [commonLane == null ? '—' : `carril ${commonLane + 1}`, 'zona más repetida']
+    ].map(([v, l]) => `<div class="danger-stat"><b>${v}</b><span>${l}</span></div>`).join('');
+  }
+  function dangerPattern() {
+    if (dangerPlays.length < 2) {
+      $('dangerPattern').innerHTML = '<b>Patrón:</b> muestra insuficiente para afirmar una recurrencia; se muestra solo la evidencia disponible.';
+      return;
+    }
+    const attacks = dangerPlays.map((p) => (p.actions || []).filter((a) => a.team === 'rival' && ['Pass', 'Carry', 'Dribble'].includes(a.type)).length);
+    const avgActions = attacks.reduce((a, b) => a + b, 0) / attacks.length;
+    const progressions = dangerPlays.map((p) => p.progression).filter((x) => x != null);
+    const avgProgression = progressions.length ? progressions.reduce((a, b) => a + b, 0) / progressions.length : null;
+    const pressure = dangerPlays.reduce((n, p) => n + (p.defensive_context?.pressures || 0), 0);
+    const evidence = [`las secuencias del Top 5 tienen ${avgActions.toFixed(1)} pases/conducciones rivales en promedio`];
+    if (avgProgression != null) evidence.push(`su progresión media registrada es de ${avgProgression.toFixed(1)} yardas`);
+    if (pressure) evidence.push(`el equipo analizado registra ${pressure} presiones en esas posesiones`);
+    $('dangerPattern').innerHTML = `<b>Hecho observado:</b> ${evidence.join('; ')}. <b>Interpretación:</b> estos indicadores describen cómo llegaron las ocasiones, pero no prueban por sí solos una causa defensiva.`;
+  }
+  function renderDangerous() {
+    const e = A;
+    dangerPlays = (e && e.dangerous_plays) || []; dangerSelected = Math.min(dangerSelected, Math.max(0, dangerPlays.length - 1));
+    $('dangerCriterion').textContent = 'Criterio: gol > xG > zona del remate. Datos observados, sin interpolación.';
+    $('dangerItems').innerHTML = dangerPlays.length ? dangerPlays.map((p, i) => `<li><button class="danger-item ${p.goal ? 'goal' : ''}" type="button" data-danger="${i}" aria-pressed="${i === dangerSelected ? 'true' : 'false'}"><span class="top"><span class="rank">${i + 1}</span><span>${dangerEscape(p.opponent)} · ${dangerEscape(p.minute)}' · ${dangerEscape(p.venue)}</span></span><span class="meta"><span class="result">${dangerEscape(p.result)}</span> · xG ${fmt2(p.xg)} · puntuación ${p.danger_score}</span></button></li>`).join('') : '<li class="danger-empty">No hay suficientes secuencias de remate disponibles para este equipo en el modelo construido.</li>';
+    const p = dangerPlays[dangerSelected];
+    if (!p) {
+      $('dangerHead').innerHTML = '<div class="danger-empty">Selecciona otro equipo o reconstruye el modelo con eventos StatsBomb disponibles.</div>';
+        $('dangerSummary').innerHTML = ''; $('dangerPattern').innerHTML = ''; $('dangerSequence').innerHTML = ''; $('dangerLimit').textContent = ''; drawDangerous(); return;
+    }
+    $('dangerHead').innerHTML = `<h3>${dangerEscape(p.result)} de ${dangerEscape(p.opponent)} · ${dangerEscape(p.minute)}' · ${dangerEscape(p.date)}</h3><p class="danger-note">Marcador registrado: ${dangerEscape(p.score[0])}–${dangerEscape(p.score[1])} · equipo analizado ${dangerEscape(p.venue)} · posesión ${p.duration}s.</p>`;
+    dangerSummary();
+    dangerPattern();
+    $('dangerSequence').innerHTML = (p.actions || []).map((a) => `<li>${dangerEscape(dangerEventLabel(a))}</li>`).join('');
+    $('dangerLimit').textContent = `${p.limitation} Las coordenadas corresponden al registro StatsBomb; no se incluyen posiciones no observadas ni datos 360.`;
+    document.querySelectorAll('[data-danger]').forEach((button) => {
+      button.onclick = () => { dangerSelected = +button.dataset.danger; renderDangerous(); };
+    });
+    drawDangerous();
+  }
+
   /* ---------- selector ---------- */
   function fillSelect(sel, chosen) {
     sel.innerHTML = '';
@@ -525,6 +930,99 @@ canvas { display: block; width: 100%; max-width: 100%; border-radius: 8px; }
         <span class="v a num ${has(b) ? '' : 'na'}">${has(b) ? 'P' + b : 's/d'}</span></div>`;
     }).join('');
     drawTactical();
+  }
+
+  /* ---------- jugadas insignia por entrenador ---------- */
+  const PLAY_INICIO = { robo_alto: 'Robo alto', robo_bajo: 'Recuperación en campo propio', salida_portero: 'Salida desde el portero',
+    saque_banda: 'Saque de banda', tiro_libre: 'Tiro libre jugado', continuidad: 'Contragolpe', otro: 'Otro inicio' };
+  const PLAY_LANE = { centro: 'por el centro', izquierda: 'por la izquierda', derecha: 'por la derecha' };
+  const PLAY_DEF = { centro: 'termina en centro', pase_profundo: 'termina en pase en profundidad', combinacion: 'termina en combinación',
+    conduccion: 'termina en conducción', individual: 'jugada individual' };
+  const CORNER_TECH = ['Cerrado', 'Abierto', 'Recto'];
+  const CORNER_ZONE = ['En corto', 'Primer palo', 'Centro del área chica', 'Segundo palo', 'Punto penal', 'Fuera del área'];
+  const PEN_SIDE = ['Izquierda', 'Centro', 'Derecha'];
+  const ICON = {
+    corner: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 21V3l9 4-9 4"/><path d="M5 21h14"/></svg>',
+    fk: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="6" cy="18" r="3"/><path d="M9 16c4-6 8-9 12-10"/><path d="M14 4v6M17 4v6"/></svg>',
+    pen: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 6h18v10H3z"/><circle cx="12" cy="20" r="2"/></svg>'
+  };
+  const sumv = (a) => (a || []).reduce((s, v) => s + v, 0);
+
+  function signaturePlays(e, max) {
+    const po = (e.att && e.att.plays_open) || {}, lo = (MODEL.league && MODEL.league.plays_open) || {};
+    const tot = sumv(Object.values(po).map((v) => v[0])), ltot = sumv(Object.values(lo).map((v) => v[0]));
+    if (!tot) return [];
+    const m = Math.max((e.att && e.att.matches) || e.n || 1, 1);
+    return Object.entries(po).filter(([, v]) => v[0] > 0).map(([k, v]) => {
+      const share = v[0] / tot, l = lo[k], lshare = l && ltot ? l[0] / ltot : 0;
+      return { k, n: v[0], pm: v[0] / m, share, lift: lshare ? share / lshare : null, xg10: 10 * v[1] / v[0], goals: v[2] };
+    }).sort((a, b) => b.n * Math.sqrt(b.lift || 1) - a.n * Math.sqrt(a.lift || 1)).slice(0, max);
+  }
+
+  function setPieceHTML(e) {
+    const r = e.roles || {}, sh = e.shape || [], a = e.att || {};
+    const m = Math.max(a.matches || e.n || 1, 1);
+    const who = (i) => (i != null && sh[i] ? `<b class="num">${sh[i].num ?? '?'}</b>${sh[i].name}` : '—');
+    const pct = (x, y) => (y && x != null ? Math.round(100 * x / y) + '%' : '—');
+    const top = (arr, names) => {
+      const t = sumv(arr); if (!t) return '—';
+      const i = arr.indexOf(Math.max(...arr));
+      return `${names[i]} <span class="muted">(${Math.round(100 * arr[i] / t)}%)</span>`;
+    };
+    const takers = [['corner', 'Córners', r.corner], ['fk', 'Faltas', r.fk], ['pen', 'Penales', r.pen]]
+      .map(([ic, k, i], j) => `<div class="taker" style="animation-delay:${j * 60}ms">${ICON[ic]}<span class="k">${k}</span><span class="p" title="${i != null && sh[i] ? sh[i].name : ''}">${who(i)}</span></div>`).join('');
+    const aer = (r.aerial || []).filter((i) => sh[i]).map((i) => `<b>${sh[i].num ?? ''}</b> ${sh[i].name}`).join(' · ');
+    const rows = [
+      ['Córners por partido', a.corners != null ? fmt1(a.corners / m) : '—'],
+      ['Córner en corto', pct(a.corners_short, a.corners)],
+      ['Técnica más usada', top(a.corner_tech, CORNER_TECH)],
+      ['Zona de caída favorita', top(a.corner_target, CORNER_ZONE)],
+      ['Córners que acaban en tiro', pct(a.corner_shots, a.corners)],
+      ['Remates de cabeza', pct(a.corner_headers, a.corner_shots)],
+      ['Faltas a portería directa', pct(a.fk_direct, a.fk)],
+      ['Lado del penal (vista del lanzador)', top(a.pen_place, PEN_SIDE)],
+      ['Penales convertidos', a.pens ? `${a.pens_scored ?? 0} de ${a.pens}` : '—']
+    ];
+    return `<div class="takers">${takers}</div>
+      ${aer ? `<div class="aerial">Rematadores a balón parado: ${aer}</div>` : ''}
+      <dl class="kv sp-kv">${rows.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join('')}</dl>`;
+  }
+
+  function renderDT() {
+    const e = MODEL.entities.find((x) => x.id === $('selDT').value);
+    if (!e) return;
+    const coach = e.coach || (e.label.includes('(') ? e.label.split('(')[1].replace(')', '') : e.label);
+    $('dtHead').innerHTML = `<div>
+        <h3>${coach}</h3>
+        <div class="sub">${e.label}</div>
+        <div class="chips">${chips(e)}</div>
+      </div>
+      <div class="acts">
+        <button class="btn sm" type="button" id="dtToA">Usar como local</button>
+        <button class="btn sm" type="button" id="dtToB">Usar como visitante</button>
+      </div>`;
+    $('dtToA').onclick = () => { $('selA').value = e.id; choose(); };
+    $('dtToB').onclick = () => { $('selB').value = e.id; choose(); };
+
+    const plays = signaturePlays(e, 6);
+    if (!plays.length) {
+      $('dtPlays').innerHTML = `<li class="dt-empty">${e.kind === 'synthetic' ? 'Este arquetipo está configurado a mano y no tiene posesiones reales que clasificar.' : 'Sin datos de jugadas para este entrenador. Vuelve a correr el pipeline (extract y build) para generarlos.'}</li>`;
+    } else {
+      const maxShare = Math.max(...plays.map((p) => p.share));
+      $('dtPlays').innerHTML = plays.map((p, i) => {
+        const [ini, lane, def] = p.k.split('|');
+        const hot = p.lift != null && p.lift >= 1.25 && p.share >= 0.02;
+        const liftTxt = p.lift == null ? '' : `<span class="${p.lift >= 1.1 ? 'up' : p.lift <= 0.9 ? 'down' : ''}">×${fmt2(p.lift)} vs liga</span>`;
+        return `<li class="play${hot ? ' hot' : ''}" style="animation-delay:${i * 60}ms">
+          <div class="t"><div><b>${PLAY_INICIO[ini] || ini} ${PLAY_LANE[lane] || lane}</b><small>${PLAY_DEF[def] || def}</small></div>${hot ? '<span class="badge">Insignia</span>' : ''}</div>
+          <div class="meter"><i data-w="${Math.round(100 * p.share / maxShare)}"></i></div>
+          <div class="stats num"><span>${pctf(p.share)} de sus posesiones</span><span>${fmt1(p.pm)} por partido</span>${liftTxt}<span>${fmt2(p.xg10)} xG cada 10</span><span>${p.goals} goles</span></div>
+        </li>`;
+      }).join('');
+      // anima las barras después de pintar
+      requestAnimationFrame(() => document.querySelectorAll('#dtPlays .meter i').forEach((b) => { b.style.width = b.dataset.w + '%'; }));
+    }
+    $('dtSP').innerHTML = setPieceHTML(e);
   }
 
   /* ---------- dibujo de cancha (compartido) ---------- */
@@ -1118,23 +1616,34 @@ canvas { display: block; width: 100%; max-width: 100%; border-radius: 8px; }
   function choose() {
     A = MODEL.entities.find((e) => e.id === $('selA').value);
     B = MODEL.entities.find((e) => e.id === $('selB').value);
+<<<<<<< HEAD
     renderPlan(); renderMaps();
     const ready = simulationReady();
     if (ready) { newMatch(); runQuick(); }
     else { playing = false; quickToken++; sim = null; ch = null; $('qstatus').textContent = 'Simulación no disponible: faltan partidos o alineaciones observadas.'; }
+=======
+    renderPlan(); renderMaps(); renderDangerous(); newMatch(); runQuick();
+>>>>>>> origin/main
   }
   $('selA').onchange = choose; $('selB').onchange = choose;
+  $('selDT').onchange = renderDT;
   $('swap').onclick = () => { const a = $('selA').value; $('selA').value = $('selB').value; $('selB').value = a; choose(); };
   let rz; window.addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => { drawTactical(); if (!playing) renderFrame(); }, 120); });
 
   readColors();
+  interpretNL();
   setPlayIcon();
   fetch('/api/model').then((r) => r.json()).then((m) => {
     MODEL = m;
+<<<<<<< HEAD
     MODEL.map = MODEL.map || { units: [] };
     for (const entity of MODEL.entities) { entity.style = entity.style || {}; entity.map = entity.map || { off: null, dfn: null, traj: [] }; entity.shape = entity.shape || []; }
     fillSelect($('selA'), 'ame_jardine'); fillSelect($('selB'), 'atl_cocca');
+=======
+    fillSelect($('selA'), 'ame_jardine'); fillSelect($('selB'), 'atl_cocca'); fillSelect($('selDT'), 'ame_jardine');
+>>>>>>> origin/main
     choose();
+    renderDT();
     window.__vt = { getT: () => gameT, setT: (t) => { gameT = t; renderFrame(); }, sim: () => sim, ch: () => ch, pick: (a, b) => { $('selA').value = a; $('selB').value = b; choose(); }, seed: (s) => { seed = s; newMatch(); } };
   }).catch((err) => { $('qstatus').textContent = 'No se pudo cargar el modelo. Arranca el servidor con: uvicorn app.main:app --reload'; console.error(err); });
 })();

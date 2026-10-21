@@ -5,7 +5,7 @@ from statsbomb import *
 
 # (id, etiqueta, equipo StatsBomb, substring del entrenador, desde, hasta, grupo)
 SPECIAL = [
-    ('ame_jardine', 'América · Jardine (Tricampeonato)', 'América', 'Jardine', '2023-07-01', '2024-12-31', 'Histórico'),
+    ('ame_jardine', 'América · Jardine (Tricampeonato)', 'América', 'Jardine', '2023-07-01', '2026-06-30', 'Histórico'),
     ('ame_almada',  'América · Almada',                  'América', 'Almada',  '2026-07-01', '2099-01-01', 'Actual'),
     ('gdl_paunovic','Chivas · Paunović',                 'Guadalajara', 'Paunovic', '2023-01-01', '2023-12-31', 'Histórico'),
     ('gdl_gago',    'Chivas · Gago',                     'Guadalajara', 'Gago', '2024-01-01', '2024-12-31', 'Histórico'),

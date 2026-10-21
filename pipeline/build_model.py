@@ -13,8 +13,12 @@ Tipos de equipo: 'real' (Liga MX, API StatsBomb), 'opendata' (Barcelona 2009-11,
 import sys, json, math, pathlib, collections, unicodedata
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 from entities import *
+<<<<<<< HEAD
 from temporal import build_temporal
 from personnel import build_personnel, read_json
+=======
+from dangerous import dangerous_for_entity
+>>>>>>> origin/main
 import numpy as np
 from metric_utils import finite, event_metrics, fit_calibration
 from contextual import context_summary, comparisons
@@ -79,13 +83,30 @@ def add_into(a, b):
 
 class Acc:
     def __init__(self):
+<<<<<<< HEAD
         self.context_warnings = collections.Counter()
         self.c = None; self.s = collections.Counter(); self.matches = 0
         self.context = {k: collections.defaultdict(lambda: collections.Counter()) for k in ('score_state', 'venue')}
+=======
+        self.c = None
+        self.s = collections.Counter()
+        self.matches = 0
+        # New dict for open‑play signatures: key -> [count, xg, goals]
+        self.plays_open = collections.defaultdict(lambda: [0, 0.0, 0])
+>>>>>>> origin/main
     def add(self, t):
-        if self.c is None: self.c = {k: zeros_like(t[k]) for k in CHAIN_KEYS}
-        for k in CHAIN_KEYS: add_into(self.c[k], t[k])
-        for k in SCALAR_KEYS: self.s[k] += t[k]
+        if self.c is None:
+            self.c = {k: zeros_like(t[k]) for k in CHAIN_KEYS}
+        for k in CHAIN_KEYS:
+            add_into(self.c[k], t[k])
+        for k in SCALAR_KEYS:
+            self.s[k] += t[k]
+        # Merge open‑play signatures if present
+        if 'plays_open' in t:
+            for key, vals in t['plays_open'].items():
+                self.plays_open[key][0] += vals[0]
+                self.plays_open[key][1] += vals[1]
+                self.plays_open[key][2] += vals[2]
         self.matches += 1
         self.context_warnings.update(t.get('context_status', {}).get('warnings', []))
         for dimension in self.context:
@@ -99,7 +120,15 @@ class Acc:
         c = self.c
         d = {k: c[k] for k in PH_OUT + LTO_KEYS + ('corner_tech', 'corner_target', 'pen_place')}
         d['xg'] = [[round(v, 3) for v in row] for row in c['xg']]
-        if moves: d['mv'] = c['mv']; d['mvC'] = c['mvC']
+        if moves:
+            d['mv'] = c['mv']
+            d['mvC'] = c['mvC']
+        # Include aggregated open‑play signatures for downstream use
+        d['plays_open'] = {k: list(v) for k, v in self.plays_open.items()}
+        d['tau'] = [round(c['dt'][p] / max(c['dtn'][p], 1), 3) for p in (0, 1)]
+        d.update({k: (round(v, 3) if isinstance(v, float) else v) for k, v in self.s.items()})
+        d['matches'] = self.matches
+        return d
         d['tau'] = [round(c['dt'][p] / max(c['dtn'][p], 1), 3) for p in (0, 1)]
         d.update({k: (round(v, 3) if isinstance(v, float) else v) for k, v in self.s.items()})
         d['matches'] = self.matches
@@ -107,6 +136,7 @@ class Acc:
         return d
 
 def load(src, mid):
+<<<<<<< HEAD
     path = EX / f'{src}_{mid}.json'
     raw = path.read_bytes()
     try:
@@ -122,6 +152,19 @@ def load_personnel_response(source, kind, mid):
     else:
         path = OPEN_DATA / ('lineups_%s.json' % mid) if kind == 'lineup' else OPEN_DATA / ('events_%s.json' % mid)
     return read_json(path)
+=======
+    try:
+        path = EX / f'{src}_{mid}.json'
+        raw = path.read_bytes()
+        try:
+            text = raw.decode('utf-8')
+        except UnicodeDecodeError:
+            text = raw.decode('cp1252')
+        return json.loads(text)
+    except Exception:
+        # Return minimal structure so callers can safely skip missing/corrupt files
+        return {'teams': {}}
+>>>>>>> origin/main
 
 def short_name(nm):
     parts = [p for p in nm.split() if p.lower() not in ('da', 'de', 'del', 'dos', 'i', 'la', 'van', 'von', 'y')]
@@ -303,9 +346,39 @@ def roles_for(shape, tk):
         if i not in aerial: aerial.append(i)
     return dict(corner=best(tk['corner'], mid), fk=best(tk['fk'], mid), pen=best(tk['pen'], fwd), aerial=aerial)
 
+def signature_plays(team_acc, league_acc, n_matches):
+    """Return list of open‑play signature plays sorted by relevance.
+    Each entry dict contains: key, count, per10, share, lift, xg_per_shot, goals.
+    """
+    team_dict = team_acc.plays_open
+    league_dict = league_acc.plays_open
+    total_league = sum(v[0] for v in league_dict.values()) or 1
+    total_team = sum(v[0] for v in team_dict.values()) or 1
+    out = []
+    for key, vals in team_dict.items():
+        cnt, xg, goals = vals
+        if cnt == 0:
+            continue
+        per10 = cnt * 10 / max(n_matches, 1)
+        share = cnt / total_team
+        league_cnt = league_dict.get(key, [0, 0, 0])[0]
+        lift = (cnt / total_team) / (league_cnt / total_league) if league_cnt else (cnt / total_team)
+        xg_per_shot = xg / cnt if cnt else 0
+        out.append({
+            "key": key,
+            "count": cnt,
+            "per10": round(per10, 2),
+            "share": round(share, 3),
+            "lift": round(lift, 2),
+            "xg_per_shot": round(xg_per_shot, 3),
+            "goals": goals,
+        })
+    out.sort(key=lambda d: d["count"] * (d["lift"] ** 0.5), reverse=True)
+    return out
 # ---------------------------------------------------------------- main
 def main():
     ents, ms = build_entities()
+    match_by_id = {m['match_id']: m for m in ms}
     LEAGUE = Acc()
     mx_ids = sorted({x['mid'] for e in ents for x in e['matches']})
     EXT = {}
@@ -395,8 +468,13 @@ def main():
             s[key] = pct(c, vs, inv); raw[key] = round(v, 3)
         return s, raw, unavailable
     def entity_from_matches(src, mids, team_name):
-        att, dfn = Acc(), Acc(); xis = []; avg = collections.defaultdict(lambda: [0.0] * 6); actors = collections.defaultdict(lambda: [0] * NZ); mlist = []
+        att, dfn = Acc(), Acc()
+        xis = []
+        avg = collections.defaultdict(lambda: [0.0] * 6)
+        actors = collections.defaultdict(lambda: [0] * NZ)
+        mlist = []
         tk = {k: collections.Counter() for k in ('corner', 'fk', 'pen', 'sp_shooter')}
+<<<<<<< HEAD
         processed, skipped = [], []
         for mid in dict.fromkeys(mids):
             try:
@@ -409,16 +487,30 @@ def main():
             me = next((t for t in tms if t['name'] == team_name), None)
             if me is None or len(tms) != 2:
                 skipped.append(dict(match_id=mid, reason=X.get('reason', 'equipo_ausente_o_rival_ambiguo'))); continue
+=======
+        for mid in mids:
+            X = EXT[mid] if src == 'mx' else load(src, mid)
+            if not X or 'teams' not in X:
+                continue
+            tms = list(X['teams'].values())
+            me = next((t for t in tms if t['name'] == team_name), None)
+            if me is None or len(tms) != 2:
+                continue
+>>>>>>> origin/main
             op = next(t for t in tms if t is not me)
             processed.append(mid)
             att.add(me); dfn.add(op); xis.append(me['xi']); mlist.append(me['m'])
             for k in tk:
-                for pid, cnt in me['takers'][k].items(): tk[k][int(pid)] += cnt
+                for pid, cnt in me['takers'][k].items():
+                    tk[k][int(pid)] += cnt
             for p, a in me['avgpos'].items():
-                for i in range(6): avg[p][i] += a[i]
+                for i in range(6):
+                    avg[p][i] += a[i]
             for p, a in me['actors'].items():
-                for z in range(NZ): actors[p][z] += a[z]
+                for z in range(NZ):
+                    actors[p][z] += a[z]
         shape, act, form = build_shape(xis, avg, actors)
+<<<<<<< HEAD
         return att, dfn, shape, act, form, mlist, roles_for(shape, tk), dict(requested_matches=len(set(mids)), processed_match_ids=processed, excluded=skipped)
 
     out_ents = []
@@ -523,6 +615,13 @@ def main():
                          att=synth(LEAGUE, C['att_E'], C['att_T'], C['sp_att'], 60, True),
                          dfn=synth(LEAGUE, C['dfn_E'], C['dfn_T'], C['sp_dfn'], 60, False),
                          note='Arquetipo configurado a mano (no son datos de un equipo real): bloque bajo, deja la pelota al rival y contragolpea con verticalidad.'))
+=======
+        if not shape:
+            return None
+        # Compute roles for this entity
+        roles = roles_for(shape, tk)
+        return att, dfn, shape, act, form, mlist, roles
+>>>>>>> origin/main
     # ---------------- mapa de estilos
     # ejes en percentiles (mismas métricas que el plan de juego):
     #   con balón: x = ritmo de ataque (media de velocidad hacia portería y tiros al contragolpe), y = posesión
@@ -551,6 +650,47 @@ def main():
         off, dfn = map_point(st_)
         if off is None or dfn is None: continue
         units.append(dict(team=short_team(team), team_full=team, coach=nick or surname(full), coach_full=full, season=season, n=len(rs), off=off, dfn=dfn))
+
+        # Build list of entities with styles and metrics
+        out_ents = []
+        for e in ents:
+            mids = [x['mid'] for x in e['matches']]
+            result = entity_from_matches('mx', mids, e['team'])
+            if result is None:
+                continue
+            att, dfn, shape, act, form, mlist, roles = result
+            did, dlabel, coach = display(e)
+            rs = [r for r in rows if r['_mid'] in set(mids) and r['team_name'] == e['team']]
+            s, raw = style_from_means({c: mean(rs, c) for _, c, _, _ in STY}, len(rs))
+            dates = [x['date'] for x in e['matches']]
+            out_ents.append(dict(id=ascii_id(did), label=dlabel, team=e['team'], coach=coach, group=e['group'], kind='real',
+                                 d0=min(dates), d1=max(dates), n=len(rs), official=max(dates) <= '2025-06-30', formation=form,
+                                 style=s, raw=raw, shape=shape, actors=act, roles=roles, att=att.to(True), dfn=dfn.to(False),
+                                 dangerous_plays=dangerous_for_entity(e, match_by_id)))
+
+        # Barcelona 2009-11 (StatsBomb Open Data)
+        od_ids = sorted(int(p.stem.split('_')[1]) for p in EX.glob('od_*.json'))
+        att, dfn, shape, act, form, mlist, roles = entity_from_matches('od', od_ids, 'Barcelona')
+        s, raw = style_from_means(from_events(mlist), len(mlist))
+        out_ents.append(dict(id='barca_guardiola', label='Barcelona 2009–11 (Guardiola)', team='Barcelona', coach='Pep Guardiola', group='Validación', kind='opendata',
+                             d0='2009-08-29', d1='2011-05-21', n=att.matches, official=False, formation=form, style=s, raw=raw, shape=shape, actors=act, roles=roles,
+                             att=att.to(True), dfn=dfn.to(False),
+                             note='La Liga 2009/10 y 2010/11, StatsBomb Open Data. Estilo con métricas propias de eventos calibradas a la escala StatsBomb.'))
+
+        # Arquetipo sintético
+        C = ATLETI
+        sh = [dict(pos=p, name=role, num=num, con=con, sin=sin) for p, num, role, con, sin in C['shape']]
+        act = []
+        for z in range(NZ):
+            cx, cy = (col(z) + 0.5) * 20, (z % NY + 0.5) * 80 / 3
+            w = [math.exp(-(((s_['con'][0] - cx) ** 2 + (s_['con'][1] - cy) ** 2) ** 0.5) / 11) * (0.15 if s_['pos'] == 'Goalkeeper' and col(z) > 0 else 1) for s_ in sh]
+            act.append([round(v / sum(w), 3) for v in w])
+        out_ents.append(dict(id=C['id'], label=C['label'], team=C['team'], coach=C['coach'], group='Validación', kind='synthetic',
+                             d0=None, d1=None, n=60, official=False, formation=C['formation'], style=C['style'], raw={}, shape=sh, actors=act,
+                             roles=dict(corner=5, fk=7, pen=9, aerial=[2, 3, 9, 10]),
+                             att=synth(LEAGUE, C['att_E'], C['att_T'], C['sp_att'], 60, True),
+                             dfn=synth(LEAGUE, C['dfn_E'], C['dfn_T'], C['sp_dfn'], 60, False),
+                             note='Arquetipo configurado a mano (no son datos de un equipo real): bloque bajo, deja la pelota al rival y contragolpea con verticalidad.'))
     for e, raw_e in zip(out_ents, list(ents) + [None, None]):
         off, dfn = map_point(e['style'])
         traj = []
@@ -562,6 +702,7 @@ def main():
 
     model = dict(map=model_map, meta=dict(nx=NX, ny=NY, k_matches=K_MATCHES, built=datetime.now(timezone.utc).isoformat(), schema_version=2, extract_version=2, t_window=10,
                            style_labels={k: lab for k, _, _, lab in STY},
+<<<<<<< HEAD
                            calibration={c: round(CAL[c][2], 2) for c in CAL}, calibration_unavailable=CAL_ERRORS,
                            style_reference=dict(population='Liga MX, equipo-temporada', minimum_valid_matches=10,
                                                 groups={c: len(ref[c]) for c in ref}, shrinkage_matches=K_MATCHES,
@@ -573,9 +714,18 @@ def main():
     import gc
     gc.collect()
     publish_model(model, OUT / 'model.json')
+=======
+                           calibration={c: round(CAL[c][2], 2) for c in CAL},
+                           note='Parámetros agregados y secuencias peligrosas compactas derivadas de eventos Hudl StatsBomb. No se exponen eventos crudos completos.'),
+                 league=LEAGUE.to(True), entities=out_ents)
+    json.dump(model, open(OUT / 'model.json', 'w', encoding='utf-8'), ensure_ascii=False, separators=(',', ':'))
+>>>>>>> origin/main
     print('\nwrote', OUT / 'model.json', (OUT / 'model.json').stat().st_size // 1024, 'KB')
     for e in out_ents:
-        print(f"  {e['id']:20s} {e['label']:45s} n={e['n']:3d} {e['formation']}  " + ' '.join(f"{s['num']}:{s['name']}" for s in e['shape']))
+        # Safely encode label for console output
+        safe_label = e['label'].encode('utf-8', errors='ignore').decode('utf-8')
+        print(f"  {e['id']:20s} {safe_label:45s} n={e['n']:3d} {e['formation']}  " +
+              ' '.join(f"{s['num']}:{s['name']}" for s in e['shape']))
 
 if __name__ == '__main__':
     if hasattr(sys.stdout, 'reconfigure'):

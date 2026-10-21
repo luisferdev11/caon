@@ -7,6 +7,8 @@ Qué hace la app:
 - **Contexto táctico**: comparación descriptiva por estado del marcador y localía, conservando minutos, posesiones y advertencias de muestra.
 - **Mapa de estilos**: cada equipo-temporada de la liga en dos mapas (con y sin balón), trayectorias por temporada y estilos más parecidos.
 - **Simular partido**: partido animado con 22 jugadores, faltas, tarjetas, córners, tiros libres y penales; modo resumen y partido completo.
+- **Laboratorio táctico**: describe una jugada en español, conviértela en acciones estructuradas y reproduce una representación sobre la cancha.
+- **Jugadas peligrosas**: Top 5 de posesiones rivales que terminaron en remate contra el equipo seleccionado, priorizando goles y mostrando únicamente eventos observados de StatsBomb.
 - **Simulación rápida**: el mismo duelo 1,500 veces.
 
 ## Arrancar en 2 minutos
@@ -27,10 +29,11 @@ Abre http://127.0.0.1:8000. La API está documentada en http://127.0.0.1:8000/do
 
 ```
 app/main.py          servidor (FastAPI): sirve la página y una API de solo lectura sobre el modelo
-frontend/index.html  la página (HTML + JS sin framework)
+frontend/index.html  la página (HTML + JS sin framework, incluido el laboratorio táctico)
 frontend/engine.js   motor de simulación y animación (corre en el navegador y en Node)
 model/model.json     modelo ya construido (solo agregados, sin eventos crudos)
 pipeline/            descarga de datos y construcción del modelo
+pipeline/dangerous.py extracción compacta de secuencias ofensivas rivales peligrosas
 research/            exploraciones (prueba de concepto, agrupamiento, laboratorio de métricas)
 docs/                documentación técnica completa
 ```
@@ -47,11 +50,16 @@ StatsBomb API / Open Data → data/cache → pipeline/extract.py → data/extrac
 |---|---|
 | `GET /api/health` | Estado y número de equipos |
 | `GET /api/teams` | Lista de equipos-entrenador |
+<<<<<<< HEAD
 | `GET /api/teams/{id}` | Plan de juego, contexto, evolución temporal, once tipo, lanzadores y posición en el mapa |
 | `GET /api/teams/{id}/temporal` | Periodos cronológicos, cobertura, métricas y contexto temporal |
 | `GET /api/teams/{id}/personnel` | Jugadores, intervalos, posiciones observadas y sustituciones |
 | `GET /api/teams/{id}/lineups` | Alineaciones iniciales y partidos con participación |
 | `GET /api/teams/{id}/substitutions` | Sustituciones observadas y cobertura |
+=======
+| `GET /api/teams/{id}` | Plan de juego, once tipo, lanzadores y posición en el mapa |
+| `GET /api/teams/{id}/dangerous-plays` | Top 5 de jugadas ofensivas rivales observadas contra el equipo |
+>>>>>>> origin/main
 | `GET /api/model` | El modelo completo que usa la página |
 
 ## Reconstruir el modelo (necesita credenciales de StatsBomb)
