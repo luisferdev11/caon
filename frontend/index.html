@@ -187,6 +187,14 @@ canvas { display: block; width: 100%; max-width: 100%; border-radius: 8px; }
 .method p { margin: 0; }
 .method b { color: var(--ink); }
 .status { color: var(--muted); font-size: 14px; }
+.temporal { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+.temporal-card { background: var(--panel-2); border-radius: 10px; padding: 14px; overflow: auto; }
+.temporal-card table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.temporal-card th, .temporal-card td { padding: 7px 6px; border-bottom: 1px solid var(--line); text-align: right; white-space: nowrap; }
+.temporal-card th:first-child, .temporal-card td:first-child { text-align: left; }
+.temporal-card .na { color: var(--muted); }
+.temporal-card .warn { color: #F2D024; }
+@media (max-width: 960px) { .temporal { grid-template-columns: minmax(0, 1fr); } }
 
 @media (max-width: 960px) {
   .plan, .match, .quick, .method, .maps, .mapread { grid-template-columns: minmax(0, 1fr); }
@@ -274,6 +282,17 @@ canvas { display: block; width: 100%; max-width: 100%; border-radius: 8px; }
     </div>
     <div class="quick" id="contextA"></div>
     <div class="quick" id="contextB"></div>
+  </section>
+
+  <section class="section" aria-labelledby="h-temporal">
+    <div class="section-head">
+      <div>
+        <div class="eyebrow">Evolución cronológica</div>
+        <h2 id="h-temporal">¿Qué cambia con el tiempo?</h2>
+        <p>Bloques cronológicos de partidos observados. Se muestran cobertura y dispersión; ninguna diferencia se interpreta automáticamente como una decisión del entrenador.</p>
+      </div>
+    </div>
+    <div class="temporal" id="temporal"></div>
   </section>
 
   <section class="section" aria-labelledby="h-map">
@@ -693,6 +712,8 @@ canvas { display: block; width: 100%; max-width: 100%; border-radius: 8px; }
         <ol>${sim.map((u) => `<li>${unitName(u)}</li>`).join('')}</ol></div>`;
     }).join('');
     renderContext(A, 'contextA'); renderContext(B, 'contextB');
+    $('temporal').innerHTML = '';
+    renderTemporal(A); renderTemporal(B);
   }
   function renderContext(entity, target) {
     const context = entity.context || {};
@@ -712,6 +733,36 @@ canvas { display: block; width: 100%; max-width: 100%; border-radius: 8px; }
     };
     const groups = Object.keys(state).map((k) => bucket(k, state[k])).concat(Object.keys(venue).map((k) => bucket(k, venue[k])));
     $(target).innerHTML = `<div><h3>${entity.label}</h3><div class="idcards">${groups.join('')}</div></div>`;
+  }
+  function renderTemporal(entity) {
+    const temporal = entity.temporal;
+    if (!temporal || !temporal.periods || !temporal.periods.length) {
+      $('temporal').innerHTML += `<div class="temporal-card"><h3>${entity.label}</h3><p class="status">Sin datos temporales suficientes.</p></div>`;
+      return;
+    }
+    const labels = {
+      possession: 'Posesión', directness: 'Directness', pace_towards_goal: 'Ritmo',
+      ppda: 'PPDA', pressures_per_opp_pass: 'Presión / pase rival',
+      shots: 'Tiros', xg: 'xG', xga: 'xG concedido',
+      transition_shots_per_possession: 'Tiros de transición / posesión'
+    };
+    const fmt = (value) => value == null || !Number.isFinite(value) ? '<span class="na">s/d</span>' : value.toFixed(3);
+    const heads = temporal.periods.map((p) => `<th>${p.start}<br>${p.matches} partidos</th>`).join('');
+    const rows = Object.keys(labels).map((key) => `<tr><th>${labels[key]}</th>${temporal.periods.map((p) => `<td>${fmt(p.metrics[key])}</td>`).join('')}</tr>`).join('');
+    const coverage = temporal.coverage || {};
+    const contextText = temporal.periods.map((period) => {
+      const periodContext = period.context || {};
+      const groups = ['score_state', 'venue'].reduce((all, dimension) => all.concat(Object.entries(periodContext[dimension] || {}).map(([key, value]) => {
+        const label = { winning: 'ganando', drawing: 'empatando', losing: 'perdiendo', home: 'local', away: 'visitante' }[key] || key;
+        return `${label}: ${value.matches || 0} partidos, ${fmt(value.possessions)} posesiones`;
+      })), []);
+      return `<span><b>${period.start}</b> · ${groups.length ? groups.join(' · ') : 'contexto s/d'}</span>`;
+    }).join('<br>');
+    $('temporal').innerHTML += `<div class="temporal-card"><h3>${entity.label}</h3>
+      <p class="status">${coverage.observed_matches || 0}/${coverage.input_matches || 0} partidos observados · bloques de ${temporal.period_size}. Valores por partido; s/d = sin dato.</p>
+      <table><thead><tr><th>Métrica</th>${heads}</tr></thead><tbody>${rows}</tbody></table>
+      <p class="status"><b>Contexto por periodo:</b><br>${contextText}</p>
+      <p class="status">${temporal.note || ''}</p></div>`;
   }
 
   /* ================= partido animado ================= */

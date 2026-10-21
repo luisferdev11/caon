@@ -47,7 +47,8 @@ StatsBomb API / Open Data → data/cache → pipeline/extract.py → data/extrac
 |---|---|
 | `GET /api/health` | Estado y número de equipos |
 | `GET /api/teams` | Lista de equipos-entrenador |
-| `GET /api/teams/{id}` | Plan de juego, contexto, once tipo, lanzadores y posición en el mapa |
+| `GET /api/teams/{id}` | Plan de juego, contexto, evolución temporal, once tipo, lanzadores y posición en el mapa |
+| `GET /api/teams/{id}/temporal` | Periodos cronológicos, cobertura, métricas y contexto temporal |
 | `GET /api/model` | El modelo completo que usa la página |
 
 ## Reconstruir el modelo (necesita credenciales de StatsBomb)
@@ -64,6 +65,12 @@ python pipeline/run.py validate   # compara la simulación con los datos reales 
 python pipeline/run.py referee    # árbitro automático: revisa el reglamento (requiere Node 18+)
 python pipeline/run.py all        # todo en orden
 ```
+
+El análisis temporal se agrupa en bloques cronológicos de ocho partidos y
+fusiona una cola menor de cinco partidos. Conserva ausencias como `null`,
+expone la cobertura por métrica y no interpreta una variación como causalidad.
+La interfaz muestra la evolución de las métricas disponibles junto con las
+fechas y el número de partidos de cada periodo.
 
 El servidor recarga el modelo solo cuando cambia; no hace falta reiniciarlo.
 

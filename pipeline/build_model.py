@@ -13,6 +13,7 @@ Tipos de equipo: 'real' (Liga MX, API StatsBomb), 'opendata' (Barcelona 2009-11,
 import sys, json, math, pathlib, collections, unicodedata
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 from entities import *
+from temporal import build_temporal
 import numpy as np
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
@@ -296,6 +297,7 @@ def main():
     LEAGUE = Acc()
     mx_ids = sorted({x['mid'] for e in ents for x in e['matches']})
     EXT = {mid: load('mx', mid) for mid in mx_ids}
+    match_by_id = {m['match_id']: m for m in ms}
     for X in EXT.values():
         for t in X['teams'].values(): LEAGUE.add(t)
     # estilo: referencia StatsBomb (equipo-temporada de toda la liga)
@@ -401,11 +403,27 @@ def main():
                 sources[c] = 'eventos_calibrados'
         s, raw, unavailable = style_from_means(means, len(mlist))
         dates = [x['date'] for x in e['matches']]
+        temporal_matches = []
+        for item in e['matches']:
+            match = match_by_id.get(item['mid'])
+            if not match:
+                continue
+            home = match.get('home_team', {})
+            away = match.get('away_team', {})
+            is_home = item.get('side') == 'home'
+            enriched = dict(match, _entity_team=e['team'],
+                            _opponent=(away if is_home else home).get(
+                                'away_team_name' if is_home else 'home_team_name'),
+                            _score=[match.get('home_score'), match.get('away_score')])
+            temporal_matches.append(dict(item))
+            match_by_id[item['mid']] = enriched
+        temporal = build_temporal(temporal_matches, match_by_id, EXT)
         out_ents.append(dict(id=ascii_id(did), label=dlabel, team=e['team'], coach=coach, group=e['group'], kind='real',
                              d0=min(dates) if dates else e['d0'], d1=max(dates) if dates else e['d1'], n=att.matches,
                              official=bool(dates) and max(dates) <= '2025-06-30', formation=form,
                              style=s, raw=raw, style_status=dict(sources=sources, unavailable=unavailable),
                              shape=shape, actors=act, roles=roles, context=context_summary(att.context),
+                             temporal=temporal,
                              att=att.to(True), dfn=dfn.to(False)))
     # Barcelona 2009-11 (StatsBomb Open Data)
     od_ids = sorted(int(p.stem.split('_')[1]) for p in EX.glob('od_*.json'))

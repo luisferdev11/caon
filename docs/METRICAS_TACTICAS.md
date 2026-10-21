@@ -34,3 +34,26 @@ Las métricas de estilo que no tienen `team-stats` suficiente pueden usar una
 estimación derivada de eventos únicamente cuando existe una calibración con
 `R² >= 0.5`. El origen queda registrado en `style_status.sources`; las métricas
 restantes aparecen en `style_status.unavailable`.
+
+## Análisis temporal
+
+`pipeline/temporal.py` reutiliza los extractos por partido y no vuelve a
+interpretar eventos crudos. Ordena los partidos por fecha y los agrupa en
+bloques de ocho; si el último bloque contiene menos de cinco partidos se
+fusiona con el anterior. Un bloque de menos de cinco partidos se conserva,
+pero se marca como `sufficient_sample: false`.
+
+Las métricas comparables se calculan por partido antes de obtener la media del
+periodo. Las tasas (`possession`, `directness`, `pace_towards_goal`, `ppda`,
+`pressures_per_opp_pass` y `transition_shots_per_possession`) no se obtienen
+dividiendo sumas de periodos con distinta exposición. Los conteos (`shots`) y
+las sumas de xG se presentan como medias por partido. Cada métrica conserva
+`valid_matches` y `missing_matches`; un denominador cero o un valor no
+disponible produce `null`, no cero.
+
+Cada entidad real incluye `temporal.matches`, `temporal.periods`,
+`temporal.series` y `temporal.coverage`. Los periodos conservan fechas,
+partidos, observaciones válidas y contexto de localía y estado del marcador.
+La desviación estándar y las diferencias entre periodos son descriptivas:
+no prueban estabilidad táctica ni atribuyen causalidad al entrenador. La
+entidad sintética no tiene una serie temporal real.

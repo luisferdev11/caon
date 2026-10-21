@@ -48,6 +48,27 @@ def validate(model):
         context = entity.get('context')
         if entity.get('kind') == 'real' and not isinstance(context, dict):
             warnings.append(f'{identifier}: no contiene contexto score_state/venue')
+        temporal = entity.get('temporal')
+        if entity.get('kind') == 'real':
+            if not isinstance(temporal, dict):
+                warnings.append(f'{identifier}: no contiene análisis temporal')
+            else:
+                matches = temporal.get('matches') or []
+                periods = temporal.get('periods') or []
+                match_ids = [row.get('match_id') for row in matches]
+                if len(match_ids) != len(set(match_ids)):
+                    errors.append(f'{identifier}: partidos temporales duplicados')
+                dates = [row.get('date') for row in matches]
+                if any(not isinstance(date, str) or not date for date in dates):
+                    errors.append(f'{identifier}: partido temporal sin fecha válida')
+                if dates != sorted(dates):
+                    errors.append(f'{identifier}: partidos temporales fuera de orden')
+                if not isinstance(temporal.get('coverage'), dict):
+                    errors.append(f'{identifier}: cobertura temporal ausente')
+                if temporal.get('coverage', {}).get('observed_matches') != len(matches):
+                    errors.append(f'{identifier}: cobertura temporal inconsistente')
+                if sum(period.get('matches', 0) for period in periods) != len(matches):
+                    errors.append(f'{identifier}: periodos no cubren los partidos temporales')
         for key, value in entity.items():
             if isinstance(value, float) and not _finite(value):
                 errors.append(f'{identifier}: valor no finito en {key}')

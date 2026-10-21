@@ -62,8 +62,19 @@ def team(team_id: str):
         if e['id'] == team_id:
             out = team_summary(e)
             out.update(style=e['style'], style_status=e.get('style_status'), shape=e['shape'],
-                       roles=e.get('roles'), context=e.get('context'), map=e.get('map'), note=e.get('note'))
+                       roles=e.get('roles'), context=e.get('context'), temporal=e.get('temporal'),
+                       map=e.get('map'), note=e.get('note'))
             return out
+    raise HTTPException(404, f'No existe el equipo {team_id}')
+
+
+@app.get('/api/teams/{team_id}/temporal')
+def temporal(team_id: str):
+    """Evolución cronológica agregada desde los resúmenes de partidos observados."""
+    for e in load_model()['entities']:
+        if e['id'] == team_id:
+            return {'team': team_summary(e), 'temporal': e.get('temporal'),
+                    'note': (e.get('temporal') or {}).get('note')}
     raise HTTPException(404, f'No existe el equipo {team_id}')
 
 
