@@ -188,6 +188,10 @@ canvas { display: block; width: 100%; max-width: 100%; border-radius: 8px; }
 .method b { color: var(--ink); }
 .status { color: var(--muted); font-size: 14px; }
 .temporal { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+.temporal-scroll { overflow-x: auto; }
+.temporal-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.temporal-table th, .temporal-table td { padding: 7px; text-align: left; border-bottom: 1px solid var(--line); }
+#contextA, #contextB { display: block; }
 .temporal-card { background: var(--panel-2); border-radius: 10px; padding: 14px; overflow: auto; }
 .temporal-card table { width: 100%; border-collapse: collapse; font-size: 13px; }
 .temporal-card th, .temporal-card td { padding: 7px 6px; border-bottom: 1px solid var(--line); text-align: right; white-space: nowrap; }
@@ -293,6 +297,17 @@ canvas { display: block; width: 100%; max-width: 100%; border-radius: 8px; }
       </div>
     </div>
     <div class="temporal" id="temporal"></div>
+  </section>
+
+  <section class="section" aria-labelledby="h-personnel">
+    <div class="section-head">
+      <div>
+        <div class="eyebrow">Jugadores y participación</div>
+        <h2 id="h-personnel">Alineaciones, posiciones y sustituciones</h2>
+        <p>Se muestran posiciones registradas y asociaciones descriptivas. No se infiere causalidad ni se evalúa una alineación como mejor.</p>
+      </div>
+    </div>
+    <div class="temporal" id="personnel"></div>
   </section>
 
   <section class="section" aria-labelledby="h-map">
@@ -403,6 +418,7 @@ canvas { display: block; width: 100%; max-width: 100%; border-radius: 8px; }
 </div>
 
 <script src="engine.js"></script>
+<script src="context_view.js"></script>
 <script>
 (function () {
   'use strict';
@@ -421,24 +437,24 @@ canvas { display: block; width: 100%; max-width: 100%; border-radius: 8px; }
 
   /* ---------- etiquetas tipo FC ---------- */
   function fcLabels(s) {
-    const g = (k) => (s[k] == null ? 50 : s[k]);
-    let build = 'Equilibrado';
+    const g = (k) => (Number.isFinite(s[k]) ? s[k] : NaN);
+    let build = ['posesion', 'ritmo', 'contragolpe', 'saque_largo'].every(k => Number.isFinite(s[k])) ? 'Equilibrado' : 'Datos insuficientes';
     if (g('posesion') >= 80) build = 'Pase corto';
     else if (g('posesion') >= 65 && g('ritmo') <= 55) build = 'Pase corto';
     else if ((g('contragolpe') >= 65 && g('posesion') <= 50) || (g('ritmo') >= 65 && g('posesion') <= 50)) build = 'Contragolpe';
     else if (g('saque_largo') >= 70 && g('posesion') <= 45) build = 'Juego directo';
-    let def = 'Equilibrado';
+    let def = ['linea', 'volumen_presion', 'presion'].every(k => Number.isFinite(s[k])) ? 'Equilibrado' : 'Datos insuficientes';
     if (g('linea') >= 70 && g('volumen_presion') >= 65) def = 'Agresivo';
     else if (g('linea') >= 60) def = g('volumen_presion') <= 40 ? 'Alto, presión situacional' : 'Alto';
     else if (g('linea') <= 35) def = 'Profundo';
     else if (g('volumen_presion') >= 75) def = 'Presión intensa';
     else if (g('presion') >= 75) def = 'Bloque medio, va al duelo';
-    const att = s.centros == null ? 'Mixto' : s.centros >= 67 ? 'Por bandas' : s.centros <= 33 ? 'Por dentro' : 'Mixto';
+    const att = !Number.isFinite(s.centros) ? 'Datos insuficientes' : s.centros >= 67 ? 'Por bandas' : s.centros <= 33 ? 'Por dentro' : 'Mixto';
     return { build, def, att };
   }
   function tags(s) {
     const out = [];
-    const v = (k) => s[k];
+    const v = (k) => Number.isFinite(s[k]) ? s[k] : NaN;
     if (v('volumen_presion') >= 75 && (v('presion') == null || v('presion') >= 60)) out.push([v('volumen_presion') - 50, 'Presión asfixiante']);
     else if (v('presion') >= 80 && v('volumen_presion') <= 40) out.push([v('presion') - 50, 'Corta con duelos, no presiona']);
     else if (v('volumen_presion') <= 25 && v('linea') <= 30) out.push([50 - v('volumen_presion'), 'Espera al rival']);
@@ -487,15 +503,19 @@ canvas { display: block; width: 100%; max-width: 100%; border-radius: 8px; }
     $('tvA').textContent = btn(A); $('tvB').textContent = btn(B);
     for (const [e, id] of [[A, 'cardA'], [B, 'cardB']]) {
       const f = fcLabels(e.style), tg = tags(e.style);
+      const missing = Object.entries(e.style_status?.unavailable || {}).map(([key, reason]) => `${MODEL.meta.style_labels[key] || key}: ${reason}`).join(' · ');
+      const estimated = Object.values(e.style_status?.sources || {}).includes('eventos_calibrados');
       $(id).innerHTML = `<h3>${e.label}</h3>
         <dl class="kv"><dt>Formación</dt><dd class="num">${e.formation || '—'}</dd>
         <dt>Construcción</dt><dd>${f.build}</dd><dt>Enfoque defensivo</dt><dd>${f.def}</dd><dt>Ataque</dt><dd>${f.att}</dd></dl>
-        <div class="tags">${tg.map((t) => `<span class="tag">${t}</span>`).join('') || '<span class="tag">Perfil equilibrado</span>'}</div>`;
+        <div class="tags">${tg.map((t) => `<span class="tag">${t}</span>`).join('') || '<span class="tag">Sin rasgos destacados con los datos disponibles</span>'}</div>
+        ${estimated ? '<p class="status">Incluye estimaciones experimentales calibradas desde eventos.</p>' : ''}
+        ${missing ? `<p class="status">Sin dato: ${missing}</p>` : ''}`;
     }
     const labs = MODEL.meta.style_labels;
     $('sliders').innerHTML = SL_ORDER.map((k) => {
       const a = A.style[k], b = B.style[k];
-      const has = (x) => x != null;
+      const has = (x) => Number.isFinite(x);
       const lo = Math.min(has(a) ? a : 50, has(b) ? b : 50), hi = Math.max(has(a) ? a : 50, has(b) ? b : 50);
       return `<div class="srow" title="${labs[k]}: ${A.label} ${has(a) ? 'P' + a : 'sin dato'} · ${B.label} ${has(b) ? 'P' + b : 'sin dato'}">
         <div class="lab"><span>${labs[k]}</span></div>
@@ -714,25 +734,11 @@ canvas { display: block; width: 100%; max-width: 100%; border-radius: 8px; }
     renderContext(A, 'contextA'); renderContext(B, 'contextB');
     $('temporal').innerHTML = '';
     renderTemporal(A); renderTemporal(B);
+    $('personnel').innerHTML = '';
+    renderPersonnel(A); renderPersonnel(B);
   }
   function renderContext(entity, target) {
-    const context = entity.context || {};
-    const state = context.score_state || {}, venue = context.venue || {};
-    const labels = { winning: 'Ganando', drawing: 'Empatando', losing: 'Perdiendo', home: 'Local', away: 'Visitante' };
-    const bucket = (key, value) => {
-      const x = value || {};
-      const sample = x.sufficient_sample ? '' : ' · muestra insuficiente';
-      const ppda = x.ppda == null ? 's/d' : x.ppda.toFixed(2);
-      const directness = x.directness == null ? 's/d' : x.directness.toFixed(2);
-      return `<div class="idcard"><h3>${labels[key] || key}</h3>
-        <dl class="kv"><dt>Observación</dt><dd class="num">${(x.minutes || 0).toFixed(1)} min · ${x.possessions || 0} posesiones${sample}</dd>
-        <dt>Pases / progresión</dt><dd>${x.passes || 0} · ${x.forward_pass_rate == null ? 's/d' : Math.round(x.forward_pass_rate * 100) + '%'}</dd>
-        <dt>Tiros / xG</dt><dd class="num">${x.shots || 0} · ${(x.xg || 0).toFixed(2)}</dd>
-        <dt>xG concedido / PPDA</dt><dd class="num">${(x.xga || 0).toFixed(2)} · ${ppda}</dd>
-        <dt>Directness observada</dt><dd class="num">${directness}</dd></dl></div>`;
-    };
-    const groups = Object.keys(state).map((k) => bucket(k, state[k])).concat(Object.keys(venue).map((k) => bucket(k, venue[k])));
-    $(target).innerHTML = `<div><h3>${entity.label}</h3><div class="idcards">${groups.join('')}</div></div>`;
+    $(target).innerHTML = ContextView.render(entity);
   }
   function renderTemporal(entity) {
     const temporal = entity.temporal;
@@ -764,6 +770,28 @@ canvas { display: block; width: 100%; max-width: 100%; border-radius: 8px; }
       <p class="status"><b>Contexto por periodo:</b><br>${contextText}</p>
       <p class="status">${temporal.note || ''}</p></div>`;
   }
+  function renderPersonnel(entity) {
+    const personnel = entity.personnel;
+    if (!personnel) {
+      $('personnel').innerHTML += `<div class="temporal-card"><h3>${entity.label}</h3><p class="status">Sin datos de participación disponibles.</p></div>`;
+      return;
+    }
+    const players = (personnel.players || []).slice(0, 12);
+    const substitutions = (personnel.substitutions || []).slice(0, 8);
+    const coverage = personnel.coverage || {};
+    const playerRows = players.map((player) => `<tr><td>${player.name || 's/d'}</td><td>${player.matches}</td><td>${player.starts}</td><td>${player.minutes.toFixed(1)}</td><td>${(player.positions || []).map((position) => position.name).join(', ') || 's/d'}</td></tr>`).join('');
+    const substitutionRows = substitutions.map((substitution) => `<tr><td>${substitution.date || 's/f'}</td><td>${substitution.minute.toFixed(1)}'</td><td>${substitution.player_out.name || 's/d'}</td><td>${substitution.player_in.name || 's/d'}</td><td>${substitution.score_state}</td></tr>`).join('');
+    const frequent = (personnel.starting_lineups || [])[0];
+    const lineup = frequent ? frequent.players.map((player) => player.name || 's/d').join(', ') : 's/d';
+    $('personnel').innerHTML += `<div class="temporal-card"><h3>${entity.label}</h3>
+      <p class="status">${coverage.matches_with_lineup || 0}/${coverage.input_matches || 0} partidos con lineup · ${coverage.matches_with_substitutions || 0} con sustituciones · posiciones en ${coverage.matches_with_positions || 0} partidos.</p>
+      <h4>Alineación inicial más frecuente</h4><p>${lineup}</p>
+      <h4>Participación observada</h4>
+      <table><thead><tr><th>Jugador</th><th>Part.</th><th>Tit.</th><th>Min.</th><th>Posiciones</th></tr></thead><tbody>${playerRows || '<tr><td colspan="5">s/d</td></tr>'}</tbody></table>
+      <h4>Sustituciones observadas</h4>
+      <table><thead><tr><th>Fecha</th><th>Min.</th><th>Sale</th><th>Entra</th><th>Estado</th></tr></thead><tbody>${substitutionRows || '<tr><td colspan="5">s/d</td></tr>'}</tbody></table>
+      <p class="status">${personnel.sample_note || ''}</p></div>`;
+  }
 
   /* ================= partido animado ================= */
   const T = SimEngine.T_TOTAL;
@@ -792,7 +820,9 @@ canvas { display: block; width: 100%; max-width: 100%; border-radius: 8px; }
   }
   function cumIdx(t) { let lo = 0, hi = cum.t.length - 1; if (t < cum.t[0]) return -1; while (lo < hi) { const m = (lo + hi + 1) >> 1; if (cum.t[m] <= t) lo = m; else hi = m - 1; } return lo; }
 
+  function simulationReady() { return [A, B].every(e => e && e.n > 0 && e.att?.matches > 0 && e.dfn?.matches > 0 && e.shape?.length > 0); }
   function newMatch() {
+    if (!simulationReady()) return;
     sim = SimEngine.simulate(MODEL, [A, B], { seed: seed * 7919 + 13, record: true });
     ch = SimEngine.choreograph(MODEL, [A, B], sim, seed);
     cum = buildCum();
@@ -813,6 +843,7 @@ canvas { display: block; width: 100%; max-width: 100%; border-radius: 8px; }
   function latest(arr, t) { let r = null; for (const x of arr) { if (x.t <= t) r = x; else break; } return r; }
 
   function renderFrame() {
+    if (!ch) return;
     const G = setupCanvas($('mcanvas'), PITCH_ASPECT), { ctx, s, sx, sy } = G;
     drawPitch(G);
     SimEngine.playersAt(ch, gameT, P);
@@ -1040,6 +1071,7 @@ canvas { display: block; width: 100%; max-width: 100%; border-radius: 8px; }
   }
   let quickToken = 0;
   function runQuick() {
+    if (!simulationReady()) return;
     const token = ++quickToken;
     $('qstatus').textContent = 'Simulando…';
     setTimeout(() => {
@@ -1086,7 +1118,10 @@ canvas { display: block; width: 100%; max-width: 100%; border-radius: 8px; }
   function choose() {
     A = MODEL.entities.find((e) => e.id === $('selA').value);
     B = MODEL.entities.find((e) => e.id === $('selB').value);
-    renderPlan(); renderMaps(); newMatch(); runQuick();
+    renderPlan(); renderMaps();
+    const ready = simulationReady();
+    if (ready) { newMatch(); runQuick(); }
+    else { playing = false; quickToken++; sim = null; ch = null; $('qstatus').textContent = 'Simulación no disponible: faltan partidos o alineaciones observadas.'; }
   }
   $('selA').onchange = choose; $('selB').onchange = choose;
   $('swap').onclick = () => { const a = $('selA').value; $('selA').value = $('selB').value; $('selB').value = a; choose(); };
@@ -1096,6 +1131,8 @@ canvas { display: block; width: 100%; max-width: 100%; border-radius: 8px; }
   setPlayIcon();
   fetch('/api/model').then((r) => r.json()).then((m) => {
     MODEL = m;
+    MODEL.map = MODEL.map || { units: [] };
+    for (const entity of MODEL.entities) { entity.style = entity.style || {}; entity.map = entity.map || { off: null, dfn: null, traj: [] }; entity.shape = entity.shape || []; }
     fillSelect($('selA'), 'ame_jardine'); fillSelect($('selB'), 'atl_cocca');
     choose();
     window.__vt = { getT: () => gameT, setT: (t) => { gameT = t; renderFrame(); }, sim: () => sim, ch: () => ch, pick: (a, b) => { $('selA').value = a; $('selB').value = b; choose(); }, seed: (s) => { seed = s; newMatch(); } };

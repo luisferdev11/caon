@@ -1,0 +1,332 @@
+{
+  "evaluated": 25,
+  "ok": 25,
+  "warnings": 0,
+  "errors": 0,
+  "unavailable": [],
+  "details": [],
+  "comparisons": [
+    {
+      "entity": "liga",
+      "metric": "goals",
+      "observed": 1.334,
+      "simulated": 1.28,
+      "delta": -0.05400000000000005
+    },
+    {
+      "entity": "liga",
+      "metric": "possession",
+      "observed": 0.5,
+      "simulated": 0.5022703401903389,
+      "delta": 0.002270340190338893
+    },
+    {
+      "entity": "ame_jardine",
+      "metric": "goals",
+      "observed": 1.757,
+      "simulated": 1.56,
+      "delta": -0.19699999999999984
+    },
+    {
+      "entity": "ame_jardine",
+      "metric": "possession",
+      "observed": 0.535,
+      "simulated": 0.5270992037959789,
+      "delta": -0.007900796204021177
+    },
+    {
+      "entity": "ame_almada",
+      "metric": "goals",
+      "observed": 2.2,
+      "simulated": 1.35,
+      "delta": -0.8500000000000001
+    },
+    {
+      "entity": "ame_almada",
+      "metric": "possession",
+      "observed": 0.557,
+      "simulated": 0.531941794028248,
+      "delta": -0.025058205971752012
+    },
+    {
+      "entity": "gdl_paunovic",
+      "metric": "goals",
+      "observed": 1.286,
+      "simulated": 1.18,
+      "delta": -0.1060000000000001
+    },
+    {
+      "entity": "gdl_paunovic",
+      "metric": "possession",
+      "observed": 0.482,
+      "simulated": 0.47499218152336786,
+      "delta": -0.007007818476632122
+    },
+    {
+      "entity": "gdl_gago",
+      "metric": "goals",
+      "observed": 1.219,
+      "simulated": 1.48,
+      "delta": 0.2609999999999999
+    },
+    {
+      "entity": "gdl_gago",
+      "metric": "possession",
+      "observed": 0.526,
+      "simulated": 0.5225739472579813,
+      "delta": -0.0034260527420186815
+    },
+    {
+      "entity": "gdl_milito",
+      "metric": "goals",
+      "observed": 1.686,
+      "simulated": 1.58,
+      "delta": -0.10599999999999987
+    },
+    {
+      "entity": "gdl_milito",
+      "metric": "possession",
+      "observed": 0.568,
+      "simulated": 0.5441165955429131,
+      "delta": -0.02388340445708681
+    },
+    {
+      "entity": "atl_cocca",
+      "metric": "goals",
+      "observed": 1.196,
+      "simulated": 1.06,
+      "delta": -0.1359999999999999
+    },
+    {
+      "entity": "atl_cocca",
+      "metric": "possession",
+      "observed": 0.488,
+      "simulated": 0.5017602999648267,
+      "delta": 0.01376029996482675
+    },
+    {
+      "entity": "atlante_herrera",
+      "metric": "goals",
+      "observed": 1.083,
+      "simulated": 1.06,
+      "delta": -0.02299999999999991
+    },
+    {
+      "entity": "atlante_herrera",
+      "metric": "possession",
+      "observed": 0.441,
+      "simulated": 0.47111256240946886,
+      "delta": 0.030112562409468857
+    },
+    {
+      "entity": "atlas_crespo",
+      "metric": "goals",
+      "observed": 1.364,
+      "simulated": 1.22,
+      "delta": -0.14400000000000013
+    },
+    {
+      "entity": "atlas_crespo",
+      "metric": "possession",
+      "observed": 0.516,
+      "simulated": 0.49446752566251573,
+      "delta": -0.021532474337484286
+    },
+    {
+      "entity": "sanluis_mejia",
+      "metric": "goals",
+      "observed": 1.273,
+      "simulated": 1.32,
+      "delta": 0.04700000000000015
+    },
+    {
+      "entity": "sanluis_mejia",
+      "metric": "possession",
+      "observed": 0.525,
+      "simulated": 0.5223759378882137,
+      "delta": -0.0026240621117863405
+    },
+    {
+      "entity": "cruzazul_huiqui",
+      "metric": "goals",
+      "observed": 1.944,
+      "simulated": 1.26,
+      "delta": -0.6839999999999999
+    },
+    {
+      "entity": "cruzazul_huiqui",
+      "metric": "possession",
+      "observed": 0.532,
+      "simulated": 0.5301923735353612,
+      "delta": -0.001807626464638834
+    },
+    {
+      "entity": "juarez_lema",
+      "metric": "goals",
+      "observed": 1,
+      "simulated": 1.43,
+      "delta": 0.42999999999999994
+    },
+    {
+      "entity": "juarez_lema",
+      "metric": "possession",
+      "observed": 0.486,
+      "simulated": 0.5029471620052233,
+      "delta": 0.016947162005223282
+    },
+    {
+      "entity": "leon_gandolfi",
+      "metric": "goals",
+      "observed": 1.471,
+      "simulated": 1.34,
+      "delta": -0.131
+    },
+    {
+      "entity": "leon_gandolfi",
+      "metric": "possession",
+      "observed": 0.531,
+      "simulated": 0.5217709722704114,
+      "delta": -0.009229027729588668
+    },
+    {
+      "entity": "monterrey_almeyda",
+      "metric": "goals",
+      "observed": 1.7,
+      "simulated": 1.26,
+      "delta": -0.43999999999999995
+    },
+    {
+      "entity": "monterrey_almeyda",
+      "metric": "possession",
+      "observed": 0.551,
+      "simulated": 0.5345465262777731,
+      "delta": -0.01645347372222694
+    },
+    {
+      "entity": "necaxa_reynoso",
+      "metric": "goals",
+      "observed": 1.5,
+      "simulated": 1.42,
+      "delta": -0.08000000000000007
+    },
+    {
+      "entity": "necaxa_reynoso",
+      "metric": "possession",
+      "observed": 0.461,
+      "simulated": 0.4998081893971394,
+      "delta": 0.03880818939713937
+    },
+    {
+      "entity": "pachuca_mora",
+      "metric": "goals",
+      "observed": 1.636,
+      "simulated": 1.37,
+      "delta": -0.2659999999999998
+    },
+    {
+      "entity": "pachuca_mora",
+      "metric": "possession",
+      "observed": 0.483,
+      "simulated": 0.49162053064726763,
+      "delta": 0.008620530647267644
+    },
+    {
+      "entity": "puebla_espinoza",
+      "metric": "goals",
+      "observed": 1,
+      "simulated": 1.05,
+      "delta": 0.050000000000000044
+    },
+    {
+      "entity": "puebla_espinoza",
+      "metric": "possession",
+      "observed": 0.429,
+      "simulated": 0.46635433111998004,
+      "delta": 0.037354331119980044
+    },
+    {
+      "entity": "pumas_esolari",
+      "metric": "goals",
+      "observed": 1.583,
+      "simulated": 1.13,
+      "delta": -0.45300000000000007
+    },
+    {
+      "entity": "pumas_esolari",
+      "metric": "possession",
+      "observed": 0.471,
+      "simulated": 0.4856123555077582,
+      "delta": 0.014612355507758246
+    },
+    {
+      "entity": "queretaro_gonzalez",
+      "metric": "goals",
+      "observed": 1.148,
+      "simulated": 1.31,
+      "delta": 0.16200000000000014
+    },
+    {
+      "entity": "queretaro_gonzalez",
+      "metric": "possession",
+      "observed": 0.387,
+      "simulated": 0.40549742578027875,
+      "delta": 0.018497425780278742
+    },
+    {
+      "entity": "santos_paiva",
+      "metric": "goals",
+      "observed": 1,
+      "simulated": 1.27,
+      "delta": 0.27
+    },
+    {
+      "entity": "santos_paiva",
+      "metric": "possession",
+      "observed": 0.498,
+      "simulated": 0.47641266488053446,
+      "delta": -0.021587335119465534
+    },
+    {
+      "entity": "tigres_vucetich",
+      "metric": "goals",
+      "observed": 1,
+      "simulated": 1.42,
+      "delta": 0.41999999999999993
+    },
+    {
+      "entity": "tigres_vucetich",
+      "metric": "possession",
+      "observed": 0.501,
+      "simulated": 0.4989171513007073,
+      "delta": -0.0020828486992927053
+    },
+    {
+      "entity": "tijuana_abreu",
+      "metric": "goals",
+      "observed": 1.354,
+      "simulated": 1.44,
+      "delta": 0.08599999999999985
+    },
+    {
+      "entity": "tijuana_abreu",
+      "metric": "possession",
+      "observed": 0.465,
+      "simulated": 0.4832431874217083,
+      "delta": 0.018243187421708273
+    },
+    {
+      "entity": "toluca_mohamed",
+      "metric": "goals",
+      "observed": 1.895,
+      "simulated": 1.78,
+      "delta": -0.11499999999999999
+    },
+    {
+      "entity": "toluca_mohamed",
+      "metric": "possession",
+      "observed": 0.554,
+      "simulated": 0.5407031131322587,
+      "delta": -0.013296886867741331
+    }
+  ]
+}

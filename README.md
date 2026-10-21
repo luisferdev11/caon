@@ -49,6 +49,9 @@ StatsBomb API / Open Data → data/cache → pipeline/extract.py → data/extrac
 | `GET /api/teams` | Lista de equipos-entrenador |
 | `GET /api/teams/{id}` | Plan de juego, contexto, evolución temporal, once tipo, lanzadores y posición en el mapa |
 | `GET /api/teams/{id}/temporal` | Periodos cronológicos, cobertura, métricas y contexto temporal |
+| `GET /api/teams/{id}/personnel` | Jugadores, intervalos, posiciones observadas y sustituciones |
+| `GET /api/teams/{id}/lineups` | Alineaciones iniciales y partidos con participación |
+| `GET /api/teams/{id}/substitutions` | Sustituciones observadas y cobertura |
 | `GET /api/model` | El modelo completo que usa la página |
 
 ## Reconstruir el modelo (necesita credenciales de StatsBomb)
@@ -59,7 +62,7 @@ StatsBomb API / Open Data → data/cache → pipeline/extract.py → data/extrac
 ```bash
 python pipeline/run.py download   # baja eventos, alineaciones y estadísticas (~2.7 GB, con caché)
 python pipeline/run.py extract    # resume cada partido (~10 s)
-python pipeline/run.py build      # construye model/model.json (~2 s)
+python pipeline/run.py build      # construye y valida model/model.json (incluye jugadores y contextos)
 python pipeline/check_model.py    # comprueba invariantes del modelo generado
 python pipeline/run.py validate   # compara la simulación con los datos reales (requiere Node 18+)
 python pipeline/run.py referee    # árbitro automático: revisa el reglamento (requiere Node 18+)
@@ -73,6 +76,12 @@ La interfaz muestra la evolución de las métricas disponibles junto con las
 fechas y el número de partidos de cada periodo.
 
 El servidor recarga el modelo solo cuando cambia; no hace falta reiniciarlo.
+
+La participación de jugadores se deriva de lineups y eventos reales. Conserva
+IDs, posiciones registradas, intervalos, minutos observados, sustituciones,
+estado del marcador y warnings de cobertura. No infiere roles tácticos
+complejos ni atribuye causalidad a los cambios de composición. Consulta
+`docs/PERSONAL_JUGADORES.md` para las definiciones y limitaciones.
 
 ### Agregar un equipo o entrenador
 
@@ -101,5 +110,51 @@ y corre `python pipeline/run.py all`. Los entrenadores actuales de cada club se 
 
 ## Documentación
 
+- [Informe de esta entrega y próximos pasos](docs/INFORME_CORRECCION_PRIORITARIA.md): cambios, pruebas, limitaciones y guía para continuar en equipo.
 - `docs/DOCUMENTACION.md`: cómo funciona todo (fuentes, framework, modelo, estilo de cada entrenador, simulación, reglamento, validación, cómo extenderlo).
 - `docs/como-funciona.html`: la misma explicación en una página visual.
+
+## Correcciones de datos y contexto (schema 2)
+
+`n` cuenta IDs de partidos procesados junto con ambos agregados. La cobertura de
+estilo se conserva por separado para cada métrica. Los estilos incompletos no se
+rellenan. Ganando/empatando/perdiendo y local/visitante incluyen exposición,
+tasas, diferencias y advertencias. API adicional: `/api/teams/{id}/context`.
+Las definiciones y limitaciones están en [METRICAS_TACTICAS.md](docs/METRICAS_TACTICAS.md).
+
+Regeneración con datos ya descargados (no modifica los archivos de origen):
+
+```powershell
+python -X utf8 pipeline/run.py extract
+python -X utf8 pipeline/run.py build
+python -X utf8 pipeline/check_model.py
+python -X utf8 -m unittest discover -s pipeline -p "test_*.py"
+node --test pipeline/test_validate.js pipeline/test_frontend.js
+node pipeline/validate.js 100
+node pipeline/referee.js 3
+```
+
+La extracción actualiza automáticamente extractos de versiones anteriores.
+Para forzar un recálculo de la misma versión: `python -X utf8 pipeline/extract.py --force`.
+Cada construcción válida respalda el artefacto anterior en
+`model/model.json.pre-build-<fecha-UTC>.gz` y verifica que se pueda recuperar.
+Normalmente publica con reemplazo atómico; si el espacio solo alcanza para
+reescribir el archivo, conserva el respaldo y restaura el original ante error.
+Si ni siquiera alcanza, conserva el modelo original y, cuando es posible,
+el resultado validado en `model/model.json.pending.gz`.
+Dejar espacio libre suficiente evita ese modo de recuperación.
+
+En este equipo el alias `python` y el entorno `.venv` inicial no eran utilizables
+para toda la suite. El intérprete probado fue:
+
+```powershell
+$caonPython = 'C:\Users\eddym\AppData\Local\Programs\Python\Python313\python.exe'
+& $caonPython -X utf8 pipeline/run.py extract
+& $caonPython -X utf8 pipeline/run.py build
+& $caonPython -X utf8 pipeline/check_model.py
+& $caonPython -X utf8 -m unittest discover -s pipeline -p 'test_*.py'
+```
+
+Las pruebas HTTP requieren `httpx` además de las dependencias de ejecución.
+Si se usa el sandbox de Windows, `TestClient` puede necesitar ejecución fuera
+del aislamiento para abrir su socket interno. No necesita contactar un servidor externo.

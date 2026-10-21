@@ -23,6 +23,9 @@ Salida: data/extract/<fuente>_<match>.json. Solo conteos agregados.
 """
 import sys, json, pathlib, collections
 from multiprocessing import Pool
+from functools import lru_cache
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+from contextual import extract_context, ordered_events, score_timeline, state_for, defensive_action
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 CACHE = ROOT / 'data' / 'cache'
@@ -47,44 +50,28 @@ def _read_json_file(path):
         text = raw.decode('cp1252')
     return json.loads(text)
 
-def _match_metadata(mid):
-    """Return match metadata from the cached competition match lists."""
-    for path in CACHE.glob('v6_competitions_73_seasons_*_matches.json'):
-        try:
-            matches = _read_json_file(path)
-        except (OSError, UnicodeDecodeError, json.JSONDecodeError):
-            continue
-        match = next((m for m in matches if m.get('match_id') == mid), None)
-        if match:
-            return match
-    return None
+@lru_cache(maxsize=2)
+def _metadata_index(src):
+    paths = CACHE.glob('v6_competitions_73_seasons_*_matches.json') if src == 'mx' else OD.glob('matches_*.json')
+    out = {}
+    for path in paths:
+        for match in _read_json_file(path): out[match['match_id']] = match
+    return out
+
+
+def _match_metadata(mid, src='mx'):
+    return _metadata_index(src).get(mid)
+
 
 def _score_context(events):
-    """Map each event index to the score state before that event."""
-    score = collections.defaultdict(int)
-    state = {}
-    for event in sorted(events, key=lambda e: e.get('index', 0)):
-        state[event.get('index', 0)] = dict(score)
-        kind = event.get('type', {}).get('name')
-        if kind == 'Shot' and (event.get('shot') or {}).get('outcome', {}).get('name') == 'Goal':
-            score[event.get('team', {}).get('id')] += 1
-        elif kind == 'Own Goal For':
-            score[event.get('team', {}).get('id')] += 1
-    return state
+    ordered = ordered_events(events)
+    ids = {e.get('team', {}).get('id') for e in ordered}
+    before, _, _ = score_timeline(ordered, ids)
+    return {e.get('index'): score for e, score in zip(ordered, before)}
 
-def _state_for(scores, team_id):
-    values = list(scores.values())
-    diff = scores.get(team_id, 0) - max((v for tid, v in scores.items() if tid != team_id), default=0)
-    return 'winning' if diff > 0 else ('losing' if diff < 0 else 'drawing')
 
-def _new_context():
-    return dict(seconds=0.0, possessions=0, actions=0, passes=0, forward_passes=0,
-                shots=0, xg=0.0, xga=0.0, pressures=0, ppda_passes=0,
-                ppda_def_actions=0, recoveries=0, losses=0, transition_shots=0,
-                forward_distance=0.0, pass_distance=0.0)
+_state_for = state_for
 
-def _context_bucket(team, context, state, venue):
-    return team['context'][context][state if context == 'score_state' else venue]
 
 def zone(loc):
     x = min(max(loc[0], 0), 119.999); y = min(max(loc[1], 0), 79.999)
@@ -140,15 +127,15 @@ def new_team():
              actors=collections.defaultdict(lambda: [0] * NZ), avgpos=collections.defaultdict(lambda: [0.0, 0.0, 0, 0.0, 0.0, 0]),
              takers=dict(corner=collections.Counter(), fk=collections.Counter(), pen=collections.Counter(), sp_shooter=collections.Counter()),
              m=collections.Counter(),
-             context=dict(score_state={k: _new_context() for k in ('winning', 'drawing', 'losing')},
-                           venue={k: _new_context() for k in ('home', 'away')}))
+             context=dict(score_state={}, venue={}))
     for k in LTO_KEYS: d[k] = [[0] * NZ for _ in range(NZ)]
     return d
 
-def process(args):
+def _process(args):
     src, mid = args
     out = OUT / f'{src}_{mid}.json'
-    if out.exists(): return str(out)
+    if out.exists() and '--force' not in sys.argv:
+        if _read_json_file(out).get('extract_version') == 2: return str(out)
     if src == 'mx':
         E = _read_json_file(CACHE / f'v8_events_{mid}.json'); L = _read_json_file(CACHE / f'v4_lineups_{mid}.json')
     else:
@@ -160,13 +147,15 @@ def process(args):
     nick = {}
     for t in L:
         for p in t['lineup']: nick[p['player_id']] = (p.get('player_nickname') or p['player_name'], p.get('jersey_number'))
-    E = [e for e in E if e['period'] <= 4]
+    E = ordered_events(E)
     teams = {}
     for e in E: teams.setdefault(e['team']['id'], e['team']['name'])
-    metadata = _match_metadata(mid) if src == 'mx' else None
-    home_id = (metadata or {}).get('home_team', {}).get('home_team_id')
-    scores_before = _score_context(E)
+    metadata = _match_metadata(mid, src)
+    contexts, context_status = extract_context(E, metadata, is_sp=is_sp)
     T = {tid: new_team() for tid in teams}
+    for tid in T:
+        T[tid]['context'] = contexts.get(tid, {})
+        T[tid]['context_status'] = context_status
     xi = {}
     for e in E:
         if e['type']['name'] == 'Starting XI':
@@ -178,38 +167,6 @@ def process(args):
     # ---------- posiciones medias, métricas, faltas, tarjetas y contexto ----------
     for event_index, e in enumerate(E):
         tid = e['team']['id']; A = T[tid]; t = e['type']['name']
-        score = scores_before.get(e.get('index', event_index), {})
-        state = _state_for(score, tid)
-        venue = 'home' if home_id is not None and tid == home_id else 'away'
-        for context_name, context_key in (('score_state', state), ('venue', venue)):
-            c = A['context'][context_name][context_key]
-            c['actions'] += 1
-            if t == 'Pass':
-                c['passes'] += 1
-                if e.get('pass', {}).get('end_location', [0])[0] > e.get('location', [0])[0]:
-                    c['forward_passes'] += 1
-                    c['forward_distance'] += max(0, e.get('pass', {}).get('end_location', [0])[0] - e.get('location', [0])[0])
-                c['pass_distance'] += e.get('pass', {}).get('length', 0) or 0
-            if t == 'Shot':
-                c['shots'] += 1
-                c['xg'] += (e.get('shot') or {}).get('statsbomb_xg', 0) or 0
-            if t == 'Pressure': c['pressures'] += 1
-            if t == 'Ball Recovery': c['recoveries'] += 1
-            if t in ('Interception', 'Duel', 'Foul Committed') and e.get('location', [0])[0] >= 48:
-                c['ppda_def_actions'] += 1
-        if t == 'Pass' and e.get('location', [0])[0] < 72:
-            for defender_id, defender in T.items():
-                if defender_id == tid:
-                    continue
-                defender_state = _state_for(score, defender_id)
-                defender_venue = 'home' if home_id is not None and defender_id == home_id else 'away'
-                defender['context']['score_state'][defender_state]['ppda_passes'] += 1
-                defender['context']['venue'][defender_venue]['ppda_passes'] += 1
-        # Opponent shots contribute to the team's defensive context.
-        for context_name, context_key in (('score_state', state), ('venue', venue)):
-            c = A['context'][context_name][context_key]
-            if t == 'Shot' and e['team']['id'] != tid:
-                c['xga'] += (e.get('shot') or {}).get('statsbomb_xg', 0) or 0
         if 'location' in e and 'position' in e:
             a = A['avgpos'][e['position']['name']]
             if e['possession_team']['id'] == tid: a[0] += e['location'][0]; a[1] += e['location'][1]; a[2] += 1
@@ -225,7 +182,7 @@ def process(args):
             if e['pass'].get('cross') and el[0] >= 102 and 18 <= el[1] <= 62: m['crosses_box'] += 1
         if t in DEF_TYPES and 'location' in e:
             m['def_n'] += 1; m['def_x'] += e['location'][0]
-            if e['location'][0] >= 48 and (t in ('Interception', 'Foul Committed') or (t == 'Duel' and e.get('duel', {}).get('type', {}).get('name') == 'Tackle')):
+            if e['location'][0] >= 48 and defensive_action(e):
                 m['ppda_den'] += 1
         if t == 'Pressure':
             m['pressures'] += 1
@@ -247,42 +204,6 @@ def process(args):
     poss = collections.OrderedDict()
     for e in E: poss.setdefault(e['possession'], []).append(e)
     P = list(poss.values())
-    for current, following in zip(E, E[1:]):
-        if current.get('period') != following.get('period'):
-            continue
-        delta = max(0.0, ts(following) - ts(current))
-        if delta > 30:
-            continue
-        score = scores_before.get(current.get('index', 0), {})
-        for tid in T:
-            state = _state_for(score, tid)
-            venue = 'home' if home_id is not None and tid == home_id else 'away'
-            T[tid]['context']['score_state'][state]['seconds'] += delta
-            T[tid]['context']['venue'][venue]['seconds'] += delta
-    for pe in P:
-        tid = pe[0]['possession_team']['id']
-        if tid not in T:
-            continue
-        first = pe[0]
-        score = scores_before.get(first.get('index', 0), {})
-        state = _state_for(score, tid)
-        venue = 'home' if home_id is not None and tid == home_id else 'away'
-        for context_name, context_key in (('score_state', state), ('venue', venue)):
-            T[tid]['context'][context_name][context_key]['possessions'] += 1
-        for e in pe:
-            if e.get('type', {}).get('name') == 'Shot':
-                for opponent_id, opponent in T.items():
-                    if opponent_id == tid:
-                        continue
-                    opp_score = scores_before.get(e.get('index', 0), {})
-                    opp_state = _state_for(opp_score, opponent_id)
-                    opp_venue = 'home' if home_id is not None and opponent_id == home_id else 'away'
-                    xg = (e.get('shot') or {}).get('statsbomb_xg', 0) or 0
-                    opponent['context']['score_state'][opp_state]['xga'] += xg
-                    opponent['context']['venue'][opp_venue]['xga'] += xg
-        if any(e.get('type', {}).get('name') == 'Shot' for e in pe) and pe[0].get('play_pattern', {}).get('name') == 'From Counter':
-            for context_name, context_key in (('score_state', state), ('venue', venue)):
-                T[tid]['context'][context_name][context_key]['transition_shots'] += 1
     for i, pe in enumerate(P):
         tid = pe[0]['possession_team']['id']
         if tid not in T: continue
@@ -389,7 +310,7 @@ def process(args):
                 A['mv'][ph][z][gz] += 1   # el mismo equipo sigue en juego abierto
             else:
                 A['n'][ph][z] -= 1
-    res = dict(src=src, mid=mid, teams={}, names={str(k): v for k, v in nick.items()})
+    res = dict(src=src, mid=mid, extract_version=2, context_status=context_status, teams={}, names={str(k): v for k, v in nick.items()})
     for tid, A in T.items():
         A['m']['opp_passes_own60'] = T[other[tid]]['m']['passes_own60'] if tid in other else 0
         A['m']['opp_passes'] = T[other[tid]]['m']['passes'] if tid in other else 0
@@ -400,8 +321,22 @@ def process(args):
         d['name'] = teams[tid]; d['xi'] = xi.get(tid)
         d['xg'] = [[round(v, 4) for v in row] for row in d['xg']]
         res['teams'][str(tid)] = d
-    out.write_text(json.dumps(res, separators=(',', ':'), ensure_ascii=False), encoding='utf-8')
+    out.write_text(json.dumps(res, separators=(',', ':'), ensure_ascii=False, allow_nan=False), encoding='utf-8')
     return str(out)
+
+def process(args):
+    """Quarantine incomplete matches instead of producing partial simulator counts."""
+    try:
+        return _process(args)
+    except (KeyError, TypeError, ValueError, OSError) as exc:
+        src, mid = args
+        out = OUT / f'{src}_{mid}.json'
+        failed = dict(src=src, mid=mid, extract_version=2, teams={},
+                      status='invalid', reason=f'{type(exc).__name__}: {exc}')
+        out.write_text(json.dumps(failed, ensure_ascii=False, allow_nan=False), encoding='utf-8')
+        print(f'WARN: {src}/{mid}: {failed["reason"]}', flush=True)
+        return str(out)
+
 
 def jobs():
     sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
@@ -413,8 +348,6 @@ def jobs():
 
 if __name__ == '__main__':
     J = jobs()
-    if '--force' in sys.argv:
-        for s, m in J: (OUT / f'{s}_{m}.json').unlink(missing_ok=True)
     with Pool(8) as p:
         for k, _ in enumerate(p.imap_unordered(process, J, chunksize=4)):
             if k % 100 == 0: print(k, len(J), flush=True)

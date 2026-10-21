@@ -40,8 +40,9 @@ def get(path):
         return _read_json(f)
     r = requests.get(f'{API}/{path}', auth=_auth(), timeout=120)
     r.raise_for_status()
-    f.write_text(r.text, encoding='utf-8')
-    return r.json()
+    data = json.loads(r.content.decode('utf-8-sig'))
+    f.write_text(json.dumps(data, ensure_ascii=False, allow_nan=False), encoding='utf-8')
+    return data
 
 # Liga MX (competición 73). Ventana oficial del reto: Apertura 2021 – Clausura 2025.
 SEASONS_ALL = {108: '2021/22', 235: '2022/23', 281: '2023/24', 317: '2024/25', 318: '2025/26', 351: '2026/27'}

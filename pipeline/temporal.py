@@ -6,6 +6,7 @@ as stable or unstable.
 """
 import math
 import statistics
+from contextual import summarize_bucket
 
 
 PERIOD_SIZE = 8
@@ -50,25 +51,7 @@ def _context_add(target, source):
 
 
 def _context_rates(counter):
-    passes = counter.get('passes', 0)
-    defensive = counter.get('ppda_def_actions', 0)
-    pass_distance = counter.get('pass_distance', 0)
-    return {
-        'minutes': round(counter.get('seconds', 0) / 60, 2),
-        'possessions': counter.get('possessions', 0),
-        'matches': counter.get('matches', 0),
-        'passes': passes,
-        'forward_pass_rate': _rate(counter.get('forward_passes', 0), passes),
-        'shots': counter.get('shots', 0),
-        'xg': round(counter.get('xg', 0), 4),
-        'xga': round(counter.get('xga', 0), 4),
-        'ppda': _rate(counter.get('ppda_passes', 0), defensive),
-        'pressures': counter.get('pressures', 0),
-        'recoveries': counter.get('recoveries', 0),
-        'transition_shots': counter.get('transition_shots', 0),
-        'directness': _rate(counter.get('forward_distance', 0), pass_distance),
-        'sufficient_sample': counter.get('matches', 0) >= MIN_PERIOD_MATCHES,
-    }
+    return summarize_bucket(counter)
 
 
 def _context_period(rows):
@@ -82,7 +65,8 @@ def _context_period(rows):
                 if not values:
                     continue
                 _context_add(counter, values)
-                counter['matches'] = counter.get('matches', 0) + 1
+                if 'matches' not in values:
+                    counter['matches'] = counter.get('matches', 0) + int(values.get('seconds', 0) > 0)
             dimensions[dimension][key] = _context_rates(counter)
     return dimensions
 
