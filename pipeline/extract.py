@@ -74,8 +74,7 @@ _state_for = state_for
 
 
 def zone(loc):
-    x = min(max(loc[0], 0), 119.999)
-    y = min(max(loc[1], 0), 79.999)
+    x = min(max(loc[0], 0), 119.999); y = min(max(loc[1], 0), 79.999)
     return int(x // 20) * NY + int(y // (80 / 3))
 
 def ts(e):
@@ -98,10 +97,8 @@ def is_admin(pe):
 
 def is_sp(pe):
     pp = pe[0]['play_pattern']['name']
-    if has_pen(pe):
-        return False
-    if pp == 'From Corner':
-        return True
+    if has_pen(pe): return False
+    if pp == 'From Corner': return True
     if pp == 'From Free Kick':
         f = first_onball(pe)
         return bool(f and f['location'][0] >= 80)
@@ -132,87 +129,20 @@ def new_team():
              m=collections.Counter(),
              context=dict(score_state={}, venue={}))
     for k in LTO_KEYS: d[k] = [[0] * NZ for _ in range(NZ)]
-    # New dict for open‑play signatures
-    d['plays_open'] = collections.defaultdict(lambda: [0, 0.0, 0])  # [count, xg, goals]
     return d
 
-<<<<<<< HEAD
 def _process(args):
-=======
-def classify_open(pe, acts, regain, prev):
-    """Return a key 'inicio|carril|definicion' for an open‑play possession."""
-    pp = pe[0]['play_pattern']['name']
-    first_act = acts[0] if acts else None
-    if pp == 'Regular Play' and first_act and first_act['location'][0] >= 60:
-        inicio = 'robo_alto'
-    elif pp == 'Regular Play':
-        inicio = 'robo_bajo'
-    elif pp == 'From Keeper':
-        inicio = 'salida_portero'
-    elif pp == 'From Throw In':
-        inicio = 'saque_banda'
-    elif pp == 'From Free Kick' and first_act and first_act['location'][0] >= 80:
-        inicio = 'tiro_libre'
-    elif pp == 'From Counter':
-        inicio = 'continuidad'
-    else:
-        inicio = 'otro'
-
-    lane = 'centro'
-    if first_act and first_act['location'][0] >= 80:
-        z = zone(first_act['location'])
-        col = z % NY
-        if col == 0:
-            lane = 'izquierda'
-        elif col == 2:
-            lane = 'derecha'
-
-    definition = 'individual'
-    last_pass = None
-    for e in reversed(acts):
-        if e['type']['name'] == 'Pass':
-            last_pass = e
-            break
-    if last_pass:
-        start_z = zone(last_pass['location'])
-        end_z = zone(last_pass['pass']['end_location'])
-        if start_z // NY == 0 and end_z // NY == 2:
-            definition = 'centro'
-        elif last_pass['location'][0] < 80 and end_z // NY == 2:
-            definition = 'pase_profundo'
-        elif start_z // NY == 2 and end_z // NY == 2:
-            definition = 'combinacion'
-        else:
-            definition = 'conduccion'
-    return f"{inicio}|{lane}|{definition}"
-
-
-def process(args):
->>>>>>> origin/main
     src, mid = args
     out = OUT / f'{src}_{mid}.json'
     if out.exists() and '--force' not in sys.argv:
         if _read_json_file(out).get('extract_version') == 2: return str(out)
     if src == 'mx':
-<<<<<<< HEAD
         E = _read_json_file(CACHE / f'v8_events_{mid}.json'); L = _read_json_file(CACHE / f'v4_lineups_{mid}.json')
     else:
         E = _read_json_file(OD / f'events_{mid}.json')
         try:
             L = _read_json_file(OD / f'lineups_{mid}.json')
         except (OSError, UnicodeError, json.JSONDecodeError):
-=======
-        E = json.load(open(CACHE / f'v8_events_{mid}.json', encoding='utf-8', errors='ignore'))
-        try:
-            L = json.load(open(CACHE / f'v4_lineups_{mid}.json', encoding='utf-8', errors='ignore'))
-        except Exception:
-            L = []
-    else:
-        E = json.load(open(OD / f'events_{mid}.json', encoding='utf-8', errors='ignore'))
-        try:
-            L = json.load(open(OD / f'lineups_{mid}.json', encoding='utf-8', errors='ignore'))
-        except Exception:
->>>>>>> origin/main
             L = []
     nick = {}
     for t in L:
@@ -297,17 +227,6 @@ def process(args):
                     el = e['pass']['end_location'] if e['type']['name'] == 'Pass' else e['carry']['end_location']
                     fwd += max(0.0, el[0] - e['location'][0]); tot += ((el[0] - e['location'][0]) ** 2 + (el[1] - e['location'][1]) ** 2) ** 0.5
             A['m']['dir_fwd'] += fwd; A['m']['dir_tot'] += tot
-            # Classify open‑play signature and accumulate stats
-            key = classify_open(pe, acts, regain, prev)
-            # Ensure entry exists
-            stats = A['plays_open'][key]
-            stats[0] += 1  # count
-            # xG from shots in this possession
-            shot_xg = sum(e['shot']['statsbomb_xg'] for e in acts if e['type']['name'] == 'Shot')
-            stats[1] += shot_xg
-            # Goals from shots with outcome Goal
-            goals = sum(1 for e in acts if e['type']['name'] == 'Shot' and e['shot']['outcome']['name'] == 'Goal')
-            stats[2] += goals
         if regain and acts[0]['location'][0] >= 80:
             A['m']['high_press_shots'] += sum(1 for e in acts if e['type']['name'] == 'Shot')
         shots_np = [e for e in acts if e['type']['name'] == 'Shot']
@@ -402,11 +321,7 @@ def process(args):
         d['name'] = teams[tid]; d['xi'] = xi.get(tid)
         d['xg'] = [[round(v, 4) for v in row] for row in d['xg']]
         res['teams'][str(tid)] = d
-<<<<<<< HEAD
     out.write_text(json.dumps(res, separators=(',', ':'), ensure_ascii=False, allow_nan=False), encoding='utf-8')
-=======
-    out.write_text(json.dumps(res, separators=(',', ':'), ensure_ascii=False), encoding='utf-8', errors='ignore')
->>>>>>> origin/main
     return str(out)
 
 def process(args):

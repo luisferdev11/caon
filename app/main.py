@@ -71,7 +71,6 @@ def team(team_id: str):
     raise HTTPException(404, f'No existe el equipo {team_id}')
 
 
-<<<<<<< HEAD
 @app.get('/api/teams/{team_id}/context')
 def context(team_id: str):
     """Contextos observados, cobertura y diferencias descriptivas."""
@@ -117,19 +116,6 @@ def substitutions(team_id: str):
             return {'team': team_summary(e),
                     'substitutions': personnel_data.get('substitutions', []),
                     'coverage': personnel_data.get('coverage', {})}
-=======
-@app.get('/api/teams/{team_id}/dangerous-plays')
-def dangerous_plays(team_id: str):
-    """Top de secuencias ofensivas rivales observadas en los partidos del equipo."""
-    for e in load_model()['entities']:
-        if e['id'] == team_id:
-            return {
-                'team': team_summary(e),
-                'plays': e.get('dangerous_plays', []),
-                'criterion': '100 × gol + 10 × xG + peligro de zona (min(max(x del remate − 80, 0), 40)); los goles siempre quedan por delante.',
-                'limitations': 'Solo se incluyen posesiones rivales que terminan en remate y eventos registrados por StatsBomb. No se interpolan posiciones ni se usan datos 360 en este modelo.',
-            }
->>>>>>> origin/main
     raise HTTPException(404, f'No existe el equipo {team_id}')
 
 
