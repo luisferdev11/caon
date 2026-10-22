@@ -121,3 +121,54 @@ test('match card: unknown match shows a friendly message', async () => {
   await v.render(root, await ctx({}, 'aficionado', ['999']));
   assert.match(root.innerHTML, /No encontramos este partido/);
 });
+
+const COACH = { key: 'jorge-almada', label: 'Jorge Almada', n: 158, confidence: 'alta', small_sample: false, window: 'oficial', desde: '2021-07-24', hasta: '2025-05-11', clubes: ['Pachuca', 'América'],
+  identity: { build: 'Pase corto', defense: 'Presión alta', attack: 'Mixto', tags: ['Letal al contragolpe'] },
+  metrics: { posesion: { id: 'posesion', value: 0.55, raw: 0.56, n: 158, unit: '% del balón', source: 'team-stats', window: 'oficial', ref_pct: 81, ci: [0.53, 0.57] },
+    contragolpe: { id: 'contragolpe', value: 0.5, raw: 0.4, n: 158, unit: 'por partido', source: 'team-stats', window: 'oficial', ref_pct: 93, ci: [0.3, 0.7] } },
+  tenencias: [{ team: 'Pachuca', n: 138, confidence: 'alta', small_sample: false, window: 'oficial', desde: '2022-01-07', hasta: '2025-05-11', entidades: [{ id: 'pac_almada', window: 'oficial' }] },
+    { team: 'América', n: 10, confidence: 'baja', small_sample: true, window: 'temprano', desde: '2026-07-19', hasta: '2026-10-11', entidades: [{ id: 'ame_almada', window: 'temprano' }] }] };
+const CROUTES = { '/api/explorer/coach/jorge-almada': COACH,
+  '/api/kpis/pac_almada': { kpis: { oficial: [KPI('field_tilt', 'Dominio territorial', 53, 69)] } },
+  '/api/kpis/ame_almada': { kpis: { temprano: [KPI('field_tilt', 'Dominio territorial', 60.5, 99, { window: 'temprano' })] } } };
+
+test('coach: header, five traits in plain words (Aficionado) and the career timeline with small-sample warning', async () => {
+  const v = await import('../frontend/views/coach.js'); const q = await import('../frontend/js/qa.js'); const root = fakeRoot();
+  await v.render(root, await ctx(CROUTES, 'aficionado', ['jorge-almada']));
+  const h = root.innerHTML;
+  assert.match(h, /Jorge Almada/); assert.match(h, /Cómo juega, en cinco rasgos/); assert.match(h, /Tiene mucho el balón|Remata mucho al contragolpe/);
+  assert.match(h, /Pachuca/); assert.match(h, /Muestra pequeña/); assert.match(h, /Fuera de ventana oficial/); assert.match(h, /class="tl-bar"/);
+  assert.doesNotMatch(h, /de cada 100 equipos/); assert.doesNotMatch(h, /undefined|NaN|unknown/);
+  for (const card of h.split('<article').slice(1)) assert.ok(q.countNumbers(strip(card.split('</article>')[0])) <= 3, strip(card));
+  const dt = fakeRoot(); await v.render(dt, await ctx(CROUTES, 'dt', ['jorge-almada']));
+  assert.match(dt.innerHTML, /más que 81 de cada 100/); assert.match(dt.innerHTML, /Ver datos de los rasgos/);
+});
+test('coach: unknown or missing key shows a friendly state', async () => {
+  const v = await import('../frontend/views/coach.js');
+  let root = fakeRoot(); await v.render(root, await ctx({}, 'aficionado', ['nadie']));
+  assert.match(root.innerHTML, /No encontramos a este entrenador/);
+  root = fakeRoot(); await v.render(root, await ctx({}, 'aficionado', []));
+  assert.match(root.innerHTML, /Elige un entrenador/);
+});
+
+const FW = { definitions: { ppda: { nombre: 'PPDA', definicion: 'Pases rivales por acción defensiva', unidad: 'pases', limites: 'Solo campo rival', fuente: 'eventos', formula: 'a/b' },
+  field_tilt: { nombre: 'Field tilt', definicion: 'Dominio territorial', unidad: '%', limites: 'x', fuente: 'eventos' } },
+  kpis: [{ id: 'field_tilt', nombre: 'Dominio territorial', apoyo: [], mejor: 'alto' }, { id: 'perdida_costosa', nombre: 'Pérdidas costosas por partido', apoyo: ['tipo_error'], mejor: 'bajo' }],
+  assumptions: ['La posesión se aproxima con el identificador de StatsBomb.'], scope: ['Ventana oficial: Apertura 2021 a Clausura 2025.'],
+  limits: ['Las asociaciones son descriptivas, no causales.'], thresholds: { REC_ALTA_X: 80, CI_LEVEL: 0.8 }, windows: ['oficial', 'epilogo', 'temprano'], official_end: '2025-06-30' };
+
+test('method: assumptions, scope, limits and the seven KPIs sit before the glossary', async () => {
+  const v = await import('../frontend/views/method.js'); const root = fakeRoot();
+  await v.render(root, await ctx({ '/api/framework': FW }));
+  const h = root.innerHTML + root.kids['#defs'].innerHTML + root.kids['#method-intro'].innerHTML;
+  assert.match(h, /Supuestos/); assert.match(h, /La posesión se aproxima/); assert.match(h, /Alcance/); assert.match(h, /Las asociaciones son descriptivas/);
+  assert.match(h, /Dominio territorial/); assert.match(h, /Pérdidas costosas por partido/); assert.match(h, /#metodo\/field_tilt/);
+  assert.match(h, /mejor es tener menos|menos es mejor/i); assert.doesNotMatch(h, /Umbrales con nombre/);
+  const dt = fakeRoot(); await v.render(dt, await ctx({ '/api/framework': FW }, 'dt'));
+  assert.match(dt.kids['#method-intro'].innerHTML, /Umbrales con nombre/); assert.match(dt.kids['#method-intro'].innerHTML, /REC_ALTA_X/);
+});
+test('method: old payload without the new blocks still renders the glossary', async () => {
+  const v = await import('../frontend/views/method.js'); const root = fakeRoot();
+  await v.render(root, await ctx({ '/api/framework': { definitions: FW.definitions } }));
+  assert.match(root.kids['#defs'].innerHTML, /PPDA/); assert.doesNotMatch(root.kids['#method-intro'].innerHTML, /undefined|NaN/);
+});

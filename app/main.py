@@ -174,10 +174,9 @@ def load_framework():
 
 @app.get('/api/framework')
 def framework():
-    """Marco analítico: definiciones canónicas de cada métrica publicada y nombres de las etiquetas."""
+    """Marco analítico: definiciones, KPIs, nombres de etiquetas, umbrales, supuestos, alcance y límites."""
     try:
-        module = framework_module()
-        return {'definitions': module.DEFINITIONS, 'etiquetas': module.label_rules()}
+        return framework_module().framework_payload()
     except Exception as exc:
         raise HTTPException(503, f'El marco analítico no está disponible: {type(exc).__name__}') from exc
 

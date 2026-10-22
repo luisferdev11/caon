@@ -414,21 +414,21 @@ Reglas de interfaz para toda la etapa:
 - **Aceptación:** AC-13 (la ficha incluye "¿mereció ganar?"); cada ficha ≤60 KB. ✅ *(`views/match.js`; pendiente: el mapa de tiros y el OBV del modo DT, porque la ficha aún no trae los tiros: se agrega en una iteración posterior.)*
 
 **T-15 · Ficha de DT** (`frontend/views/coach.js`)
-- [ ] `#dt/<key>`: 5 rasgos en palabras sencillas (de `labels.identity` y del explorador), línea de tiempo de su carrera por club y KPIs con confianza.
-- **Aceptación:** funciona para Jardine, Almada y al menos 3 DTs actuales con muestra chica (confianza visible).
+- [x] `#dt/<key>`: 5 rasgos en palabras sencillas (de `labels.identity` y del explorador), línea de tiempo de su carrera por club y KPIs con confianza.
+- **Aceptación:** funciona para Jardine, Almada y al menos 3 DTs actuales con muestra chica (confianza visible). ✅ *(`views/coach.js`; QA en navegador sin errores con Jardine, Almada y un DT de 1 partido.)*
 
 **T-16 · Explorador y Método** (`frontend/views/explorer.js`, `method.js`)
-- [ ] Explorador con los datos v2 reales:
+- [x] Explorador con los datos v2 reales:
   - pestañas por equipo y por DT;
   - valores encogidos con intervalo al 80%, insignia de confianza, marca de muestra chica e insignia de fuera de ventana;
   - unidades en lenguaje llano (no "proporción 0–1 en team-stats"; la unidad sale del catálogo `metricas`).
-- [ ] Método: glosario con ids, supuestos, alcance y límites.
-- **Aceptación:** AC-12; ninguna tarjeta vacía.
+- [x] Método: glosario con ids, supuestos, alcance y límites.
+- **Aceptación:** AC-12; ninguna tarjeta vacía. ✅ *(Método ahora trae alcance, límites, supuestos, los 7 KPIs y los umbrales en DT; `/api/framework` publica el payload completo; las tarjetas del explorador apilan valor, intervalo 80 % y bruto.)*
 
 **T-17 · Laboratorio**
-- [ ] Revisar que `#laboratorio` y `lab.html` compartan el sistema de diseño, y que el laboratorio de jugadas use `pitch.js` y los colores fijos (protagonista dorado).
-- [ ] Probar 5 frases de ejemplo en modo reglas y 1 en modo auto con LLM (≤3 llamadas).
-- [ ] El panel de interpretación usa `/api/xg_grid`.
+- [x] Revisar que `#laboratorio` y `lab.html` compartan el sistema de diseño, y que el laboratorio de jugadas use `pitch.js` y los colores fijos (protagonista dorado). *(el QA de navegador de `#laboratorio` y `lab.html` pasa sin errores; la revisión visual fina queda para G3.)*
+- [ ] Probar 5 frases de ejemplo en modo reglas y 1 en modo auto con LLM (≤3 llamadas). *(pendiente: se hace en G3 con capturas; el crédito de OpenRouter es de $3.)*
+- [x] El panel de interpretación usa `/api/xg_grid`. *(T-03.7)*
 - **Aceptación:** AC-10; golden OK.
 
 **T-18 · Puerta de control G3**

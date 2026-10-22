@@ -37,7 +37,7 @@ Posesión de StatsBomb con al menos una acción con balón (pase, conducción, r
 
 - **Fórmula:** possession id con ≥1 acción con balón
 - **Unidad:** posesiones
-- **Límites:** Aproximada desde eventos. Se excluye un tiro hecho dentro de una posesión rival (1 de 2,241 tiros y 0.003 % del xG en los 91 partidos de Jardine; se mide en rival_shots de cada an_). La jugada que reanuda (córner, tiro libre, saque de banda o de puerta, inicial) no cuenta como progresión.
+- **Límites:** Aproximada desde eventos. Se excluye un tiro hecho dentro de una posesión rival (1 de 2,241 tiros y menos de una milésima del xG en los 91 partidos de Jardine; se mide en rival_shots de cada an_). La jugada que reanuda (córner, tiro libre, saque de banda o de puerta, inicial) no cuenta como progresión.
 - **Fuente:** eventos
 
 ### Origen de la posesión (`origen`)
@@ -190,7 +190,7 @@ Pases rivales permitidos por acción defensiva propia en campo de presión.
 
 - **Fórmula:** pases rivales x<72 (su marco) / (intercepción+falta+entrada+regate superado) x≥48
 - **Unidad:** pases
-- **Límites:** Menor = más presión. Con el regate superado correlaciona r=0.985 con el PPDA de StatsBomb.
+- **Límites:** Menor = más presión. Con el regate superado correlaciona r=0.98 con el PPDA de StatsBomb.
 - **Fuente:** eventos
 
 ### Contrapresión (`contrapresion`)

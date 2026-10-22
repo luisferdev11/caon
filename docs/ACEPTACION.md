@@ -1,6 +1,6 @@
 # Aceptación automática
 
-Generado por `pipeline/acceptance.py` el 2026-10-21 19:33.
+Generado por `pipeline/acceptance.py` el 2026-10-21 19:41.
 ✅ cumple · ❌ no cumple · ⏳ pendiente o requiere revisión manual (con motivo).
 
 | AC | Criterio | Estado | Evidencia |
@@ -20,5 +20,5 @@ Generado por `pipeline/acceptance.py` el 2026-10-21 19:33.
 | AC-13 | Modo Aficionado / DT | ⏳ | modo Aficionado/DT: archivos presentes, verificación de contenido manual/por revisor |
 | AC-14 | Simulación interpretativa | ✅ | repetición con xG (puntos contra xPts) y duelo de estilos rotulado como no pronóstico |
 | AC-15 | Ventana oficial | ✅ | conclusiones solo en la ventana oficial; epílogo y evidencia temprana marcados |
-| AC-16 | Calidad | ✅ | unittest OK; node --test OK; check_model OK; validate.js 100 OK; referee.js 3 OK; ruff (12 archivos) limpio; /api/model 1.2 MB |
+| AC-16 | Calidad | ✅ | unittest OK; node --test OK; check_model OK; validate.js 100 OK; referee.js 3 OK; ruff (11 archivos) limpio; /api/model 1.2 MB |
 | AC-17 | Entrega | ⏳ | RESUMEN_NOCHE.md falta; /api/health responde |

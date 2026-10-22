@@ -55,9 +55,15 @@ function valueCell(r, fmt) {
 }
 
 /** Tabla DT: métrica (enlace a Método), valor ajustado, intervalo 80%, bruto, percentil y unidad. */
-function metricsTable(rows, ctx) {
+function metricsTable(rows, ctx, compact = false) {
   const { fmt } = ctx;
   if (!rows.length) return '';
+  if (compact) {   // tarjeta de lista: tres columnas; intervalo 80 % y bruto van apilados bajo el valor ajustado
+    const body = rows.map((r) => `<tr><th scope="row"><a href="#metodo/${encodeURIComponent(r.fid)}">${fmt.esc(r.label)}</a></th>` +
+      `<td class="num"><strong>${fmt.metricValue(r.rec)}</strong><span class="muted sub">${fmt.ciByUnit(r.ci, r.unit, r.rec.source)} · bruto ${fmt.metricValue(r.rec, r.rec.bruto !== undefined ? 'bruto' : 'raw')}</span></td>` +
+      `<td class="num">${r.pct === null ? fmt.NA : fmt.percentile(r.pct)}</td></tr>`).join('');
+    return `<table class="table compact"><thead><tr><th>Métrica</th><th class="num">Valor ajustado, intervalo 80% y bruto</th><th class="num">Frente a la liga</th></tr></thead><tbody>${body}</tbody></table>`;
+  }
   const body = rows.map((r) => `<tr><th scope="row"><a href="#metodo/${encodeURIComponent(r.fid)}">${fmt.esc(r.label)}</a></th>${valueCell(r, fmt)}` +
     `<td class="num">${r.pct === null ? fmt.NA : fmt.percentile(r.pct)}</td><td class="muted">${fmt.esc(fmt.unitText(r.unit))}</td></tr>`).join('');
   return `<div class="scroll"><table class="table"><thead><tr><th>Métrica</th><th class="num">Valor ajustado</th><th class="num">Intervalo 80%</th>` +
@@ -73,10 +79,10 @@ function listCard(u, kind, ctx) {
   const { fmt, mode } = ctx;
   const rows = metricRows(u);
   const hasData = rows.length || identityChips(u.identity).length;
-  const detail = mode === 'dt' ? metricsTable(rows.filter((r) => LIST_DT_METRICS.includes(r.id)), ctx) : traitsHTML(u, ctx);
+  const detail = mode === 'dt' ? metricsTable(rows.filter((r) => LIST_DT_METRICS.includes(r.id)), ctx, true) : traitsHTML(u, ctx);
   const cls = ['card', u.small ? 'small' : '', u.window && u.window !== 'oficial' ? 'out' : ''].filter(Boolean).join(' ');
   return `<article class="${cls}"><header><h3><a href="${hrefOf(kind, u.key)}">${fmt.esc(u.name)}</a></h3>${badgesHTML(u, ctx)}</header>
-    ${relatedHTML(u, kind, ctx)}${chipsHTML(u.identity, ctx, mode === 'dt')}${detail}
+    ${relatedHTML(u, kind, ctx)}${kind === 'dts' ? `<p class="muted">Promedio de todos sus clubes en la ventana oficial.</p><p><a class="btn sm ghost" href="#dt/${encodeURIComponent(u.key)}">Ver ficha del entrenador</a></p>` : ''}${chipsHTML(u.identity, ctx, mode === 'dt')}${detail}
     ${hasData ? '' : '<p class="muted">Abre la ficha para ver su detalle por temporada.</p>'}
     <p><a class="btn sm" href="${hrefOf(kind, u.key)}">Ver ficha →</a></p></article>`;
 }

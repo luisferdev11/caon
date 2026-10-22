@@ -26,7 +26,7 @@ DEF_BASE: dict[str, dict[str, str]] = {
                     '(pase, conducción, regate o tiro) del equipo poseedor; se ignoran las solo administrativas.',
                     'possession id con ≥1 acción con balón', 'posesiones',
                     'Aproximada desde eventos. Se excluye un tiro hecho dentro de una posesión rival (1 de 2,241 tiros '
-                    'y 0.003 % del xG en los 91 partidos de Jardine; se mide en rival_shots de cada an_). La '
+                    'y menos de una milésima del xG en los 91 partidos de Jardine; se mide en rival_shots de cada an_). La '
                     'jugada que reanuda (córner, tiro libre, saque de banda o de puerta, inicial) no cuenta como '
                     'progresión.', EV),
     'origen': _d('Origen de la posesión', 'Robo en juego, portero, banda, tiro libre, córner, saque inicial u otro.',
@@ -72,7 +72,7 @@ DEF_BASE: dict[str, dict[str, str]] = {
                        'Marco propio.', EV),
     'ppda': _d('PPDA', 'Pases rivales permitidos por acción defensiva propia en campo de presión.',
                'pases rivales x<72 (su marco) / (intercepción+falta+entrada+regate superado) x≥48', 'pases',
-               'Menor = más presión. Con el regate superado correlaciona r=0.985 con el PPDA de StatsBomb.', EV),
+               'Menor = más presión. Con el regate superado correlaciona r=0.98 con el PPDA de StatsBomb.', EV),
     'contrapresion': _d('Contrapresión', 'Presiones marcadas como contrapresión por StatsBomb (en los 5 s '
                         'siguientes a perder el balón).', 'presiones con counterpress', 'presiones/partido',
                         STYLE_NOTE, EV),

@@ -88,7 +88,7 @@ test('explorer.v2 list: names, identity, traits and confidence (fan) · shrunk v
   root = fakeRoot(); await v.render(root, await ctx([V2.COACH], 'dt', ['dts']));
   html = root.kids['#exp-list'].innerHTML;
   assert.match(html, /1\.41/); assert.match(html, /1\.35 – 1\.47/); assert.match(html, /53% – 55%/); assert.match(html, /54%/);
-  assert.match(html, /Muy vertical/); assert.match(html, /Valor ajustado/); assert.match(html, /Bruto/);
+  assert.match(html, /Muy vertical/); assert.match(html, /Valor ajustado/); assert.match(html, /bruto 1\.4/);
   assert.doesNotMatch(html, /undefined|NaN|null/);
 });
 test('explorer.v2 coach detail: summary, motivo for missing metric and tenures with window and prior', async () => {

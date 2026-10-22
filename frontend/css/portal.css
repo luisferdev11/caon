@@ -89,3 +89,17 @@ dl.defs dd { margin: 0; overflow-wrap: anywhere; }
 .axis { display: flex; justify-content: space-between; color: var(--muted); font-size: var(--fs-xs); padding: 0 2%; }
 .verdict .kicker { margin-bottom: 2px; }
 .view > .btn { align-self: flex-start; }
+
+/* ficha de entrenador: línea de tiempo de su carrera */
+.timeline { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--space-3); }
+.tl { display: flex; flex-direction: column; gap: 6px; padding-left: var(--space-3); border-left: 2px solid var(--line); }
+.tl-head { display: flex; flex-wrap: wrap; gap: 4px var(--space-3); align-items: baseline; }
+.tl-bar { height: 8px; border-radius: 4px; background: var(--chart-protag); }
+.table.compact { width: 100%; table-layout: auto; }
+.table.compact th, .table.compact td { padding: 6px 8px; }
+.table.compact .sub { display: block; font-size: var(--fs-xs); font-weight: 400; }
+.table.compact { table-layout: fixed; width: 100%; }
+.table.compact th, .table.compact td { white-space: normal; overflow-wrap: anywhere; }
+.table.compact th:nth-child(1) { width: 32%; }
+.table.compact th:nth-child(2) { width: 38%; }
+.table.compact th:nth-child(3) { width: 30%; }

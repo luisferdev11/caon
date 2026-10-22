@@ -156,6 +156,14 @@ class RouteTests(unittest.TestCase):
         if res.status_code == 200:
             self.assertIsInstance(res.json()['definitions'], dict)
 
+    def test_framework_route_publishes_the_whole_method(self):
+        body = self.client.get('/api/framework').json()
+        for key in ('definitions', 'etiquetas', 'kpis', 'assumptions', 'scope', 'limits', 'thresholds', 'windows', 'official_end'):
+            self.assertIn(key, body)
+        self.assertEqual(len(body['kpis']), 7)
+        self.assertTrue(body['assumptions'] and body['scope'] and body['limits'])
+        self.assertEqual(body['official_end'], '2025-06-30')
+
     def test_framework_route_exposes_label_names(self):
         res = self.client.get('/api/framework')
         self.assertEqual(res.status_code, 200)
