@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Vestidor Táctico</title>
+<title>Trabajo Táctico CAON</title>
 <script src="js/theme.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -15,7 +15,7 @@
 </head>
 <body>
 <header class="top"><div class="top-in">
-  <a class="brand" href="#historia"><span class="eyebrow">Liga MX · Hudl StatsBomb</span><b>Vestidor Táctico</b></a>
+  <a class="brand" href="#historia"><span class="eyebrow">Trabajo táctico</span><b>CAON</b></a>
   <nav class="tabs" id="tabs" aria-label="Secciones">
     <a href="#historia">Historia</a><a href="#almada">Almada</a><a href="#partidos">Partidos</a>
     <a href="#explorador">Explorador</a><a href="#laboratorio">Laboratorio</a><a href="#metodo">Método</a>
@@ -90,7 +90,7 @@ async function route() {
   try {
     if (name === 'laboratorio') await renderLab(root, ctx);
     else await (await import(`./views/${r.view}.js`)).render(root, ctx);
-    document.title = `${r.label} · Vestidor Táctico`;
+    document.title = `${r.label} · CAON`;
   } catch (e) {
     window.__note(String(e));
     root.innerHTML = '<div class="card"><h3>No pudimos mostrar esta sección</h3><p class="muted">Intenta recargar la página.</p></div>';

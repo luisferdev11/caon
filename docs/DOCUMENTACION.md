@@ -1,4 +1,4 @@
-# Vestidor Táctico · Documentación técnica
+# CAON · Trabajo Táctico · Documentación técnica
 
 Cómo funciona todo: de dónde salen los datos, cómo se consumen y transforman, cómo se obtiene el estilo de juego de cada entrenador, cómo se simulan los partidos y cómo agregar equipos o entrenadores nuevos.
 

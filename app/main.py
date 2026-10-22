@@ -1,4 +1,4 @@
-"""Servidor de Caon (Vestidor Táctico).
+"""Servidor de CAON (Trabajo Táctico).
 
 Sirve el portal (frontend/index.html), el laboratorio de simulación (frontend/lab.html) y una API de solo
 lectura sobre el modelo construido en model/:
@@ -33,7 +33,7 @@ EXPLORER_HEAVY_KEYS = ('temporadas', 'tenencias', 'entidades')   # solo en el de
 EXPLORER_LIST_METRIC_KEYS = ('id', 'value', 'raw', 'ci', 'ref_pct', 'n', 'window')  # nombre y unidad salen del catálogo
 SUMMARY_KEYS = ('id', 'label', 'team', 'coach', 'group', 'kind', 'n', 'd0', 'd1', 'official', 'formation')
 
-app = FastAPI(title='Caon · Vestidor Táctico',
+app = FastAPI(title='CAON · Trabajo Táctico',
               description='Estilos de juego de Liga MX, historia de Jardine en América y simulación con datos StatsBomb.')
 
 _cache = {}

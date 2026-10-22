@@ -1,4 +1,4 @@
-# Caon · Vestidor Táctico
+# CAON · Trabajo Táctico
 
 Estilos de juego de entrenadores de la Liga MX medidos con datos de Hudl StatsBomb, y un simulador de partidos estilo FC que enfrenta esos estilos jugada a jugada. Proyecto para el Hackathon ISAC 2026 · Club América ("La historia de un entrenador a través de los datos").
 
