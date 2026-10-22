@@ -1,0 +1,2634 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Metodología y resultados auditados de CAON: fuentes, métricas, contexto, evolución, jugadores, límites y trazabilidad por versión.">
+<title>CAON · Metodología y resultados</title>
+<style>
+:root{color-scheme:light;--ink:#19362c;--text:#263d35;--muted:#5e7169;--line:#dbe4df;--paper:#fff;--wash:#f3f6f3;--green:#12644f;--gold:#c28c30;--red:#a53b2e}*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:1rem}body{margin:0;background:var(--wash);color:var(--text);font:16px/1.68 system-ui,-apple-system,"Segoe UI",sans-serif}a{color:var(--green);text-decoration-thickness:1px;text-underline-offset:3px}a:hover{text-decoration-thickness:2px}:focus-visible{outline:3px solid var(--gold);outline-offset:4px}.skip{position:absolute;top:-5rem;left:1rem;z-index:20;background:#fff;padding:.6rem}.skip:focus{top:1rem}.layout{display:grid;grid-template-columns:250px minmax(0,1fr);max-width:1600px;margin:auto}.sidebar{position:sticky;top:0;height:100vh;padding:2rem 1.3rem 1.3rem;border-right:1px solid var(--line);overflow-y:auto;background:#f3f6f3}.brand{color:var(--ink);font-size:2rem;font-weight:850;letter-spacing:-.07em}.brand span{display:block;font-size:.68rem;font-weight:650;letter-spacing:.18em;text-transform:uppercase;color:var(--muted)}.sidebar details{border:0;background:transparent;margin:1.5rem 0}.sidebar summary{font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);padding:0 0 .6rem}.sidebar summary::marker{color:var(--green)}nav ol{padding:0;list-style:none;margin:0}nav a{display:flex;gap:.7rem;padding:.38rem .3rem;text-decoration:none;font-size:.81rem;line-height:1.4;border-radius:4px;color:var(--muted)}nav a:hover{background:#e3ece6;color:var(--ink)}nav a span{font-size:.65rem;padding-top:.15rem;color:#8a9c91;min-width:1rem}.sidebar .foot{font-size:.72rem;line-height:1.6;margin-top:2rem;color:var(--muted)}main{min-width:0;padding:2.6rem clamp(1.3rem,4vw,4.5rem) 4rem;background:var(--paper)}.hero{padding:1rem 0 2.4rem;border-bottom:1px solid var(--line)}.eyebrow{font-size:.7rem;font-weight:750;letter-spacing:.16em;color:var(--green);text-transform:uppercase}h1{font-size:clamp(2.5rem,5vw,4.8rem);line-height:1.02;letter-spacing:-.06em;font-weight:800;max-width:18ch;color:var(--ink);margin:1.2rem 0}.hero .intro{font-size:1.1rem;color:var(--muted);max-width:65ch}.hero .edition{font-size:.75rem;color:var(--muted);margin:1.2rem 0 0}.section-label{font-weight:750;font-size:.72rem;letter-spacing:.1em;color:var(--green)}section{padding:3.5rem 0 1rem;scroll-margin-top:1.2rem}section+section{border-top:1px solid var(--line);margin-top:2rem}h2{font-size:clamp(1.7rem,3vw,2.5rem);line-height:1.16;letter-spacing:-.035em;color:var(--ink);margin:.45rem 0 1.4rem}h3{font-size:1.1rem;line-height:1.35;margin:.4rem 0 .8rem;color:var(--ink)}p{margin:0 0 1.1rem;max-width:85ch}p:last-child{margin-bottom:0}.lead{font-size:1.1rem;color:var(--muted)}.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1rem;margin:1.6rem 0 2rem}.stats div{border-top:3px solid var(--green);padding:1rem .6rem;background:var(--wash)}.stats b{display:block;font-size:2.1rem;line-height:1.15;color:var(--ink);letter-spacing:-.04em}.stats span{display:block;font-size:.75rem;line-height:1.5;color:var(--muted);margin-top:.4rem}.legend{display:flex;gap:.5rem;flex-wrap:wrap;margin:1rem 0}.badge{display:inline-block;font-size:.67rem;line-height:1.4;font-weight:700;padding:.33rem .6rem;border-radius:3px;background:#e9eeeb;color:#405c4f;margin-bottom:.8rem}.badge.green{background:#e0f1e6;color:#17573d}.badge.amber{background:#fff0d7;color:#77530d}.badge.red{background:#fbe9e3;color:#8e3b2b}.grid{display:grid;gap:1rem;margin:1.4rem 0}.two{grid-template-columns:repeat(2,minmax(0,1fr))}.four{grid-template-columns:repeat(4,minmax(0,1fr))}.grid article{background:var(--wash);border:1px solid var(--line);border-radius:6px;padding:1.2rem;min-width:0}.grid p{font-size:.89rem;line-height:1.65}.grid h3{font-size:1.04rem}.ref{font-size:.7rem;letter-spacing:.04em;font-weight:750;color:var(--green)}.step{font-size:1.8rem;line-height:1;color:#a9bfb1;font-weight:700}.small{font-size:.8rem!important;color:var(--muted)}.source{font-size:.74rem;line-height:1.55;color:var(--muted);overflow-wrap:anywhere;margin:1rem 0 1.3rem}.callout{border-left:4px solid var(--gold);background:#fcf5e8;padding:1.2rem 1.4rem;margin:1.6rem 0;border-radius:0 5px 5px 0}.callout strong{color:#634811}.callout p{margin:.5rem 0 0;font-size:.9rem}.table-wrap{max-width:100%;overflow-x:auto;border:1px solid var(--line);border-radius:6px;margin:1.5rem 0;overscroll-behavior-x:contain}.table-wrap:focus{outline:2px solid var(--green);outline-offset:3px}table{border-collapse:collapse;width:100%;min-width:650px;font-size:.79rem;line-height:1.6}caption{text-align:left;font-weight:700;font-size:.78rem;background:#eaf0eb;color:var(--ink);padding:.8rem 1rem;border-bottom:1px solid var(--line)}th,td{text-align:left;vertical-align:top;padding:.7rem .9rem;border-bottom:1px solid var(--line);min-width:7rem;overflow-wrap:anywhere}thead th{font-size:.7rem;letter-spacing:.025em;background:#f3f6f3;color:#4d6559}tbody th{font-weight:650;background:#fafcf9;color:var(--ink)}tr:last-child>*{border-bottom:0}tbody tr:nth-child(even) td{background:#fcfdfb}code{font: .85em/1.5 ui-monospace,Consolas,monospace;overflow-wrap:anywhere;background:#edf2ed;border-radius:3px;padding:.12rem .25rem}pre{padding:1.3rem;background:#ecf1ec;overflow:auto;font-size:.83rem;border-radius:5px}pre code{white-space:pre;background:none;padding:0}blockquote{font-size:1.35rem;line-height:1.55;border-left:3px solid var(--green);padding:0 0 0 1.3rem;margin:1.3rem 0 2rem;max-width:70ch;color:var(--ink)}details{border:1px solid var(--line);border-radius:5px;background:#fff;margin:.7rem 0;min-width:0}summary{cursor:pointer;padding:.85rem 1rem;font-size:.88rem;font-weight:650;color:var(--ink);line-height:1.5}summary::marker{color:var(--green)}details[open]>summary{background:#eef4ed;border-bottom:1px solid var(--line)}details>.table-wrap,details>p,details>pre{margin:1rem}details>p{font-size:.86rem}.metric-content{padding:1rem 1.2rem;min-width:0}.metric-content p{font-size:.86rem}.metric summary{display:list-item}.unit,.state{display:block;font-size:.7rem;font-weight:450;color:var(--muted);margin-top:.2rem}.metric .ref,.viz-list .ref{margin-right:.5rem}.family{margin:2rem 0 .7rem;padding-bottom:.5rem;border-bottom:2px solid var(--line);font-size:1.08rem}.formula{padding:1rem;background:#edf5ef;border-radius:5px;font: .9rem/1.65 ui-monospace,Consolas,monospace;color:#174d3b;overflow-wrap:anywhere;margin:.8rem 0 1rem}.flow{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1rem;list-style:none;padding:0;margin:1.6rem 0 2rem}.flow li{position:relative;border:1px solid #bad1c1;background:#f0f7f0;padding:1rem;border-radius:5px}.flow li b{display:block;font-size:.85rem;color:var(--green)}.flow li span{font-size:.72rem;line-height:1.5;display:block;margin-top:.4rem;color:var(--muted)}.flow li:not(:last-child)::after{content:'→';position:absolute;right:-.85rem;top:35%;color:var(--green);font-weight:750;z-index:1}figure{margin:1.7rem 0;max-width:100%;overflow-x:auto}svg{display:block;width:100%;min-width:650px;height:auto}figcaption{font-size:.75rem;color:var(--muted);margin-top:.6rem;line-height:1.5}.timeline{margin:1.6rem 0}.timeline article{display:grid;grid-template-columns:2.4rem minmax(0,1fr);gap:1rem;border-left:2px solid #cfddd2;margin-left:1rem;padding:0 0 2rem 1.1rem}.timeline .time-index{background:var(--green);border:4px solid #fff;border-radius:50%;color:#fff;font-size:.7rem;font-weight:700;text-align:center;width:2rem;height:2rem;line-height:1.5rem;margin-left:-2.2rem;position:relative}.timeline article>div{margin-left:-1.3rem}.timeline p{font-size:.87rem;margin-bottom:.7rem}.trace-example{border:1px solid #b7cdbd;border-radius:5px;padding:1.2rem;background:#f0f6f0}.trace-example p{font-size:.86rem;margin-top:.5rem}.next-steps{padding-left:1.3rem}.next-steps li{padding:.5rem 0 .7rem .4rem;font-size:.93rem}.next-steps li::marker{color:var(--green);font-weight:700}.closing{font-size:1.05rem;border-top:1px solid var(--line);margin-top:1.4rem;padding-top:1.3rem}footer{margin-top:3rem;border-top:1px solid var(--line);padding-top:1.4rem;font-size:.76rem;color:var(--muted)}:target:not(section){scroll-margin-top:1rem;outline:2px solid #cda654;outline-offset:4px}@media(max-width:1100px){.layout{grid-template-columns:215px minmax(0,1fr)}.four{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:850px){.layout{display:block}.sidebar{position:relative;height:auto;border-right:0;border-bottom:1px solid var(--line);padding:1rem 1.2rem}.brand{font-size:1.6rem}.brand span{font-size:.57rem}.sidebar details{margin:.8rem 0 0}.sidebar details[open] nav{max-height:210px;overflow:auto}.sidebar .foot{display:none}nav ol{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.1rem .7rem}nav a{font-size:.75rem;padding:.4rem}.sidebar summary{padding:.3rem}main{padding:1.6rem 1.2rem 2rem}.hero{padding:.5rem 0 1.6rem}section{padding-top:2.5rem}.stats{gap:.6rem}.stats b{font-size:1.8rem}.flow{grid-template-columns:repeat(2,minmax(0,1fr))}.flow li:nth-child(even)::after{content:'↓';top:auto;bottom:-1.1rem;right:50%}.flow li:last-child::after{display:none}}@media(max-width:560px){.two,.four{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.stats div{padding:.8rem}.hero .intro{font-size:1rem}h1{font-size:2.8rem}.callout{padding:1rem}.timeline article{gap:.5rem}.flow li{padding:.8rem}.flow li b{font-size:.77rem}table{font-size:.75rem}.table-wrap::after{content:'Tabla desplazable horizontalmente';display:block;font-size:.65rem;color:var(--muted);padding:.4rem .7rem}p{font-size:.94rem}}@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}@media print{.layout{display:block}.sidebar,.skip{display:none}body,main{background:white;color:black}main{padding:0;font-size:10pt}.hero{padding-top:0}h1{font-size:32pt}section{break-before:auto}h2,h3{break-after:avoid}.table-wrap,figure{overflow:visible}.table-wrap{border:0}table{font-size:7pt;min-width:0;table-layout:fixed}th,td{min-width:0;padding:.3rem;overflow-wrap:anywhere}svg{min-width:0}details:not([open]){display:none}details[open]{break-inside:avoid}.stats{grid-template-columns:repeat(4,1fr)}a{color:inherit}.grid{break-inside:avoid}}
+</style>
+</head>
+<body>
+<a class="skip" href="#contenido">Saltar al documento</a>
+<div class="layout">
+<aside class="sidebar">
+<div class="brand">CAON<span>Vestidor Táctico · documentación</span>
+</div>
+<details open>
+<summary>Contenido del documento</summary>
+<nav aria-label="Secciones">
+<ol>
+<li>
+<a href="#resumen">
+<span>01</span>Resumen</a>
+</li>
+<li>
+<a href="#pregunta">
+<span>02</span>Pregunta de análisis</a>
+</li>
+<li>
+<a href="#datos">
+<span>03</span>Datos y cobertura</a>
+</li>
+<li>
+<a href="#framework">
+<span>04</span>Framework resumido</a>
+</li>
+<li>
+<a href="#pipeline">
+<span>05</span>Pipeline</a>
+</li>
+<li>
+<a href="#metricas">
+<span>06</span>Métricas</a>
+</li>
+<li>
+<a href="#contexto">
+<span>07</span>Análisis contextual</a>
+</li>
+<li>
+<a href="#temporal">
+<span>08</span>Evolución temporal</a>
+</li>
+<li>
+<a href="#jugadores">
+<span>09</span>Jugadores y alineaciones</a>
+</li>
+<li>
+<a href="#jugadas">
+<span>10</span>Jugadas peligrosas</a>
+</li>
+<li>
+<a href="#visualizaciones">
+<span>11</span>Visualizaciones</a>
+</li>
+<li>
+<a href="#resultados">
+<span>12</span>Resultados y validación</a>
+</li>
+<li>
+<a href="#evolucion">
+<span>13</span>Cómo evolucionó</a>
+</li>
+<li>
+<a href="#limites">
+<span>14</span>Límites e inconsistencias</a>
+</li>
+<li>
+<a href="#trazabilidad">
+<span>15</span>Trazabilidad</a>
+</li>
+<li>
+<a href="#futuro">
+<span>16</span>Trabajo futuro</a>
+</li>
+</ol>
+</nav>
+</details>
+<div class="foot">Auditoría · 21 oct 2026<br>Base local 429c4ec<br>Resultados avanzados 820e749<br>Jugadas históricas e6f37b6<br>
+<br>
+<a href="framework_metodologico.md">Framework completo ↗</a>
+</div>
+</aside>
+<main id="contenido">
+<header class="hero">
+<p class="eyebrow">Metodología · evidencia · límites</p>
+<h1>Una historia del juego<br>con trazabilidad.</h1>
+<p class="intro">Qué ha construido CAON, cómo se calculan sus resultados y hasta dónde permiten interpretar el fútbol observado.</p>
+<p class="edition">Lectura para jurado, investigadores y analistas · HTML autocontenido · sin conexión ni JavaScript</p>
+</header>
+<section id="resumen" aria-labelledby="h-resumen">
+<div class="section-label">01</div>
+<h2 id="h-resumen">Del evento a una lectura táctica verificable</h2>
+<div class="stats">
+<div>
+<b>24</b>
+<span>entidades en cada modelo auditado</span>
+</div>
+<div>
+<b>445</b>
+<span>partidos MX distintos en fix/model</span>
+</div>
+<div>
+<b>70</b>
+<span>partidos del caso Jardine en fix/model</span>
+</div>
+<div>
+<b>0</b>
+<span>archivos 360 locales en uso</span>
+</div>
+</div>
+<p>CAON describe estilos a partir de eventos y estadísticas de Hudl StatsBomb y genera enfrentamientos ilustrativos mediante un motor probabilístico. La versión analítica incorpora contexto de marcador y localía, bloques cronológicos y participación registrada de jugadores.</p>
+<aside class="callout">
+<strong>La versión importa</strong>
+<p>Esta documentación se crea en <code>feat/docHTML</code>, desde el <code>main</code> local <code>429c4ec</code>. Los análisis avanzados pertenecen a <code>fix/model · 820e749</code>; las jugadas peligrosas a <code>feat/game_description · e6f37b6</code>, fusionada en la referencia guardada <code>origin/main · d6db8e8</code>. No existe todavía un único artefacto que reúna ambas líneas.</p>
+</aside>
+<div class="legend">
+<span class="badge ">B · base actual</span>
+<span class="badge green">F · análisis corregido</span>
+<span class="badge amber">P · línea de jugadas</span>
+<span class="badge red">Experimental / pendiente</span>
+</div>
+<p>Documento auditado el <strong>21 de octubre de 2026</strong>. Las referencias remotas son las almacenadas localmente, sin actualización de red. El framework completo define objetos, fórmulas y supuestos: <a href="framework_metodologico.md">abrir fuente conceptual en Markdown</a>.</p>
+<p class="source">
+<strong>Trazabilidad:</strong> R01 · O01/O02/O18 · A03/A05/A52 · modelos B/F/P; valores de cabecera 445 y 70 pertenecen a F.</p>
+</section>
+<section id="pregunta" aria-labelledby="h-pregunta">
+<div class="section-label">02</div>
+<h2 id="h-pregunta">Qué se puede preguntar a estos datos</h2>
+<blockquote>¿Cómo cambia el juego observado de un equipo durante una etapa de entrenador, según el marcador, la localía y el paso de los partidos? ¿Qué choque de estilos ilustra un modelo construido con esos conteos?</blockquote>
+<p>La unidad de análisis es el <strong>equipo–entrenador–ventana</strong>. Para describirla se distinguen los datos suministrados, los cálculos locales, sus agregados y las interpretaciones. El entrenador registrado identifica la muestra; no aísla su efecto sobre el juego.</p>
+<div class="grid four">
+<article>
+<span class="step">1</span>
+<h3>Dato suministrado</h3>
+<p>Un pase, su ubicación, un jugador o el xG estimado por el proveedor.</p>
+</article>
+<article>
+<span class="step">2</span>
+<h3>Métrica derivada</h3>
+<p>Directness de eventos, PPDA aproximado o suma de xG, con fórmula explícita.</p>
+</article>
+<article>
+<span class="step">3</span>
+<h3>Resumen descriptivo</h3>
+<p>Una media por partido, un bloque temporal o una distribución por marcador.</p>
+</article>
+<article>
+<span class="step">4</span>
+<h3>Interpretación</h3>
+<p>Una tendencia de esta muestra, sujeta a calendario, rival y cobertura.</p>
+</article>
+</div>
+<p>La animación de un partido o de una descripción es una <strong>salida generada</strong>. Tiene origen y reglas rastreables, pero no constituye una observación de un partido real.</p>
+</section>
+<section id="datos" aria-labelledby="h-datos">
+<div class="section-label">03</div>
+<h2 id="h-datos">Fuentes y cobertura constatada</h2>
+<div class="table-wrap" tabindex="0" role="region" aria-label="Inventario de fuentes">
+<table>
+<caption>Inventario de fuentes</caption>
+<thead>
+<tr>
+<th scope="col">ID / fuente</th>
+<th scope="col">Contenido y uso</th>
+<th scope="col">Cobertura auditada</th>
+<th scope="col">Límite</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<th scope="row">D01 · Partidos Liga MX</th>
+<td>Fechas, equipos/IDs, managers, localía, resultado, estado disponible.</td>
+<td>6 catálogos; 1.854 registros, 1.801 available; fechas disponibles 2021-07-23–2026-10-17.</td>
+<td>No confundir el calendario programado hasta noviembre con datos ya disponibles.</td>
+</tr>
+<tr>
+<th scope="row">D02 · Eventos Liga MX</th>
+<td>Acciones, posesiones, localizaciones, timestamps, jugadores, tiros/xG, sustituciones.</td>
+<td>493 archivos en caché; F incorpora 445 partidos distintos (208 con fecha≤2025-06-30).</td>
+<td>Disponibilidad del catálogo no implica descarga completa de la liga. Eventos de acceso autenticado.</td>
+</tr>
+<tr>
+<th scope="row">D03 · Lineups Liga MX</th>
+<td>Identidades, dorsales, posiciones e intervalos/razones cuando presentes.</td>
+<td>493 archivos locales; Jardine F70/70 con lineup.</td>
+<td>Sin from/to/ID no se reconstruye participación con certeza; lista incluye suplentes.</td>
+</tr>
+<tr>
+<th scope="row">D04 · Team-stats por partido</th>
+<td>Métricas suministradas, raw y referencia de estilo/targets.</td>
+<td>1.801 archivos; F referencia 108 equipo-temporadas por métrica; Jardine 70 valores válidos por cada métrica.</td>
+<td>Fórmulas internas no especificadas en repo; no equivalencia automática con proxies locales.</td>
+</tr>
+<tr>
+<th scope="row">D05 · Open Data Barcelona</th>
+<td>Barcelona La Liga 2009/10 y 2010/11 como comparación de otra liga/época.</td>
+<td>2 catálogos;68 eventos y 68 lineups;68 partidos en B/F.</td>
+<td>Solo muestra disponible y descargada, no todos los partidos de dos temporadas; estilo estimado por calibración MX.</td>
+</tr>
+<tr>
+<th scope="row">D06 · 360</th>
+<td>freeze_frame de jugadores visibles; pruebas tipo packing y detrás del balón.</td>
+<td>0 archivos v2_360-frames en caché actual; catálogos anuncian disponibilidad histórica.</td>
+<td>Sin cobertura 360 observada local ni integración al modelo. No convertir disponibilidad anunciada en datos realmente usados.</td>
+</tr>
+<tr>
+<th scope="row">D07 · Team-stats por temporada</th>
+<td>Referencia y fuerza de rival en experimentos.</td>
+<td>0 respuestas locales con ese prefijo; existe código de consulta.</td>
+<td>No se afirma que el experimento pueda reproducirse offline en este checkout.</td>
+</tr>
+<tr>
+<th scope="row">D08 · Player-stats</th>
+<td>El módulo de jugadores deriva lineups+events.</td>
+<td>0 archivos player-stats locales y ningún módulo dedicado de consulta hallado.</td>
+<td>Participación no equivale a un modelo de rendimiento individual.</td>
+</tr>
+<tr>
+<th scope="row">D09 · Modelo/targets derivados</th>
+<td>Conteos, estilos, muestras, anclas y salidas analíticas.</td>
+<td>B479.280 bytes; F19.568.283 bytes; P874.520 bytes.</td>
+<td>Cada artefacto pertenece a una versión; league es selección de entidades, targets toda referencia disponible.</td>
+</tr>
+<tr>
+<th scope="row">D10 · Arquetipo configurado</th>
+<td>Multiplicadores manuales y posiciones configuradas.</td>
+<td>1 entidad synthetic; exposición configurada 60.</td>
+<td>No datos de un equipo histórico real.</td>
+</tr>
+</tbody>
+</table>
+</div>
+<details>
+<summary>Endpoints y rutas de adquisición</summary>
+<div class="table-wrap" tabindex="0" role="region" aria-label="Contratos de adquisición">
+<table>
+<caption>Contratos de adquisición</caption>
+<thead>
+<tr>
+<th scope="col">Fuente</th>
+<th scope="col">Endpoint o ruta</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<th scope="row">D01 · Partidos Liga MX</th>
+<td>v6/competitions/73/seasons/{sid}/matches</td>
+</tr>
+<tr>
+<th scope="row">D02 · Eventos Liga MX</th>
+<td>v8/events/{match_id}</td>
+</tr>
+<tr>
+<th scope="row">D03 · Lineups Liga MX</th>
+<td>v4/lineups/{match_id}</td>
+</tr>
+<tr>
+<th scope="row">D04 · Team-stats por partido</th>
+<td>v1/matches/{match_id}/team-stats</td>
+</tr>
+<tr>
+<th scope="row">D05 · Open Data Barcelona</th>
+<td>data/matches/11/{21,22}.json; events/{id}.json; lineups/{id}.json en repositorio StatsBomb Open Data</td>
+</tr>
+<tr>
+<th scope="row">D06 · 360</th>
+<td>Exploración research/dl.py/poc.py: v2/360-frames/{match_id}</td>
+</tr>
+<tr>
+<th scope="row">D07 · Team-stats por temporada</th>
+<td>research/sliders.py/poc.py: v2/competitions/73/seasons/{sid}/team-stats</td>
+</tr>
+<tr>
+<th scope="row">D08 · Player-stats</th>
+<td>Sin descarga ni consumidor de endpoint dedicado encontrado</td>
+</tr>
+<tr>
+<th scope="row">D09 · Modelo/targets derivados</th>
+<td>model/model.json; pipeline/targets.json en cada commit</td>
+</tr>
+<tr>
+<th scope="row">D10 · Arquetipo configurado</th>
+<td>build_model.py::ATLETI/synth</td>
+</tr>
+</tbody>
+</table>
+</div>
+</details>
+<div class="grid two">
+<article>
+<h3>Referencia amplia</h3>
+<p>Los seis catálogos MX contienen <b>1.854 registros</b>, de los cuales <b>1.801 están disponibles</b>. Los cuatro de la ventana del reto suman 1.364 disponibles. La referencia de estilo F tiene <b>108 equipos-temporada por métrica</b>.</p>
+</article>
+<article>
+<h3>Selección del motor</h3>
+<p>F incorpora <b>445 IDs MX distintos</b>, entre 2021-07-25 y 2026-10-17. <b>208</b> son anteriores al corte 2025-06-30. <code>league.matches=890</code> cuenta dos observaciones equipo-partido por encuentro.</p>
+</article>
+</div>
+<p>Hay 561 extractos locales: 445 MX y 68 Open Data de versión 2, más 48 MX heredados. Esas cachés son posteriores al modelo base y no prueban cómo se construyó ese artefacto. La suma de partidos de entidades tampoco equivale a partidos distintos porque las muestras se solapan.</p>
+<aside class="callout">
+<strong>360 y jugadores</strong>
+<p>No hay frames 360 locales ni un consumidor de 360 en el modelo publicado. El código de investigación sí exploró esos datos. Tampoco se encontró descarga dedicada de <em>player-stats</em>: el módulo de jugadores usa <em>lineups + eventos</em>. En F se identifican 642 player_id en las entidades MX, incluidos suplentes sin minutos.</p>
+</aside>
+<details>
+<summary>Cobertura por temporada</summary>
+<div class="table-wrap" tabindex="0" role="region" aria-label="Catálogos MX almacenados">
+<table>
+<caption>Catálogos MX almacenados</caption>
+<thead>
+<tr>
+<th scope="col">Temporada / ID</th>
+<th scope="col">Registros</th>
+<th scope="col">Available</th>
+<th scope="col">Fechas de catálogo</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<th scope="row">2021/22 ·108</th>
+<td>342</td>
+<td>342</td>
+<td>2021-07-23 → 2022-05-30</td>
+</tr>
+<tr>
+<th scope="row">2022/23 ·235</th>
+<td>342</td>
+<td>342</td>
+<td>2022-07-02 → 2023-05-29</td>
+</tr>
+<tr>
+<th scope="row">2023/24 ·281</th>
+<td>340</td>
+<td>340</td>
+<td>2023-07-01 → 2024-05-27</td>
+</tr>
+<tr>
+<th scope="row">2024/25 ·317</th>
+<td>340</td>
+<td>340</td>
+<td>2024-07-05 → 2025-05-26</td>
+</tr>
+<tr>
+<th scope="row">2025/26 ·318</th>
+<td>337</td>
+<td>337</td>
+<td>2025-07-12 → 2026-05-25</td>
+</tr>
+<tr>
+<th scope="row">2026/27 ·351</th>
+<td>153</td>
+<td>100</td>
+<td>2026-07-17 → 2026-11-23</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>La última temporada contiene fechas programadas futuras. Los partidos marcados available llegan a 2026-10-17; no se inventan observaciones para las fechas programadas.</p>
+</details>
+<p class="source">
+<strong>Trazabilidad:</strong> R01 · D01–D10 · O02/O18 · A01/A02/A05/A07/A24/A52; seis catálogos y modelos por commit.</p>
+</section>
+<section id="framework" aria-labelledby="h-framework">
+<div class="section-label">04</div>
+<h2 id="h-framework">Framework resumido</h2>
+<p>Las fichas completas están en <a href="framework_metodologico.md">framework_metodologico.md</a>. Estos contratos permiten leer las visualizaciones sin confundir eventos observados, proxies y escenas generadas.</p>
+<div class="grid two">
+<article id="O01">
+<span class="ref">O01</span>
+<h3>Entidad equipo–entrenador–ventana</h3>
+<p>ID ASCII de producto, equipo por nombre exacto, entrenador por substring y fechas inclusivas. Actual se determina con el último manager disponible de temporada 351 y tramo retrospectivo continuo. No es una estimación del efecto individual del entrenador.</p>
+<p class="small">
+<b>Límite.</b> Nombres y fechas pueden variar por rama. Etiqueta Tricampeonato no define por sí sola los partidos incluidos.</p>
+<p class="source">B/F: entities.py, build_model.py::display/ascii_id.</p>
+</article>
+<article id="O03">
+<span class="ref">O03</span>
+<h3>Evento</h3>
+<p>Registro discreto con id/index, period, timestamp, minute/second, type, team, possession/possession_team y campos de acción. location, player, position, end_location y xG son condicionales; no se inventan cuando faltan.</p>
+<p class="small">
+<b>Límite.</b> Una localización es la del evento, no la de todos los jugadores en ese instante.</p>
+<p class="source">B/F: extract.py; F: contextual.py::ordered_events.</p>
+</article>
+<article id="O05">
+<span class="ref">O05</span>
+<h3>Posesión StatsBomb</h3>
+<p>Se utiliza el ID del proveedor, no se reconstruye un nuevo dueño con cada acción. Cadena B/F agrupa por possession; contexto F por (period,possession). Acciones elegibles propias: Pass, Carry, Dribble y Shot con location. Posesiones administrativas sin balón se saltan para determinar la siguiente reanudación; el marcador puede cambiar dentro de una posesión.</p>
+<p class="small">
+<b>Límite.</b> poss del motor excluye BP peligroso y posesiones sin acción no penal. Contexto cuenta cada posesión con acción propia en cada estado visitado: los conteos por marcador no son aditivos.</p>
+<p class="source">B/F: extract.py::process/_process, first_onball, is_admin; F: contextual.py.</p>
+</article>
+<article id="O06">
+<span class="ref">O06</span>
+<h3>Acción, secuencia y prefijo de cadena</h3>
+<p>Acción con balón es un evento elegible. Para el motor, secuencia es el prefijo de acciones hasta el primer tiro no penal o el fin observado; una transición de zona une orígenes de acciones consecutivas, no necesariamente extremos de un pase completado. La última acción sin siguiente posesión se retira del denominador. No existe una subsecuencia universal de progresión independiente de posesión.</p>
+<p class="small">
+<b>Límite.</b> La secuencia peligrosa de P conserva eventos de la posesión y selecciona su último tiro; puede incluir acciones posteriores a ese tiro y no es el prefijo del motor.</p>
+<p class="source">B/F: extract.py, bucle acts y break tras Shot. P: dangerous.py.</p>
+</article>
+<article id="O07">
+<span class="ref">O07</span>
+<h3>Zona y orientación</h3>
+<p>z=floor(clamp(x,0,119.999)/20)*3+floor(clamp(y,0,79.999)/(80/3)). 6 columnas por 3 carriles; ataque de cada equipo hacia x=120. Motor refleja z con (5-col)*3+(2-row) para cambiar equipo.</p>
+<p class="small">
+<b>Límite.</b> Unidades de cancha, aproximadamente yardas; no tracking métrico. P dangerousSummary usa cuatro franjas y/20 y mezcla orientaciones de eventos defensivos: no es la misma rejilla.</p>
+<p class="source">B/F: extract.py::zone; engine.js::mirrorZ.</p>
+</article>
+<article id="O09">
+<span class="ref">O09</span>
+<h3>Transición</h3>
+<p>Fase T del motor: acciones a ≤10 s desde primer evento de posesión recuperada; después E, sin condición de progresión ni finalización obligatoria. Tiro contextual: cada Shot no penal a 0–10 s en posesión recuperada del mismo periodo. Contragolpe de estilo/temporal: primer tiro no penal, inicio de primera acción x&lt;60 y ≤15 s (tiempo con suelo 0.5 s).</p>
+<p class="small">
+<b>Límite.</b> No existe una definición única ejecutada en todos los módulos. Definición documental preferente para nueva narrativa de transición: contexto 10 s, siempre identificada; no se migra el cálculo histórico.</p>
+<p class="source">B/F: extract.py::T_WINDOW/counter_shots2; F: contextual.py.</p>
+</article>
+<article id="O10">
+<span class="ref">O10</span>
+<h3>Presión, contrapresión y PPDA</h3>
+<p>Pressure es evento registrado; contrapresión usa la etiqueta counterpress del proveedor. No se agrupan episodios de presión ni se calcula duración/éxito. PPDA aproximado territorial usa pases rivales x&lt;72 sobre Interception+Foul Committed+Duel.Tackle propios x&gt;=48. No incluye Pressure en su denominador.</p>
+<p class="small">
+<b>Límite.</b> Presión alta inferida con x&gt;=80 no requiere un Pressure previo. PPDA all zone de personnel utiliza otro conjunto de eventos; no es comparable.</p>
+<p class="source">B/F: extract.py; F: contextual.py::defensive_action, metric_utils.py.</p>
+</article>
+<article id="O13">
+<span class="ref">O13</span>
+<h3>Alineación inicial, composición simultánea y once representativo</h3>
+<p>Starting lineup F: conjunto de titulares por razones de inicio, ordenado por ID para frecuencia. Composición: jugadores activos en intervalos [inicio,fin) de posiciones, cortados también por tiros/Own Goal For y fusionados si conjunto y estado coinciden. Shape B/F: formación modal, conjunto modal de puestos, titular más frecuente por puesto sin repetir jugador; anclas medias por puesto con/sin posesión.</p>
+<p class="small">
+<b>Límite.</b> Shape puede no haber coincidido como once real. Anclas por puesto agrupan jugadores y eventos; no media temporal de posiciones. Composición no garantiza 11 activos ni corrige automáticamente expulsiones por todas las vías.</p>
+<p class="source">B/F: build_model.py::build_shape; F: personnel.py::_composition_intervals/_pairs.</p>
+</article>
+<article id="O14">
+<span class="ref">O14</span>
+<h3>Contexto</h3>
+<p>Dos particiones independientes: score_state winning/drawing/losing/unknown y venue home/away/unknown. Son marginales, no un cruce marcador×localía. Índices inválidos o goles incompatibles llevan marcador a unknown; localía desconocida se conserva.</p>
+<p class="small">
+<b>Límite.</b> No estima efectos ajustados por rival, torneo o expulsiones. Las muestras de los estados se solapan a nivel de partido.</p>
+<p class="source">F: contextual.py y build_model.py::Acc.</p>
+</article>
+<article id="O15">
+<span class="ref">O15</span>
+<h3>Bloque temporal y serie</h3>
+<p>Orden por fecha y match_id, deduplicación por ID. Bloques consecutivos de 8; último con &lt;5 se agrega al anterior; primer bloque corto se conserva insuficiente. Media aritmética de valores válidos de partido; cobertura por métrica. Serie resume medias de bloque, stdev muestral, min/max y diferencias entre valores disponibles.</p>
+<p class="small">
+<b>Límite.</b> Bloques tienen duración calendario y tamaño variables; no pondera medias de bloque por partidos en series.mean. Omitir null antes de diferencias puede conectar bloques no adyacentes.</p>
+<p class="source">F/T: temporal.py::_period_rows/aggregate_period/build_temporal.</p>
+</article>
+<article id="O16">
+<span class="ref">O16</span>
+<h3>Secuencia peligrosa observada</h3>
+<p>Candidata: posesión del rival con al menos Shot rival; elige último tiro. Conserva tipos ACTION_TYPES de ambos equipos, defensa solo Pressure/Duel/Interception/Ball Recovery/Clearance/Block. Score=100*gol+10*xG+clamp(x_tiro-80,0,40); orden descendente (gol,score,xG,fecha,minuto); top 5 por entidad.</p>
+<p class="small">
+<b>Límite.</b> No exige entrada al área, avance mínimo ni transición; no hay score por esos componentes. Selección retrospectiva favorece goles; no estima todas las amenazas. Sin datos 360; no está en esta rama ni en F.</p>
+<p class="source">P: dangerous.py::dangerous_for_match/dangerous_for_entity.</p>
+</article>
+<article id="O19">
+<span class="ref">O19</span>
+<h3>Partido simulado, coreografía y jugada escrita</h3>
+<p>Estado probabilístico: dueño, zona, fase y reloj; ataque y defensa combinados en escala logit, destinos desde atacante. Coreografía transforma log simulado en posiciones interpoladas mediante reglas. Parser P reconoce palabras con regex y usa coordenadas prefijadas.</p>
+<p class="small">
+<b>Límite.</b> Los agregados observados son fuente, los eventos/movimientos generados no son observaciones. Simulador no incorpora política táctica por marcador ni modifica tasas por localía; tiene efectos heurísticos por rojas.</p>
+<p class="source">B/F: engine.js::rates/matchup/simulate/choreograph; P: frontend::parseNL/nlPositions.</p>
+</article>
+</div>
+<aside class="callout">
+<strong>Supuestos que afectan la lectura</strong>
+<p>El motor usa una rejilla de 18 zonas y K=8 pseudo-partidos; el contexto exige al menos 5 partidos,90 minutos y 30 posesiones para marcar muestra suficiente; los bloques temporales agrupan 8 partidos y fusionan una cola menor de 5. Son decisiones heurísticas explícitas, no umbrales de significancia estadística.</p>
+</aside>
+<details>
+<summary>16 supuestos clave · registro completo de 54 en el framework</summary>
+<div class="table-wrap" tabindex="0" role="region" aria-label="Supuestos metodológicos seleccionados">
+<table>
+<caption>Supuestos metodológicos seleccionados</caption>
+<thead>
+<tr>
+<th scope="col">ID / nombre</th>
+<th scope="col">Valor y definición</th>
+<th scope="col">Implementación</th>
+<th scope="col">Impacto / límite</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<th scope="row">A03 · Ventanas de entidades</th>
+<td>SPECIAL: Jardine 2023-07-01 a 2024-12-31 en B/F; hasta 2026-06-30 en H/P</td>
+<td>entities.py::SPECIAL</td>
+<td>70 partidos en B/F vs 129 agregados históricos P. No son poblaciones intercambiables. Para otros DT, fechas explícitas en tabla anexa.</td>
+</tr>
+<tr>
+<th scope="row">A06 · Espacio</th>
+<td>120×80; rejilla 6×3; límites 119,999 y 79,999</td>
+<td>extract.py::zone</td>
+<td>18 estados espaciales; conserva índice en borde. Pierde detalle dentro de celda.</td>
+</tr>
+<tr>
+<th scope="row">A09 · Reloj contextual</th>
+<td>Timestamp relativo por periodo; fallback offsets 0/2700/5400/6300; solo intervalos dentro del periodo</td>
+<td>F contextual.py::period_seconds/extract_context</td>
+<td>No descarta pausas largas; exige Half Start/Half End. No tiempo efectivo; marcador unknown ante índices ausentes/duplicados o incompatibilidad final.</td>
+</tr>
+<tr>
+<th scope="row">A10 · Final de participación</th>
+<td>Máximo minute*60+second+fracción de todos los eventos</td>
+<td>F personnel.py::_match_end</td>
+<td>Duración reconstruida de jugadores. No filtra tanda; no concatena periodos; huecos/solapamientos de añadido pueden afectar intervalos.</td>
+</tr>
+<tr>
+<th scope="row">A12 · Acciones elegibles y cierre</th>
+<td>Pass/Carry/Dribble/Shot con location y dueño; sin Shot penal; break al primer tiro</td>
+<td>extract.py::acts</td>
+<td>No todos los eventos forman una acción del motor. Último tiro o rebotes no necesariamente incluidos; última acción sin sucesor se retira de n.</td>
+</tr>
+<tr>
+<th scope="row">A13 · Transición de fase</th>
+<td>≤10 s desde primer evento de posesión recuperada</td>
+<td>extract.py::T_WINDOW; engine.js::T_WINDOW</td>
+<td>T→E al vencer reloj. Sin criterio de avance; cadena no comprueba explícitamente mismo periodo al inferir regain.</td>
+</tr>
+<tr>
+<th scope="row">A14 · Contragolpe</th>
+<td>Inicio x&lt;60; primer tiro ≤15 s; Δt con suelo 0,5 s</td>
+<td>extract.py::counter_shots2</td>
+<td>Una posesión contada; usa métrica temporal heredada. Distinto de transición de 10 s y del contador de todos los tiros.</td>
+</tr>
+<tr>
+<th scope="row">A16 · PPDA territorial</th>
+<td>Pases rival x&lt;72; defensa x&gt;=48; Interception/Foul Committed/Duel.Tackle</td>
+<td>extract.py; F contextual.py::defensive_action</td>
+<td>Pases por acción defensiva. Pressure y duelos aéreos quedan fuera. F personnel usa otra definición.</td>
+</tr>
+<tr>
+<th scope="row">A20 · BP peligroso</th>
+<td>From Corner o From Free Kick cuya primera acción tiene x&gt;=80; posesión con penal excluida</td>
+<td>extract.py::is_sp</td>
+<td>Excluye estas posesiones de directness y cadena abierta. No excluye todas las reanudaciones; m.sp_xg usa además bandas.</td>
+</tr>
+<tr>
+<th scope="row">A24 · Referencia del percentil</th>
+<td>≥10 partidos válidos por métrica y equipo-temporada</td>
+<td>B/F build_model.py::ref</td>
+<td>F:108 referencias por cada una de 14 métricas. Incluye temporadas fuera de ventana oficial; sin fundamento de potencia estadística.</td>
+</tr>
+<tr>
+<th scope="row">A26 · Encogimiento</th>
+<td>K_MATCHES=8; media liga pondera partidos, percentil pondera equipo-temporada</td>
+<td>build_model.py; engine.js::rates</td>
+<td>Reduce extremos en muestras pequeñas. No intervalo de confianza; no valida identidad táctica. Estilo y motor encogen objetos distintos.</td>
+</tr>
+<tr>
+<th scope="row">A27 · Calibración</th>
+<td>F: ≥3 pares, variación x/y, finitud, R²&gt;=0,5, predicciones finitas&gt;=0</td>
+<td>F metric_utils.py::fit_calibration; build_model.py::from_events</td>
+<td>Habilita estimación solo cuando pasa; PPDA en log. R² en muestra; no prueba transporte entre ligas o épocas.</td>
+</tr>
+<tr>
+<th scope="row">A28 · Null y cero</th>
+<td>F ratio exige num/den finitos y den&gt;0; contador ausente en m no vacío se trata como cero observado</td>
+<td>F metric_utils.py::event_metrics/ratio</td>
+<td>m vacío→{}; contexto sin partidos→conteos null. Convención de counters heredados no certifica cobertura de cada campo. Temporal/personnel aún tienen defaults propios.</td>
+</tr>
+<tr>
+<th scope="row">A30 · Muestra contextual</th>
+<td>≥5 partidos Y ≥5400 s Y ≥30 posesiones por bucket</td>
+<td>F contextual.py::summarize_bucket</td>
+<td>Compara solo si ambos contextos la cumplen; aún exporta valor con marca. No significancia estadística; estados no independientes por partido. C versión previa: solo ≥5 posesiones.</td>
+</tr>
+<tr>
+<th scope="row">A32 · Bloques temporales</th>
+<td>Tamaño 8; mínimo 5; cola&lt;5 se fusiona con previo; posible bloque de hasta 12</td>
+<td>F/T temporal.py::_period_rows</td>
+<td>70→8 bloques de 8+1 de 6. No meses/torneos fijos; si primer bloque es corto se conserva como insuficiente.</td>
+</tr>
+<tr>
+<th scope="row">A38 · Peligro y selección</th>
+<td>Top 5; último tiro; score 100 gol+10 xG+clamp(x−80,0,40); xG ausente→0</td>
+<td>P dangerous.py</td>
+<td>Favor explícito a goles y localización. Sesgo de selección/resultado; no umbral mínimo xG ni entrada al área. No consolida tasa de amenaza.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</details>
+</section>
+<section id="pipeline" aria-labelledby="h-pipeline">
+<div class="section-label">05</div>
+<h2 id="h-pipeline">Cómo se transforma la información</h2>
+<ol class="flow">
+<li>
+<b>StatsBomb</b>
+<span>MX API + Open Data</span>
+</li>
+<li>
+<b>Respuestas</b>
+<span>events · lineups · team-stats</span>
+</li>
+<li>
+<b>Selección y normalización</b>
+<span>equipo/DT/fecha · IDs · reloj · UTF-8</span>
+</li>
+<li>
+<b>Objetos tácticos</b>
+<span>posesión · acción · zona · contexto</span>
+</li>
+<li>
+<b>Métricas</b>
+<span>conteos · razones · xG · percentiles</span>
+</li>
+<li>
+<b>Análisis</b>
+<span>contexto · bloques · jugadores</span>
+</li>
+<li>
+<b>Visualizaciones</b>
+<span>barras · mapas · tablas · simulación</span>
+</li>
+<li>
+<b>Interpretación</b>
+<span>descriptiva, con límites</span>
+</li>
+</ol>
+<p>
+<code>extract.py</code> resume cada partido. <code>build_model.py</code> suma el ataque propio y la defensa observada en sus rivales, construye la referencia de estilo y produce <code>model.json</code>. En F, <code>contextual.py</code> añade los contextos y <code>temporal.py</code> agrupa partidos; <code>personnel.py</code> consulta de nuevo eventos y lineups para formar intervalos.</p>
+<p>F registra los IDs procesados y las exclusiones. El contrato es <code>n = número de IDs únicos = att.matches = dfn.matches</code>; la cobertura del estilo se calcula por métrica. Valores no calculables quedan ausentes con causa; las muestras parciales no deben convertirse en cero ni percentil 50.</p>
+<div class="table-wrap" tabindex="0" role="region" aria-label="API según línea de desarrollo">
+<table>
+<caption>API según línea de desarrollo</caption>
+<thead>
+<tr>
+<th scope="col">Ruta GET</th>
+<th scope="col">Rama</th>
+<th scope="col">Contenido</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<th scope="row">/api/health · /api/model · /api/teams · /api/teams/{id}</th>
+<td>B/F/P</td>
+<td>Estado, artefacto, catálogo y resumen de entidad</td>
+</tr>
+<tr>
+<th scope="row">/api/teams/{id}/context · /temporal</th>
+<td>F</td>
+<td>Contextos y evolución cronológica</td>
+</tr>
+<tr>
+<th scope="row">/api/teams/{id}/personnel · /lineups · /substitutions</th>
+<td>F</td>
+<td>Participación registrada, conjuntos e intercambios</td>
+</tr>
+<tr>
+<th scope="row">/api/teams/{id}/dangerous-plays</th>
+<td>P</td>
+<td>Top de secuencias rivales con tiro</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>La API del producto es FastAPI; la simulación y coreografía corren en JavaScript. El servidor temporal Node de prueba de esta sesión no es una versión del backend del proyecto.</p>
+<p class="source">
+<strong>Trazabilidad:</strong> O02–O19 · A05/A51 · B/F/P: pipeline/run.py, extract.py, build_model.py, app/main.py; F: módulos analíticos.</p>
+</section>
+<section id="metricas" aria-labelledby="h-metricas">
+<div class="section-label">06</div>
+<h2 id="h-metricas">Métricas: fórmula, unidad y límites</h2>
+<p>
+<strong>Dos orígenes distintos:</strong> el estilo MX consume campos <code>team_match_*</code> del proveedor; las métricas de eventos tienen fórmulas locales. El repositorio no especifica las fórmulas internas de las estadísticas suministradas. La similitud de nombres no prueba equivalencia.</p>
+<h3 class="family">Circulación y progresión</h3>
+<details class="metric" id="M01">
+<summary>
+<span class="ref">M01</span> Posesión aproximada por pases<span class="unit">Proporción 0–1</span>
+</summary>
+<div class="metric-content">
+<p class="formula">P/(P+P_rival)</p>
+<p>Circulación relativa; no tiempo de control. F denominador 0→null; B usa max(den,1).</p>
+<p class="source">
+<b>Objeto:</b> O03/O05 · <b>Fuente:</b> B/F: my_metrics/event_metrics; F contexto y temporal. · <b>Supuestos A:</b> 01/05/28</p>
+</div>
+</details>
+<details class="metric" id="M02">
+<summary>
+<span class="ref">M02</span> Participación de acciones<span class="unit">Proporción 0–1</span>
+</summary>
+<div class="metric-content">
+<p class="formula">A/(A+A_rival), A=Pass+Carry+Dribble+Shot</p>
+<p>No es posesión medida por reloj.</p>
+<p class="source">
+<b>Objeto:</b> O03/O14 · <b>Fuente:</b> F: contextual.py::summarize_bucket · <b>Supuestos A:</b> 09/28</p>
+</div>
+</details>
+<details class="metric" id="M03">
+<summary>
+<span class="ref">M03</span> Directness de eventos global<span class="unit">0–1</span>
+</summary>
+<div class="metric-content">
+<p class="formula">Σ max(dx,0) / Σ sqrt(dx²+dy²), Pass y Carry en posesiones sin BP peligroso</p>
+<p>No es directness de team-stats: R²=0,01 en el modelo F. Incluye pases no completados; mide dirección, no valor generado.</p>
+<p class="source">
+<b>Objeto:</b> O05/O06/O07 · <b>Fuente:</b> B/F: extract.py m.dir_fwd/dir_tot; F temporal. · <b>Supuestos A:</b> 06/11/20/28</p>
+</div>
+</details>
+<details class="metric" id="M04">
+<summary>
+<span class="ref">M04</span> Directness de pases contextual/intervalo<span class="unit">0–1</span>
+</summary>
+<div class="metric-content">
+<p class="formula">Σ max(dx,0) / Σ hypot(dx,dy), solo Pass en contexto o intervalo</p>
+<p>Contexto incluye BP y penales como población de eventos; personnel omite geometría ausente sin invalidar todo el cociente. No comparar directamente con M03 ni con raw.verticalidad.</p>
+<p class="source">
+<b>Objeto:</b> O03/O14/O13 · <b>Fuente:</b> F: contextual.py, personnel.py::_event_metrics · <b>Supuestos A:</b> 19/29/34</p>
+</div>
+</details>
+<details class="metric" id="M05">
+<summary>
+<span class="ref">M05</span> Frecuencia de pase hacia delante<span class="unit">0–1</span>
+</summary>
+<div class="metric-content">
+<p class="formula">N(Pass con end_x&gt;start_x) / N(Pass)</p>
+<p>No existe clasificación oficial de pase progresivo consolidada. El umbral del experimento es distinto.</p>
+<p class="source">
+<b>Objeto:</b> O03/O07 · <b>Fuente:</b> F: contextual.py; experimental poc.py usa dx&gt;10 · <b>Supuestos A:</b> 19/29/42</p>
+</div>
+</details>
+<details class="metric" id="M06">
+<summary>
+<span class="ref">M06</span> Ritmo global hacia primer tiro<span class="unit">Unidades de cancha/s</span>
+</summary>
+<div class="metric-content">
+<p class="formula">Media de max(x_primer_tiro−x_primera_acción,0) / max(Δt,0,5), posesiones con tiro sin BP peligroso</p>
+<p>Sesgo hacia posesiones con tiro; suelo 0,5 s. No velocidad de cada jugador.</p>
+<p class="source">
+<b>Objeto:</b> O05/O11 · <b>Fuente:</b> B/F: extract.py pace2_sum/pace2_n; temporal.py · <b>Supuestos A:</b> 08/12/18/20</p>
+</div>
+</details>
+<details class="metric" id="M07">
+<summary>
+<span class="ref">M07</span> Ritmo contextual<span class="unit">Unidades de cancha/s</span>
+</summary>
+<div class="metric-content">
+<p class="formula">Media del avance positivo al primer tiro no penal / Δt, Δt&gt;0; misma categoría de marcador al inicio y tiro</p>
+<p>Sin suelo 0,5 s. Comprueba categoría al inicio/final, no todos los estados intermedios. No equivale a M06 ni a ritmo suministrado.</p>
+<p class="source">
+<b>Objeto:</b> O05/O14 · <b>Fuente:</b> F: contextual.py::extract_context/summarize_bucket · <b>Supuestos A:</b> 09/20/29</p>
+</div>
+</details>
+<details class="metric" id="M22">
+<summary>
+<span class="ref">M22</span> Saque largo del portero<span class="unit">0–1</span>
+</summary>
+<div class="metric-content">
+<p class="formula">N(Pass de Goalkeeper con length&gt;=32)/N(Pass de Goalkeeper)</p>
+<p>Todos los pases del portero, no solo saque de meta. Calibración de eventos R²=0,11; omitida en Barcelona.</p>
+<p class="source">
+<b>Objeto:</b> O03/O11 · <b>Fuente:</b> B/F: extract.py gk_long/gk_passes · <b>Supuestos A:</b> 19/28</p>
+</div>
+</details>
+<details class="metric" id="M23">
+<summary>
+<span class="ref">M23</span> Centros al área<span class="unit">Conteo/partido</span>
+</summary>
+<div class="metric-content">
+<p class="formula">N(Pass.cross con end_x&gt;=102 y 18&lt;=end_y&lt;=62)</p>
+<p>Geometría local; no da calidad del centro.</p>
+<p class="source">
+<b>Objeto:</b> O03/O07 · <b>Fuente:</b> B/F: extract.py crosses_box · <b>Supuestos A:</b> 19</p>
+</div>
+</details>
+<h3 class="family">Defensa, presión y transición</h3>
+<details class="metric" id="M08">
+<summary>
+<span class="ref">M08</span> PPDA territorial aproximado<span class="unit">Pases/acción defensiva</span>
+</summary>
+<div class="metric-content">
+<p class="formula">N(Pass rival con x&lt;72) / [N(Interception)+N(Foul Committed)+N(Duel.Tackle)] propios con x&gt;=48</p>
+<p>Denominador sin Pressure. F sin denominador→null; B pseudoconteos solo en conversión de my_metrics. Contexto es razón de sumas; temporal media de razones de partido.</p>
+<p class="source">
+<b>Objeto:</b> O03/O07/O10 · <b>Fuente:</b> B/F: extract.py; F: contextual.py y temporal.py · <b>Supuestos A:</b> 16/17/28</p>
+</div>
+</details>
+<details class="metric" id="M09">
+<summary>
+<span class="ref">M09</span> PPDA all zone de composición<span class="unit">Pases/acción seleccionada, sin zona</span>
+</summary>
+<div class="metric-content">
+<p class="formula">N(Pass rival) / N(Pressure+Duel+Interception+Ball Recovery+Foul Committed propios)</p>
+<p>Incluye Pressure y todos los Duel; excluye filtro territorial. Denominador 0→null. Debe llamarse razón descriptiva de acciones en todo el campo, no PPDA oficial.</p>
+<p class="source">
+<b>Objeto:</b> O13/O10 · <b>Fuente:</b> F: personnel.py::_event_metrics, ppda_all_zone · <b>Supuestos A:</b> 16/34</p>
+</div>
+</details>
+<details class="metric" id="M10">
+<summary>
+<span class="ref">M10</span> Altura de acciones defensivas<span class="unit">Coordenada x 0–120</span>
+</summary>
+<div class="metric-content">
+<p class="formula">Σ x de Pressure/Duel/Interception/Ball Recovery/Block/Clearance/Foul Committed / N con location</p>
+<p>Representa dónde se registran acciones, no la geometría de una línea de cuatro ni altura de todo el equipo.</p>
+<p class="source">
+<b>Objeto:</b> O03/O07/O10 · <b>Fuente:</b> B/F: extract.py def_x/def_n; event_metrics · <b>Supuestos A:</b> 06/28</p>
+</div>
+</details>
+<details class="metric" id="M11">
+<summary>
+<span class="ref">M11</span> Volumen de presión ajustado<span class="unit">Conteo ajustado/partido</span>
+</summary>
+<div class="metric-content">
+<p class="formula">N(Pressure)/(1−posesión)</p>
+<p>B eventos protege exposición con max(1−p,0,2); F elimina suelo. No son presiones por posesión rival individual. Sin exposición en F→null.</p>
+<p class="source">
+<b>Objeto:</b> O10/O05 · <b>Fuente:</b> B/F: build_model.py a partir de team-stats; eventos usan M01 · <b>Supuestos A:</b> 18/28</p>
+</div>
+</details>
+<details class="metric" id="M12">
+<summary>
+<span class="ref">M12</span> Presiones por pase rival<span class="unit">Acciones/pase</span>
+</summary>
+<div class="metric-content">
+<p class="formula">N(Pressure) / N(Pass rival)</p>
+<p>Distinto ajuste de M11; cero eventos es cero solo con muestra.</p>
+<p class="source">
+<b>Objeto:</b> O10 · <b>Fuente:</b> F: temporal.py::match_metrics · <b>Supuestos A:</b> 28/33</p>
+</div>
+</details>
+<details class="metric" id="M13">
+<summary>
+<span class="ref">M13</span> Contrapresiones<span class="unit">Conteo/partido o contexto</span>
+</summary>
+<div class="metric-content">
+<p class="formula">N(Pressure con counterpress=true)</p>
+<p>Etiqueta primaria del proveedor agregada localmente; no detección propia de episodio ni éxito.</p>
+<p class="source">
+<b>Objeto:</b> O10 · <b>Fuente:</b> B/F: extract.py; F contextual.py · <b>Supuestos A:</b> 28</p>
+</div>
+</details>
+<details class="metric" id="M14">
+<summary>
+<span class="ref">M14</span> Contragolpe de estilo<span class="unit">Posesiones con tiro/partido</span>
+</summary>
+<div class="metric-content">
+<p class="formula">N(posesiones recuperadas Regular Play/From Counter, primera acción x&lt;60, primer tiro no penal a ≤15 s)</p>
+<p>No exige avance mínimo; cuenta una por posesión aunque haya rebotes. No es la fase de 10 s.</p>
+<p class="source">
+<b>Objeto:</b> O08/O09/O11 · <b>Fuente:</b> B/F: extract.py counter_shots2 · <b>Supuestos A:</b> 13/14</p>
+</div>
+</details>
+<details class="metric" id="M15">
+<summary>
+<span class="ref">M15</span> Transición temporal heredada<span class="unit">Fracción de posesiones</span>
+</summary>
+<div class="metric-content">
+<p class="formula">counter_shots2 / poss del motor por partido; luego media de partidos del bloque</p>
+<p>Numerador M14 (15 s); denominador sin BP peligroso. No usar el rótulo genérico tiros de transición de 10 s.</p>
+<p class="source">
+<b>Objeto:</b> O09/O15 · <b>Fuente:</b> F: temporal.py transition_shots_per_possession · <b>Supuestos A:</b> 14/32/33</p>
+</div>
+</details>
+<details class="metric" id="M16">
+<summary>
+<span class="ref">M16</span> Tiros contextuales de transición de 10 s<span class="unit">Tiros; /90; /100 posesiones</span>
+</summary>
+<div class="metric-content">
+<p class="formula">N(Shot no penal a 0≤t_tiro−t_inicio_posesión≤10 s tras cambio de dueño del mismo periodo)</p>
+<p>Cuenta todos los tiros elegibles. No requiere x&lt;60; distintas reglas de recuperación que la cadena.</p>
+<p class="source">
+<b>Objeto:</b> O09/O14 · <b>Fuente:</b> F: contextual.py · <b>Supuestos A:</b> 09/13</p>
+</div>
+</details>
+<details class="metric" id="M17">
+<summary>
+<span class="ref">M17</span> Tiros tras recuperación alta de estilo<span class="unit">Conteo/partido</span>
+</summary>
+<div class="metric-content">
+<p class="formula">N(Shot no penal en posesión recuperada con primera acción x&gt;=80)</p>
+<p>Sin ventana de tiempo ni Pressure obligatorio. No es éxito de presión alta. R²=0,14; estimación para Barcelona omitida.</p>
+<p class="source">
+<b>Objeto:</b> O08/O07 · <b>Fuente:</b> B/F: extract.py high_press_shots · <b>Supuestos A:</b> 15</p>
+</div>
+</details>
+<details class="metric" id="M24">
+<summary>
+<span class="ref">M24</span> Recuperaciones y pérdidas contextuales<span class="unit">Conteos, /90 y /100 posesiones</span>
+</summary>
+<div class="metric-content">
+<p class="formula">N(Ball Recovery); N(Dispossessed)+N(Miscontrol)</p>
+<p>No todas las recuperaciones/cambios de posesión; pérdidas excluyen pases fallidos.</p>
+<p class="source">
+<b>Objeto:</b> O08 · <b>Fuente:</b> F: contextual.py · <b>Supuestos A:</b> 28</p>
+</div>
+</details>
+<h3 class="family">Tiros, xG y exposición</h3>
+<details class="metric" id="M18">
+<summary>
+<span class="ref">M18</span> xG y xGA global no penal<span class="unit">xG/partido</span>
+</summary>
+<div class="metric-content">
+<p class="formula">Σ shot.statsbomb_xg propio/rival para Shot.type≠Penalty; media por partido</p>
+<p>Suma de probabilidades del proveedor, no probabilidad de ganar. temporal.xg usa este total, no solo tiros del prefijo.</p>
+<p class="source">
+<b>Objeto:</b> O11 · <b>Fuente:</b> B/F: extract.py m.np_xg/m.np_xga; team-stats para estilo · <b>Supuestos A:</b> 07/28</p>
+</div>
+</details>
+<details class="metric" id="M19">
+<summary>
+<span class="ref">M19</span> Tiros/xG del prefijo de cadena<span class="unit">Conteo y xG acumulados</span>
+</summary>
+<div class="metric-content">
+<p class="formula">Σ shot[phase][zone] y Σ xg[phase][zone] hasta primer tiro no penal por posesión no BP peligroso</p>
+<p>No incluye todos los rebotes ni BP; temporal.shots no tiene exactamente la misma población que temporal.xg.</p>
+<p class="source">
+<b>Objeto:</b> O06/O11 · <b>Fuente:</b> B/F: extract.py; temporal.shots=Σ shot · <b>Supuestos A:</b> 12/20</p>
+</div>
+</details>
+<details class="metric" id="M20">
+<summary>
+<span class="ref">M20</span> Tiros y xG contextual/intervalo<span class="unit">Conteo y xG</span>
+</summary>
+<div class="metric-content">
+<p class="formula">N(Shot); Σ shot.statsbomb_xg, incluidos penales</p>
+<p>Contexto anula total/tasas si algún xG falta; personnel suma solo finitos y puede subestimar sin aviso. No comparar con M18 sin separar penales.</p>
+<p class="source">
+<b>Objeto:</b> O11/O14/O13 · <b>Fuente:</b> F: contextual.py; personnel.py · <b>Supuestos A:</b> 07/29/34</p>
+</div>
+</details>
+<details class="metric" id="M21">
+<summary>
+<span class="ref">M21</span> xG a balón parado de estilo<span class="unit">xG/partido</span>
+</summary>
+<div class="metric-content">
+<p class="formula">Σ xG no penal con From Corner/From Free Kick/From Throw In</p>
+<p>Incluye bandas/faltas alejadas; no igual a sp_xg del motor restringido por is_sp.</p>
+<p class="source">
+<b>Objeto:</b> O11 · <b>Fuente:</b> B/F: extract.py m.sp_xg y team-stats · <b>Supuestos A:</b> 20</p>
+</div>
+</details>
+<details class="metric" id="M25">
+<summary>
+<span class="ref">M25</span> Exposición y tasas<span class="unit">Minutos; conteo/90; conteo/100</span>
+</summary>
+<div class="metric-content">
+<p class="formula">min=seconds/60; tasa90=conteo*5400/seconds; tasa100=conteo*100/possessions</p>
+<p>Reloj con pausas; clock_incomplete anula /90. xGA/100 usa posesiones propias, no del rival.</p>
+<p class="source">
+<b>Objeto:</b> O04/O14 · <b>Fuente:</b> F: contextual.py::summarize_bucket · <b>Supuestos A:</b> 09/29/31</p>
+</div>
+</details>
+<details class="metric" id="M26">
+<summary>
+<span class="ref">M26</span> Diferencias de contexto<span class="unit">Unidad original y proporción</span>
+</summary>
+<div class="metric-content">
+<p class="formula">Δ=A−B; relativa=Δ/abs(B), B≠0</p>
+<p>Solo winning−drawing, losing−drawing y home−away; sin prueba estadística ni ajuste de confusores.</p>
+<p class="source">
+<b>Objeto:</b> O14 · <b>Fuente:</b> F: contextual.py::comparisons · <b>Supuestos A:</b> 30/31</p>
+</div>
+</details>
+<details class="metric" id="M27">
+<summary>
+<span class="ref">M27</span> Media, dispersión y cambio temporal<span class="unit">Unidad de cada métrica</span>
+</summary>
+<div class="metric-content">
+<p class="formula">bloque=Σ valores válidos/n_válidos; series.mean=media de bloques; stdev=sqrt(Σ(v−media)²/(b−1)); Δ_i=v_i−v_(i−1)</p>
+<p>Bloque suficiente por ≥5 partidos aunque cobertura métrica sea menor; no es prueba de estabilidad. Media de razones ≠ razón de sumas.</p>
+<p class="source">
+<b>Objeto:</b> O15 · <b>Fuente:</b> F/T: temporal.py · <b>Supuestos A:</b> 32/33</p>
+</div>
+</details>
+<h3 class="family">Personas, alineaciones y secuencias</h3>
+<details class="metric" id="M28">
+<summary>
+<span class="ref">M28</span> Minutos, apariciones y titularidades<span class="unit">Minutos y conteos</span>
+</summary>
+<div class="metric-content">
+<p class="formula">minutos=Σ max(fin_segmento−inicio,0)/60; partidos=Σ I(minutos&gt;0); titularidades=Σ I(start_reason=Starting XI)</p>
+<p>Sin unir intervalos superpuestos; reloj minuto global puede solaparse entre mitades. Los minutos incluyen agregado según datos del proveedor.</p>
+<p class="source">
+<b>Objeto:</b> O12 · <b>Fuente:</b> F: personnel.py · <b>Supuestos A:</b> 10/35</p>
+</div>
+</details>
+<details class="metric" id="M29">
+<summary>
+<span class="ref">M29</span> Alineaciones y pares<span class="unit">Partidos/minutos</span>
+</summary>
+<div class="metric-content">
+<p class="formula">Frecuencia del conjunto de titulares; minutos compartidos=Σ duración de intervalos con ambos; titularidades conjuntas=Σ I(ambos titulares)</p>
+<p>Frecuencia de conjunto no considera orden/formación. Shared_minutes suma duración ya redondeada a 0,001 min. No identifica sinergia causal.</p>
+<p class="source">
+<b>Objeto:</b> O13 · <b>Fuente:</b> F: personnel.py::_pairs/build_personnel · <b>Supuestos A:</b> 10/36</p>
+</div>
+</details>
+<details class="metric" id="M30">
+<summary>
+<span class="ref">M30</span> Sustituciones<span class="unit">Conteo; tiempo de reloj</span>
+</summary>
+<div class="metric-content">
+<p class="formula">N(Substitution propia con ambos IDs y tiempo verificable)</p>
+<p>Estado previo calculado con reloj propio y gol anterior al momento; acciones simultáneas y autogol sin pareja no tienen el contrato de contextual.py.</p>
+<p class="source">
+<b>Objeto:</b> O12/O04 · <b>Fuente:</b> F: personnel.py::_substitutions · <b>Supuestos A:</b> 10/35</p>
+</div>
+</details>
+<details class="metric" id="M31">
+<summary>
+<span class="ref">M31</span> Puntuación de peligro<span class="unit">Puntos arbitrarios</span>
+</summary>
+<div class="metric-content">
+<p class="formula">100*I(gol)+10*xG+min(max(x_tiro−80,0),40)</p>
+<p>Todos los goles ordenan primero. Dentro de goles la zona puede dominar al xG; la leyenda gol&gt;xG&gt;zona del frontend no describe el orden real. No es probabilidad.</p>
+<p class="source">
+<b>Objeto:</b> O16 · <b>Fuente:</b> P: dangerous.py::_score · <b>Supuestos A:</b> 38</p>
+</div>
+</details>
+<details class="metric" id="M32">
+<summary>
+<span class="ref">M32</span> Progresión/duración de secuencia peligrosa<span class="unit">Unidades de cancha y segundos</span>
+</summary>
+<div class="metric-content">
+<p class="formula">progression=x_último_tiro−x_primera_acción rival; duration=max(0,t_último_tiro−t_primer_evento)</p>
+<p>Avance neto puede ser negativo; no suma avance total. Primer evento puede ser administrativo; timestamp relativo puede fallar al cruzar periodos.</p>
+<p class="source">
+<b>Objeto:</b> O16 · <b>Fuente:</b> P: dangerous.py · <b>Supuestos A:</b> 38</p>
+</div>
+</details>
+<details class="metric" id="M33">
+<summary>
+<span class="ref">M33</span> Firmas experimentales<span class="unit">Proporción; razón; conteo/10 partidos; xG</span>
+</summary>
+<div class="metric-content">
+<p class="formula">share=n_firma/Σ n; lift=share_equipo/share_liga; frecuencia10=10*n/partidos; xG_por_posesión=ΣxG/n</p>
+<p>Helper histórico llama xg_per_shot a xG/posesión; frontend xg10=10*ΣxG/n. Lift sin base usa share en helper y null en frontend. No consolidado.</p>
+<p class="source">
+<b>Objeto:</b> O17 · <b>Fuente:</b> H/P: signature_plays y signaturePlays · <b>Supuestos A:</b> 39</p>
+</div>
+</details>
+<h3 class="family">Estilo, mapa, simulación y experimentos</h3>
+<details class="metric" id="M34">
+<summary>
+<span class="ref">M34</span> Percentil de estilo<span class="unit">Percentil 0–100</span>
+</summary>
+<div class="metric-content">
+<p class="formula">v_s=(n_m*v+8*μ_liga)/(n_m+8); p=round(100*#(ref&lt;v_s)/#ref); invertido=round(100−p)</p>
+<p>B n=len(filas), F n_m por métrica. μ_liga pondera partidos; ref pondera equipos-temporada. raw guarda media v sin encogimiento.</p>
+<p class="source">
+<b>Objeto:</b> O18/O01 · <b>Fuente:</b> B/F: build_model.py::style_from_means/pct · <b>Supuestos A:</b> 24/26</p>
+</div>
+</details>
+<details class="metric" id="M35">
+<summary>
+<span class="ref">M35</span> Calibración desde eventos<span class="unit">Escala suministrada estimada</span>
+</summary>
+<div class="metric-content">
+<p class="formula">ŷ=a+b*x por mínimos cuadrados; R²=corr(x,y)²; PPDA ajusta log y retorna exp(ŷ)</p>
+<p>F exige ≥3 pares, variación, finitud, R²&gt;=0,5 y predicción&gt;=0. Ajuste en muestra; no validación externa.</p>
+<p class="source">
+<b>Objeto:</b> O18/O03 · <b>Fuente:</b> B/F: build_model.py; F: metric_utils.py::fit_calibration · <b>Supuestos A:</b> 27</p>
+</div>
+</details>
+<details class="metric" id="M36">
+<summary>
+<span class="ref">M36</span> Mapa y semejanza<span class="unit">Coordenadas percentiles y distancia</span>
+</summary>
+<div class="metric-content">
+<p class="formula">off=[round((P_ritmo+P_contra)/2),P_posesión]; dfn=[P_altura,round((P_volumen+P_contrapresión)/2)]; d=√Σ(v_j−u_j)² en 4 ejes</p>
+<p>No es PCA ni clustering. Top 3 excluye trayectoria propia; igual peso para los cuatro ejes, con correlaciones y redondeo.</p>
+<p class="source">
+<b>Objeto:</b> O18 · <b>Fuente:</b> B/F: build_model.py::map_point; frontend::similar · <b>Supuestos A:</b> 25/49</p>
+</div>
+</details>
+<details class="metric" id="M37">
+<summary>
+<span class="ref">M37</span> Tasa de desenlace y cruce simulado<span class="unit">Probabilidad condicional</span>
+</summary>
+<div class="metric-content">
+<p class="formula">p=(c+K*L_n/L_m*p_L)/(n+K*L_n/L_m); logit(p_AD)=logit(p_A)+logit(p_D)−logit(p_L)</p>
+<p>K=8; límites numéricos y normalización adicionales. Destinos de movimiento parten del atacante; no modelo aprendido de enfrentamientos fuera de muestra.</p>
+<p class="source">
+<b>Objeto:</b> O19/O06 · <b>Fuente:</b> B/F: engine.js::rates/matchup · <b>Supuestos A:</b> 26/44</p>
+</div>
+</details>
+<details class="metric" id="M38">
+<summary>
+<span class="ref">M38</span> xG por tiro simulado y Monte Carlo<span class="unit">Probabilidad por tiro; medias y proporciones</span>
+</summary>
+<div class="metric-content">
+<p class="formula">xG_AD=clamp(xG_A*xG_D/xG_L,0,005,0,9); métricas=Σ simulación/N; W/N,D/N,L/N</p>
+<p>Penales y BP tienen límites propios. La simulación incluye penales; referencia np_xg/np_shots los excluye. N=1500 en UI; semilla fija.</p>
+<p class="source">
+<b>Objeto:</b> O19/O11 · <b>Fuente:</b> B/F: engine.js::matchup/simulateMany · <b>Supuestos A:</b> 43/45/47</p>
+</div>
+</details>
+<details class="metric" id="M39">
+<summary>
+<span class="ref">M39</span> Posesión y firmas simuladas<span class="unit">Proporciones y acciones/posesión</span>
+</summary>
+<div class="metric-content">
+<p class="formula">posesión=time_equipo/Σ time; longitud=acciones/posesiones; largas=N(possActs&gt;=10)/posesiones; shareT=shotsT/shots; robo_alto=regainsHigh/regains</p>
+<p>Posesión es tiempo simulado, no proxy M01. Robo alto simulado usa col&gt;=3 (x&gt;=60); no M17 (x&gt;=80).</p>
+<p class="source">
+<b>Objeto:</b> O19 · <b>Fuente:</b> B/F: engine.js::simulate/simulateMany · <b>Supuestos A:</b> 43/47</p>
+</div>
+</details>
+<details class="metric" id="M40">
+<summary>
+<span class="ref">M40</span> Exploraciones de clustering y tiros Bernoulli<span class="unit">Clusters/componentes; puntos esperados experimentales</span>
+</summary>
+<div class="metric-content">
+<p class="formula">KMeans sobre StandardScaler; k=argmax silhouette para k∈{3,4,5,6}; PCA(2); en poc: goles=Σ Bernoulli(xG_tiro), xPts=(3W+D)/5000</p>
+<p>Sin validación externa ni integración al mapa. El CSV solo conserva etiquetas; no centroides, coeficientes ni silhouette. No usar como resultados consolidados.</p>
+<p class="source">
+<b>Objeto:</b> O18/O11 · <b>Fuente:</b> research/clusters.py y poc.py · <b>Supuestos A:</b> 40/42</p>
+</div>
+</details>
+<aside class="callout">
+<strong>Estilo y referencia</strong>
+<p>La media de cada métrica se encoge hacia la media de liga con 8 pseudo-partidos. Después se calcula un percentil contra medias de equipos-temporada con al menos 10 valores válidos. PPDA y xGA se invierten. La media de liga pondera partidos; el percentil pondera equipos-temporada. <code>raw</code> guarda la media anterior al encogimiento, no datos crudos.</p>
+</aside>
+<p>El balón parado del motor usa córner o falta con primera acción x≥80. El xG a balón parado de estilo incluye también bandas y otras faltas. Las tasas de córner corto, remate, cabezazo, técnica, lanzamiento de falta, penal y disciplina se derivan de sus respectivos conteos; el framework detalla denominadores y límites simulados.</p>
+<h3 class="family">Dominio y mapas simulados</h3>
+<details class="metric" id="M41">
+<summary>
+<span class="ref">M41</span> Dominio, momentum y mapas simulados<span class="unit">Proporción; índice arbitrario; proporción por zona</span>
+</summary>
+<div class="metric-content">
+<p class="formula">fieldTilt=acciones propias en col&gt;=4 / acciones de ambos en col&gt;=4; momentum_min=0,02*(Pass+Carry con destino col&gt;=4)+ΣxG_tiros del minuto; UI promedia minutos m−1,m,m+1; heat_z=conteo_z/Σconteos</p>
+<p>Momentum suma xG y un peso configurado de 0,02 por avance al tercio final. No es presión ni dominio observado; visual usa96 bins y suelo0,15 en escala.</p>
+<p class="source">O19/O07 · B/F: engine.js::simulate/choreograph y frontend::drawMomentum/heatHTML · A06/A43/A47/A53/A54</p>
+</div>
+</details>
+</section>
+<section id="contexto" aria-labelledby="h-contexto">
+<div class="section-label">07</div>
+<h2 id="h-contexto">Caso Jardine: marcador y localía</h2>
+<span class="badge green">F · 820e749</span>
+<p>La muestra son <strong>70 partidos de América con Jardine</strong>, del 1 de julio de 2023 al 16 de diciembre de 2024. El contexto distingue ganar, empatar o perder <em>antes de cada evento</em> y asigna la exposición posterior al gol al nuevo marcador. La localía proviene de IDs de metadatos; la ausencia queda en <code>unknown</code>.</p>
+<div class="table-wrap" tabindex="0" role="region" aria-label="R03 · Contextos observados de Jardine en F">
+<table>
+<caption>R03 · Contextos observados de Jardine en F</caption>
+<thead>
+<tr>
+<th scope="col">Contexto</th>
+<th scope="col">Partidos</th>
+<th scope="col">Minutos de reloj</th>
+<th scope="col">Posesiones</th>
+<th scope="col">Proxy pases</th>
+<th scope="col">Directness pases</th>
+<th scope="col">PPDA aprox.</th>
+<th scope="col">xG total/90</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<th scope="row">score_state/winning</th>
+<td>48</td>
+<td>2320.04</td>
+<td>2249</td>
+<td>48.41%</td>
+<td>0.4689</td>
+<td>20.048</td>
+<td>1.4552</td>
+</tr>
+<tr>
+<th scope="row">score_state/drawing</th>
+<td>70</td>
+<td>3762.83</td>
+<td>3887</td>
+<td>54.11%</td>
+<td>0.4319</td>
+<td>20.585</td>
+<td>1.3754</td>
+</tr>
+<tr>
+<th scope="row">score_state/losing</th>
+<td>31</td>
+<td>1025.79</td>
+<td>1101</td>
+<td>62.82%</td>
+<td>0.4126</td>
+<td>14.533</td>
+<td>1.8384</td>
+</tr>
+<tr>
+<th scope="row">venue/home</th>
+<td>34</td>
+<td>3443.95</td>
+<td>3465</td>
+<td>54.07%</td>
+<td>0.4316</td>
+<td>19.643</td>
+<td>1.6159</td>
+</tr>
+<tr>
+<th scope="row">venue/away</th>
+<td>36</td>
+<td>3664.71</td>
+<td>3772</td>
+<td>52.94%</td>
+<td>0.4479</td>
+<td>19.343</td>
+<td>1.3295</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="grid two">
+<article>
+<span class="ref">Resumen observado</span>
+<h3>62,82% perdiendo · 54,11% empatando</h3>
+<p>Es la proporción de pases propios entre propios y rivales. La diferencia observada es de <b>+8,70 puntos porcentuales</b>. El PPDA territorial aproximado es 14,533 perdiendo y 20,585 empatando.</p>
+</article>
+<article>
+<span class="ref">Interpretación acotada</span>
+<h3>Una diferencia según el contexto</h3>
+<p>Se observa mayor participación en la circulación al ir perdiendo. Estos datos no identifican si la diferencia procede de una instrucción del entrenador, del rival, del plantel o del desarrollo del partido.</p>
+</article>
+</div>
+<p>En casa se registra xG total/90 de 1,6159 frente a 1,3295 fuera. Son tasas con penales y tiempo de reloj observado, incluidas pausas; no son la media npxG de estilo. Todos los contextos mostrados cumplen ≥5 partidos,≥90 minutos y≥30 posesiones. No se interpreta ese umbral como prueba de significancia.</p>
+<aside class="callout">
+<strong>No sumar posesiones por marcador</strong>
+<p>Una posesión puede visitar más de un estado y contarse en cada uno. Los partidos por estado también se solapan. Los contextos de marcador y localía son particiones marginales independientes: no existe aquí un cruce completo marcador×localía ni un ajuste por expulsiones.</p>
+</aside>
+<details>
+<summary>Cómo se controla la reconstrucción</summary>
+<p>F ordena por periodo e índice, incluye periodos 1–4 y excluye tandas. Un gol actualiza el marcador después de contar el evento; los autogoles emparejados se cuentan una vez. Índices ausentes/duplicados o marcador final incompatible invalidan el estado, que pasa a unknown. Si falta un límite de periodo o reloj, se marca clock_incomplete y las tasas /90 son null. Se conservan todos los intervalos válidos dentro de periodo, también los de más de 30 segundos.</p>
+</details>
+<p class="source">
+<strong>Trazabilidad:</strong> R03 · O04/O14 · M01/M04/M08/M20/M25/M26 · A09/A16/A29–31 · F model.entities[ame_jardine].context; pipeline/contextual.py.</p>
+</section>
+<section id="temporal" aria-labelledby="h-temporal">
+<div class="section-label">08</div>
+<h2 id="h-temporal">Evolución cronológica: nueve bloques</h2>
+<span class="badge green">F · 820e749</span>
+<p>Los partidos se ordenan por fecha e ID, se deduplican y se agrupan de ocho en ocho. Una cola menor de cinco se fusiona con el bloque previo. Jardine termina con ocho bloques de 8 partidos y uno de 6. Cada celda es una media de métricas válidas por partido; se conserva cobertura por métrica.</p>
+<figure>
+<svg viewBox="0 0 900 325" role="img" aria-labelledby="chart-title chart-desc">
+<title id="chart-title">PPDA aproximado de Jardine por bloque cronológico</title>
+<desc id="chart-desc">Nueve medias de PPDA por partido, ocho bloques de ocho partidos y uno de seis. Valores exactos y fechas en la tabla siguiente. Gráfico documental nuevo, no pantalla existente del frontend.</desc>
+<rect width="900" height="325" fill="#f7f9f7" rx="12"/>
+<line x1="64" y1="258" x2="838" y2="258" stroke="#d9e2df"/>
+<text x="48" y="263" text-anchor="end" fill="#53655f" font-size="13">0</text>
+<line x1="64" y1="205.5" x2="838" y2="205.5" stroke="#d9e2df"/>
+<text x="48" y="210.5" text-anchor="end" fill="#53655f" font-size="13">10</text>
+<line x1="64" y1="153" x2="838" y2="153" stroke="#d9e2df"/>
+<text x="48" y="158" text-anchor="end" fill="#53655f" font-size="13">20</text>
+<line x1="64" y1="100.5" x2="838" y2="100.5" stroke="#d9e2df"/>
+<text x="48" y="105.5" text-anchor="end" fill="#53655f" font-size="13">30</text>
+<line x1="64" y1="48" x2="838" y2="48" stroke="#d9e2df"/>
+<text x="48" y="53" text-anchor="end" fill="#53655f" font-size="13">40</text>
+<text x="64" y="24" fill="#53655f" font-size="13">Pases rivales por acción defensiva · media de partido</text>
+<polyline points="78,180.43652625 170,124.772787 262,134.7397335 354,146.42612325 446,134.3163 538,137.479509 630,163.3214055 722,182.49382275 814,76.18981725" fill="none" stroke="#106451" stroke-width="3"/>
+<circle cx="78" cy="180.43652625" r="5" fill="#106451">
+<title>Bloque 1: 14.773995, 8 partidos, 2023-07-01 a 2023-09-21</title>
+</circle>
+<text x="78" y="168.43652625" text-anchor="middle" fill="#173d32" font-size="12">14.77</text>
+<text x="78" y="285" text-anchor="middle" fill="#53655f" font-size="13">B1</text>
+<circle cx="170" cy="124.772787" r="5" fill="#106451">
+<title>Bloque 2: 25.376612, 8 partidos, 2023-09-24 a 2023-11-05</title>
+</circle>
+<text x="170" y="112.772787" text-anchor="middle" fill="#173d32" font-size="12">25.38</text>
+<text x="170" y="285" text-anchor="middle" fill="#53655f" font-size="13">B2</text>
+<circle cx="262" cy="134.7397335" r="5" fill="#106451">
+<title>Bloque 3: 23.478146, 8 partidos, 2023-11-12 a 2024-01-14</title>
+</circle>
+<text x="262" y="122.7397335" text-anchor="middle" fill="#173d32" font-size="12">23.48</text>
+<text x="262" y="285" text-anchor="middle" fill="#53655f" font-size="13">B3</text>
+<circle cx="354" cy="146.42612325" r="5" fill="#106451">
+<title>Bloque 4: 21.252167, 8 partidos, 2024-01-21 a 2024-02-25</title>
+</circle>
+<text x="354" y="134.42612325" text-anchor="middle" fill="#173d32" font-size="12">21.25</text>
+<text x="354" y="285" text-anchor="middle" fill="#53655f" font-size="13">B4</text>
+<circle cx="446" cy="134.3163" r="5" fill="#106451">
+<title>Bloque 5: 23.558800, 8 partidos, 2024-03-03 a 2024-04-27</title>
+</circle>
+<text x="446" y="122.31630000000001" text-anchor="middle" fill="#173d32" font-size="12">23.56</text>
+<text x="446" y="285" text-anchor="middle" fill="#53655f" font-size="13">B5</text>
+<circle cx="538" cy="137.479509" r="5" fill="#106451">
+<title>Bloque 6: 22.956284, 8 partidos, 2024-05-09 a 2024-07-13</title>
+</circle>
+<text x="538" y="125.47950900000001" text-anchor="middle" fill="#173d32" font-size="12">22.96</text>
+<text x="538" y="285" text-anchor="middle" fill="#53655f" font-size="13">B6</text>
+<circle cx="630" cy="163.3214055" r="5" fill="#106451">
+<title>Bloque 7: 18.034018, 8 partidos, 2024-07-18 a 2024-09-30</title>
+</circle>
+<text x="630" y="151.3214055" text-anchor="middle" fill="#173d32" font-size="12">18.03</text>
+<text x="630" y="285" text-anchor="middle" fill="#53655f" font-size="13">B7</text>
+<circle cx="722" cy="182.49382275" r="5" fill="#106451">
+<title>Bloque 8: 14.382129, 8 partidos, 2024-10-06 a 2024-11-22</title>
+</circle>
+<text x="722" y="170.49382275" text-anchor="middle" fill="#173d32" font-size="12">14.38</text>
+<text x="722" y="285" text-anchor="middle" fill="#53655f" font-size="13">B8</text>
+<circle cx="814" cy="76.18981725" r="5" fill="#106451">
+<title>Bloque 9: 34.630511, 6 partidos, 2024-11-28 a 2024-12-16</title>
+</circle>
+<text x="814" y="64.18981725" text-anchor="middle" fill="#173d32" font-size="12">34.63</text>
+<text x="814" y="285" text-anchor="middle" fill="#53655f" font-size="13">B9</text>
+<text x="64" y="311" fill="#53655f" font-size="12">2023-07-01</text>
+<text x="838" y="311" text-anchor="end" fill="#53655f" font-size="12">2024-12-16</text>
+</svg>
+<figcaption>V17 · Gráfico nuevo para esta documentación. El frontend F presenta estos datos como tabla temporal. La línea une medias de bloque; no es un ajuste ni una inferencia de estabilidad.</figcaption>
+</figure>
+<div class="table-wrap" tabindex="0" role="region" aria-label="R04 · Serie temporal exacta exportada por F">
+<table>
+<caption>R04 · Serie temporal exacta exportada por F</caption>
+<thead>
+<tr>
+<th scope="col">Bloque</th>
+<th scope="col">Fechas</th>
+<th scope="col">N</th>
+<th scope="col">Directness Pass+Carry</th>
+<th scope="col">PPDA medio</th>
+<th scope="col">xG no penal eventos/partido</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<th scope="row">1</th>
+<td>2023-07-01 → 2023-09-21</td>
+<td>8</td>
+<td>0.457811</td>
+<td>14.773995</td>
+<td>1.738289</td>
+</tr>
+<tr>
+<th scope="row">2</th>
+<td>2023-09-24 → 2023-11-05</td>
+<td>8</td>
+<td>0.451331</td>
+<td>25.376612</td>
+<td>2.155508</td>
+</tr>
+<tr>
+<th scope="row">3</th>
+<td>2023-11-12 → 2024-01-14</td>
+<td>8</td>
+<td>0.485464</td>
+<td>23.478146</td>
+<td>1.289341</td>
+</tr>
+<tr>
+<th scope="row">4</th>
+<td>2024-01-21 → 2024-02-25</td>
+<td>8</td>
+<td>0.471415</td>
+<td>21.252167</td>
+<td>1.499504</td>
+</tr>
+<tr>
+<th scope="row">5</th>
+<td>2024-03-03 → 2024-04-27</td>
+<td>8</td>
+<td>0.463611</td>
+<td>23.558800</td>
+<td>2.013926</td>
+</tr>
+<tr>
+<th scope="row">6</th>
+<td>2024-05-09 → 2024-07-13</td>
+<td>8</td>
+<td>0.475101</td>
+<td>22.956284</td>
+<td>1.152397</td>
+</tr>
+<tr>
+<th scope="row">7</th>
+<td>2024-07-18 → 2024-09-30</td>
+<td>8</td>
+<td>0.479598</td>
+<td>18.034018</td>
+<td>1.131147</td>
+</tr>
+<tr>
+<th scope="row">8</th>
+<td>2024-10-06 → 2024-11-22</td>
+<td>8</td>
+<td>0.473573</td>
+<td>14.382129</td>
+<td>1.728647</td>
+</tr>
+<tr>
+<th scope="row">9</th>
+<td>2024-11-28 → 2024-12-16</td>
+<td>6</td>
+<td>0.540917</td>
+<td>34.630511</td>
+<td>0.947093</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>El PPDA medio varía entre 14,382129 y 34,630511 en los bloques. La variación está calculada; su causa no está identificada. La última media se basa en 6 partidos y el calendario de cada bloque es diferente.</p>
+<aside class="callout">
+<strong>Comparabilidad temporal</strong>
+<p>
+<code>directness</code> temporal usa pases y conducciones sin BP peligroso; el contextual usa solo pases. El PPDA temporal es media de razones de partido; el contextual es razón de sumas. <code>transition_shots_per_possession</code> conserva la heurística de 15s con inicio x&lt;60: no es el contador contextual de tiros de 10s.</p>
+</aside>
+<p>La serie incluye media de bloques, desviación muestral, mínimo/máximo y diferencias entre valores disponibles. La marca de muestra suficiente mira el total de partidos del bloque, no la cobertura individual de cada métrica. No se demuestra identidad estable por el nombre del tag temporal.</p>
+<p class="source">
+<strong>Trazabilidad:</strong> R04 · O15 · M03/M08/M18/M27 · A32/A33 · F model.entities[ame_jardine].temporal.periods; pipeline/temporal.py.</p>
+</section>
+<section id="jugadores" aria-labelledby="h-jugadores">
+<div class="section-label">09</div>
+<h2 id="h-jugadores">Jugadores y alineaciones registradas</h2>
+<span class="badge green">F · 820e749</span>
+<div class="stats">
+<div>
+<b>70/70</b>
+<span>partidos con lineup</span>
+</div>
+<div>
+<b>55</b>
+<span>jugadores identificados</span>
+</div>
+<div>
+<b>46</b>
+<span>jugadores con minutos &gt;0</span>
+</div>
+<div>
+<b>317</b>
+<span>sustituciones registradas</span>
+</div>
+</div>
+<p>Los segmentos de posiciones de lineups indican quién entra, sale y ocupa una posición registrada. El módulo deriva apariciones, titularidades, minutos, conjuntos iniciales y composiciones simultáneas. Los 55 identificados incluyen suplentes; los 1.470 registros jugador-partido identificables no son 1.470 participaciones con minutos.</p>
+<div class="table-wrap" tabindex="0" role="region" aria-label="R05 · Participación exportada de Jardine">
+<table>
+<caption>R05 · Participación exportada de Jardine</caption>
+<thead>
+<tr>
+<th scope="col">player_id</th>
+<th scope="col">Jugador</th>
+<th scope="col">Partidos con minutos</th>
+<th scope="col">Titularidades</th>
+<th scope="col">Minutos registrados</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<th scope="row">33098</th>
+<td>Luis Malagón</td>
+<td>64</td>
+<td>64</td>
+<td>6180.955</td>
+</tr>
+<tr>
+<th scope="row">47467</th>
+<td>Álvaro Fidalgo</td>
+<td>63</td>
+<td>56</td>
+<td>5512.122</td>
+</tr>
+<tr>
+<th scope="row">6357</th>
+<td>Jonathan dos Santos</td>
+<td>64</td>
+<td>52</td>
+<td>4484.819</td>
+</tr>
+<tr>
+<th scope="row">30458</th>
+<td>Alejandro Zendejas</td>
+<td>61</td>
+<td>48</td>
+<td>4442.491</td>
+</tr>
+<tr>
+<th scope="row">26400</th>
+<td>Henry Martín</td>
+<td>59</td>
+<td>47</td>
+<td>4361.773</td>
+</tr>
+<tr>
+<th scope="row">33126</th>
+<td>Israel Reyes</td>
+<td>49</td>
+<td>40</td>
+<td>3927.373</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="grid two">
+<article>
+<h3>Tres objetos distintos</h3>
+<p>
+<b>Starting XI:</b> titulares registrados. <b>Composición:</b> jugadores con intervalos activos simultáneos. <b>Shape:</b> representación de puestos/jugadores frecuentes y medias de ubicación de eventos; puede no haber coincidido como once real.</p>
+</article>
+<article>
+<h3>Frecuencia, no efecto</h3>
+<p>El conjunto inicial más repetido aparece en 4 partidos. El par Malagón–Fidalgo acumula 5162,405 minutos compartidos y 53 titularidades conjuntas bajo el reloj del módulo. Es coincidencia de participación; no una prueba de sinergia causal.</p>
+</article>
+</div>
+<details>
+<summary>Once inicial más frecuente y límites de reconstrucción</summary>
+<p>Malagón, Layún, Lichnovsky, Valdés, Martín, Fuentes, Zendejas, Quiñones, Cáceres, Fidalgo y dos Santos. Frecuencia:4 partidos. Se compara el conjunto de IDs, no el orden posicional.</p>
+<p>Los intervalos son [inicio,fin). Si falta el fin se usa el último minuto/segundo observado; segmentos invertidos se omiten con aviso. Jardine conserva un aviso para Igor Lichnovsky. El reloj de personnel no reutiliza el contextual por periodo y el estado posterior al gol puede quedar atrasado hasta la siguiente frontera. Se registra como I06; los minutos y estados no se presentan como libres de esas limitaciones.</p>
+<p>
+<code>ppda_all_zone</code> cuenta pases rivales sobre Pressure+Duel+Interception+Ball Recovery+Foul Committed en todo el campo. Es una razón descriptiva distinta del PPDA territorial. El frontend muestra 12 jugadores y las primeras 8 sustituciones; la API conserva más registros.</p>
+</details>
+<p class="source">
+<strong>Trazabilidad:</strong> R05 · O12/O13 · M28–30 · A10/A34–37 · F personnel.coverage/players/starting_lineups/combinations/substitutions; pipeline/personnel.py. I06/I15.</p>
+</section>
+<section id="jugadas" aria-labelledby="h-jugadas">
+<div class="section-label">10</div>
+<h2 id="h-jugadas">Jugadas peligrosas y patrones: línea histórica</h2>
+<span class="badge amber">P · e6f37b6</span>
+<p>La selección peligrosa contiene posesiones rivales con al menos un tiro. Conserva eventos de la posesión, elige el <strong>último tiro</strong> y ordena por gol, puntuación, xG, fecha y minuto. Se exportan como máximo cinco por entidad.</p>
+<div class="formula">Score =100 × gol +10 × xG + min(max(x del tiro −80,0),40)</div>
+<p>La fórmula prioriza goles. Dentro de cada grupo mezcla xG y zona: no es un orden puro por xG. No exige entrada al área, progresión mínima ni transición. La duración comienza en el primer evento de posesión; la progresión es avance neto hasta el último tiro y puede ser negativa.</p>
+<div class="table-wrap" tabindex="0" role="region" aria-label="R06 · Top5 histórico de Jardine en P">
+<table>
+<caption>R06 · Top 5 histórico de Jardine en P</caption>
+<thead>
+<tr>
+<th scope="col">Partido:posesión</th>
+<th scope="col">Fecha</th>
+<th scope="col">Rival</th>
+<th scope="col">xG</th>
+<th scope="col">Score</th>
+<th scope="col">Avance neto</th>
+<th scope="col">Duración s</th>
+<th scope="col">Ventana</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<th scope="row">3919036:21</th>
+<td>2024-03-03</td>
+<td>Atlas</td>
+<td>0.9269</td>
+<td>147.369</td>
+<td>11.7</td>
+<td>3.01</td>
+<td>Dentro por fecha; muestra P distinta</td>
+</tr>
+<tr>
+<th scope="row">3917858:162</th>
+<td>2023-12-10</td>
+<td>Atlético San Luis</td>
+<td>0.6092</td>
+<td>143.592</td>
+<td>-2.5</td>
+<td>2.61</td>
+<td>Dentro por fecha; muestra P distinta</td>
+</tr>
+<tr>
+<th scope="row">3889669:48</th>
+<td>2023-08-21</td>
+<td>Atlas</td>
+<td>0.5697</td>
+<td>142.197</td>
+<td>108.0</td>
+<td>19.54</td>
+<td>Dentro por fecha; muestra P distinta</td>
+</tr>
+<tr>
+<th scope="row">4004103:134</th>
+<td>2025-09-14</td>
+<td>Guadalajara</td>
+<td>0.5576</td>
+<td>140.476</td>
+<td>27.6</td>
+<td>28.54</td>
+<td>Fuera de la ventana del caso 70</td>
+</tr>
+<tr>
+<th scope="row">4038871:41</th>
+<td>2026-03-01</td>
+<td>Tigres UANL</td>
+<td>0.5913</td>
+<td>139.713</td>
+<td>-6.2</td>
+<td>6.71</td>
+<td>Fuera de la ventana del caso 70</td>
+</tr>
+</tbody>
+</table>
+</div>
+<aside class="callout">
+<strong>Esta no es la población del caso de 70 partidos</strong>
+<p>El modelo P tiene 129 partidos agregados de Jardine y <code>n=0</code>, estilo vacío y ventana hasta mayo de 2026. Sus dos ocasiones de 2025/2026 no pertenecen a la muestra 70 de F. Los cinco ejemplos son goles seleccionados por el ranking; no permiten estimar frecuencia de peligro.</p>
+</aside>
+<div class="grid two">
+<article>
+<h3>Firmas de posesión</h3>
+<p>Las etiquetas inicio|carril|definición cuentan posesiones sin BP peligroso, incluso sin tiro. Se ordenan por frecuencia×√lift. Se encontraron comparaciones de columnas que no corresponden al área ni a bandas y un nombre xG por tiro cuyo denominador real son posesiones. Su estado es experimental.</p>
+</article>
+<article>
+<h3>Jugada desde texto</h3>
+<p>El frontend usa expresiones regulares y coordenadas configuradas para dibujar recuperación, avance, banda, centro o tiro. No consulta un índice de partidos ni usa un modelo de lenguaje para confirmar una jugada real. La animación es una ilustración pedagógica.</p>
+</article>
+</div>
+<p>La cancha peligrosa mezcla coordenadas propias de ambos equipos sin normalizar la orientación defensiva. Aunque los eventos sean suministrados, esa relación espacial dibujada requiere corregirse antes de inferir distancias defensivas. No hay 360 ni reconstrucción completa de jugadores sin evento.</p>
+<p class="source">
+<strong>Trazabilidad:</strong> R06 · O16/O17/O19 · M31–33 · A38/A39 · P: dangerous.py, frontend::drawDangerous/signaturePlays/parseNL. I01/I02/I07/I08.</p>
+</section>
+<section id="visualizaciones" aria-labelledby="h-visualizaciones">
+<div class="section-label">11</div>
+<h2 id="h-visualizaciones">Inventario de visualizaciones y lecturas válidas</h2>
+<p>Se identifican dieciséis familias de vistas o representaciones construidas y un gráfico documental nuevo. «Histórica» significa localizada en una rama o archivo concreto; no implica que esté disponible en la aplicación de esta rama.</p>
+<div class="viz-list">
+<details id="V01">
+<summary>
+<span class="ref">V01</span> Selección y cobertura<span class="state">B/F · chips</span>
+</summary>
+<div class="metric-content">
+<p>
+<b>Pregunta.</b> ¿Qué equipo-etapa y muestra se comparan?</p>
+<p>
+<b>Entrada.</b> O01/O02; n,d0,d1,formation,official; A01–05</p>
+<p>
+<b>Transformación.</b> Texto/chips de metadatos; aviso de muestra pequeña n&lt;8.</p>
+<div class="grid two">
+<p>
+<b>Interpretación válida.</b> Identificar población de cada selección.</p>
+<p>
+<b>Interpretación inválida.</b> Leer Actual como confirmación externa de cargo o n como número universal de eventos.</p>
+</div>
+</div>
+</details>
+<details id="V02">
+<summary>
+<span class="ref">V02</span> Plan y etiquetas FC<span class="state">B/F · renderPlan/fcLabels/tags</span>
+</summary>
+<div class="metric-content">
+<p>
+<b>Pregunta.</b> ¿Dónde se sitúa cada media respecto a la referencia?</p>
+<p>
+<b>Entrada.</b> O18; M34/M35; A24–28/A49</p>
+<p>
+<b>Transformación.</b> 14 barras percentiles y etiquetas por reglas; s/d si falta métrica.</p>
+<div class="grid two">
+<p>
+<b>Interpretación válida.</b> Comparación descriptiva de medias encogidas.</p>
+<p>
+<b>Interpretación inválida.</b> P93 significa 93% de eficacia, o etiqueta prueba intención del DT.</p>
+</div>
+</div>
+</details>
+<details id="V03">
+<summary>
+<span class="ref">V03</span> Vista táctica con/sin balón<span class="state">B/F · drawTactical</span>
+</summary>
+<div class="metric-content">
+<p>
+<b>Pregunta.</b> ¿Cómo se distribuyen anclas de eventos por puesto?</p>
+<p>
+<b>Entrada.</b> O13; shape y actors; A37</p>
+<p>
+<b>Transformación.</b> Cancha y dorsales; medias por puesto separadas por dueño de posesión.</p>
+<div class="grid two">
+<p>
+<b>Interpretación válida.</b> Representación de ubicación de acciones registradas.</p>
+<p>
+<b>Interpretación inválida.</b> Posiciones simultáneas reales de los 22 jugadores o bloque sin balón medido.</p>
+</div>
+</div>
+</details>
+<details id="V04">
+<summary>
+<span class="ref">V04</span> Mapa con balón<span class="state">B/F · renderMap(off)</span>
+</summary>
+<div class="metric-content">
+<p>
+<b>Pregunta.</b> ¿Qué perfiles se aproximan en ritmo/posesión?</p>
+<p>
+<b>Entrada.</b> O18; M36; A24–26</p>
+<p>
+<b>Transformación.</b> SVG de ejes manuales: promedio P_ritmo/P_contra vs P_posesión; cuadrantes.</p>
+<div class="grid two">
+<p>
+<b>Interpretación válida.</b> Semejanza en esas dimensiones.</p>
+<p>
+<b>Interpretación inválida.</b> Mapa PCA, clustering o cercanía táctica completa.</p>
+</div>
+</div>
+</details>
+<details id="V05">
+<summary>
+<span class="ref">V05</span> Mapa sin balón, trayectoria y vecinos<span class="state">B/F · renderMap(dfn)/similar</span>
+</summary>
+<div class="metric-content">
+<p>
+<b>Pregunta.</b> ¿Cómo cambian coordenadas de etapa-temporada y quién está cerca?</p>
+<p>
+<b>Entrada.</b> O18/O01; M36; A25/A49</p>
+<p>
+<b>Transformación.</b> P_altura vs media P_volumen/P_contrapresión; línea de temporadas, top 3 por distancia 4D.</p>
+<div class="grid two">
+<p>
+<b>Interpretación válida.</b> Trayectoria descriptiva de esos agregados; 159 unidades B/F.</p>
+<p>
+<b>Interpretación inválida.</b> Efecto del entrenador o continuidad exacta de la ventana SPECIAL: trayectoria usa todo coach-club.</p>
+</div>
+</div>
+</details>
+<details id="V06">
+<summary>
+<span class="ref">V06</span> Partido animado y resumen<span class="state">B/F · renderFrame; engine.choreograph</span>
+</summary>
+<div class="metric-content">
+<p>
+<b>Pregunta.</b> ¿Qué choque de tasas genera el modelo?</p>
+<p>
+<b>Entrada.</b> O19; M37–39; A43–48</p>
+<p>
+<b>Transformación.</b> Canvas de jugadores/ballAt interpolados desde log simulado; resumen de posesiones con remate.</p>
+<div class="grid two">
+<p>
+<b>Interpretación válida.</b> Ejemplo generado por modelo y semilla.</p>
+<p>
+<b>Interpretación inválida.</b> Reconstrucción de partido real o tracking observado.</p>
+</div>
+</div>
+</details>
+<details id="V07">
+<summary>
+<span class="ref">V07</span> Dominio por minuto, crónica y estadísticas<span class="state">B/F · drawMomentum/renderLive/buildCum</span>
+</summary>
+<div class="metric-content">
+<p>
+<b>Pregunta.</b> ¿Cómo evoluciona la simulación seleccionada?</p>
+<p>
+<b>Entrada.</b> O19; M39/M41; A43/A47/A53/A54</p>
+<p>
+<b>Transformación.</b> Momentum:0,02 por pase/conducción al tercio final más xG de tiros por minuto; suavizado de3 minutos; barras acumuladas y log.</p>
+<div class="grid two">
+<p>
+<b>Interpretación válida.</b> Dominio definido por actividad del motor.</p>
+<p>
+<b>Interpretación inválida.</b> Momentum emocional/táctico observado o datos del calendario real.</p>
+</div>
+</div>
+</details>
+<details id="V08">
+<summary>
+<span class="ref">V08</span> Simulación rápida, marcadores y mapas<span class="state">B/F · runQuick/heatHTML</span>
+</summary>
+<div class="metric-content">
+<p>
+<b>Pregunta.</b> ¿Qué distribución genera el mismo duelo con N=1500?</p>
+<p>
+<b>Entrada.</b> O19/O07; M38/M39; A43–48</p>
+<p>
+<b>Transformación.</b> Medias de partidos simulados, W/D/L, marcadores frecuentes; mapas 6×3 de tiros/xG y recuperaciones.</p>
+<div class="grid two">
+<p>
+<b>Interpretación válida.</b> Sensibilidad del generador a los parámetros del duelo.</p>
+<p>
+<b>Interpretación inválida.</b> Pronóstico calibrado o intervalos de confianza del resultado real.</p>
+</div>
+</div>
+</details>
+<details id="V09">
+<summary>
+<span class="ref">V09</span> Contexto por marcador/localía<span class="state">F · context_view.js::render</span>
+</summary>
+<div class="metric-content">
+<p>
+<b>Pregunta.</b> ¿Cómo difieren circulación, peligro y presión entre contextos observados?</p>
+<p>
+<b>Entrada.</b> O14/O04/O05; M01/02/04/07/08/16/20/24–26; A09/A28–31</p>
+<p>
+<b>Transformación.</b> Tarjetas de exposición y tabla de métricas/diferencias; null=s/d, advertencias de muestra.</p>
+<div class="grid two">
+<p>
+<b>Interpretación válida.</b> Diferencia marginal descriptiva con exposición informada.</p>
+<p>
+<b>Interpretación inválida.</b> Cambio causado por DT/localía o comparar /90 con media por partido sin aviso.</p>
+</div>
+</div>
+</details>
+<details id="V10">
+<summary>
+<span class="ref">V10</span> Evolución temporal<span class="state">T/F · renderTemporal</span>
+</summary>
+<div class="metric-content">
+<p>
+<b>Pregunta.</b> ¿Cómo varían las medias por bloques consecutivos?</p>
+<p>
+<b>Entrada.</b> O15; M01/03/06/08/12/15/18/19/27; A32/A33</p>
+<p>
+<b>Transformación.</b> Tabla por bloques, cobertura y texto de contextos. El frontend no dibuja una serie de línea.</p>
+<div class="grid two">
+<p>
+<b>Interpretación válida.</b> Variación descriptiva, sin clasificación estable/inestable.</p>
+<p>
+<b>Interpretación inválida.</b> Prueba estadística de identidad estable; transición de 15s tratada como 10s.</p>
+</div>
+</div>
+</details>
+<details id="V11">
+<summary>
+<span class="ref">V11</span> Jugadores y alineación inicial<span class="state">F · renderPersonnel</span>
+</summary>
+<div class="metric-content">
+<p>
+<b>Pregunta.</b> ¿Quién aparece, inicia y acumula minutos registrados?</p>
+<p>
+<b>Entrada.</b> O12/O13; M28–30; A10/A34–36</p>
+<p>
+<b>Transformación.</b> Tabla top 12 jugadores, conjunto inicial más frecuente, primeras 8 sustituciones y cobertura.</p>
+<div class="grid two">
+<p>
+<b>Interpretación válida.</b> Participación y sustituciones registradas, con advertencias.</p>
+<p>
+<b>Interpretación inválida.</b> Rendimiento individual, rol táctico causal, o shape como once inicial modal de personas.</p>
+</div>
+</div>
+</details>
+<details id="V12">
+<summary>
+<span class="ref">V12</span> Firmas ofensivas y BP detallado<span class="state">H/P · signaturePlays/setPieceHTML</span>
+</summary>
+<div class="metric-content">
+<p>
+<b>Pregunta.</b> ¿Qué etiquetas de posesión y lanzamientos son frecuentes?</p>
+<p>
+<b>Entrada.</b> O17/O11; M33; A20–22/A39</p>
+<p>
+<b>Transformación.</b> Cards de firma con share/lift/xG10 y tablas de lanzadores/destinos/técnica.</p>
+<div class="grid two">
+<p>
+<b>Interpretación válida.</b> Describir el clasificador implementado, con sus errores geométricos.</p>
+<p>
+<b>Interpretación inválida.</b> Taxonomía validada o xG10 como xG por diez tiros. Solo experimental.</p>
+</div>
+</div>
+</details>
+<details id="V13">
+<summary>
+<span class="ref">V13</span> Top 5 rival observado<span class="state">P · renderDangerous/drawDangerous</span>
+</summary>
+<div class="metric-content">
+<p>
+<b>Pregunta.</b> ¿Cuáles de las posesiones rivales con tiro obtienen mayor score?</p>
+<p>
+<b>Entrada.</b> O16; M31/32; A38</p>
+<p>
+<b>Transformación.</b> Lista, flechas/puntos de eventos, contexto defensivo y resumen del top 5.</p>
+<div class="grid two">
+<p>
+<b>Interpretación válida.</b> Ejemplos seleccionados de ocasiones concedidas.</p>
+<p>
+<b>Interpretación inválida.</b> Frecuencia de todas las amenazas, defensa completa, zona común6×3 o score ordenado primero por xG dentro de goles.</p>
+</div>
+</div>
+</details>
+<details id="V14">
+<summary>
+<span class="ref">V14</span> Jugada desde descripción<span class="state">P · parseNL/nlPositions/drawNL</span>
+</summary>
+<div class="metric-content">
+<p>
+<b>Pregunta.</b> ¿Cómo ilustrar una descripción de ataque?</p>
+<p>
+<b>Entrada.</b> O19; reglas de parser y coordenadas fijas; A48</p>
+<p>
+<b>Transformación.</b> Regex→lista de acciones→cancha y narrativa animadas; fallback posesión estructurada.</p>
+<div class="grid two">
+<p>
+<b>Interpretación válida.</b> Ilustración pedagógica generada a partir del texto.</p>
+<p>
+<b>Interpretación inválida.</b> Recuperación semántica de partido real, modelo de lenguaje entrenado o evidencia StatsBomb.</p>
+</div>
+</div>
+</details>
+<details id="V15">
+<summary>
+<span class="ref">V15</span> Clustering/PCA y exploración 360<span class="state">research · salida consola/CSV; doc histórico</span>
+</summary>
+<div class="metric-content">
+<p>
+<b>Pregunta.</b> ¿Hay agrupaciones separables o campos espaciales útiles?</p>
+<p>
+<b>Entrada.</b> O18/O03; M40; A40–42</p>
+<p>
+<b>Transformación.</b> KMeans ofensivo/defensivo, PCA2, conteos visibles tipo packing; salidas parciales.</p>
+<div class="grid two">
+<p>
+<b>Interpretación válida.</b> Ensayos de factibilidad, con cobertura limitada.</p>
+<p>
+<b>Interpretación inválida.</b> Clusters de la UI, tracking continuo o cobertura 360 en modelo actual.</p>
+</div>
+</div>
+</details>
+<details id="V16">
+<summary>
+<span class="ref">V16</span> Diagramas documentales previos<span class="state">docs/como-funciona.html y DOCUMENTACION.md</span>
+</summary>
+<div class="metric-content">
+<p>
+<b>Pregunta.</b> ¿Cómo funcionaba la primera entrega?</p>
+<p>
+<b>Entrada.</b> O05/O07/O18/O19; B</p>
+<p>
+<b>Transformación.</b> Cancha por zonas, flujo, fórmulas, tablas de validación y ejemplos editoriales.</p>
+<div class="grid two">
+<p>
+<b>Interpretación válida.</b> Explicación histórica contrastada con código.</p>
+<p>
+<b>Interpretación inválida.</b> Sus números/etiquetas como validación actual; usa fuentes web externas para tipografía.</p>
+</div>
+</div>
+</details>
+<details id="V17">
+<summary>
+<span class="ref">V17</span> Gráfico temporal de esta documentación<span class="state">Nuevo HTML documental, datos F</span>
+</summary>
+<div class="metric-content">
+<p>
+<b>Pregunta.</b> ¿Cómo cambió el PPDA aproximado de Jardine entre bloques?</p>
+<p>
+<b>Entrada.</b> O15/O10; M08/M27; A32/A33; F entities[ame_jardine].temporal.periods</p>
+<p>
+<b>Transformación.</b> SVG estático accesible de nueve medias de partido, con tabla completa.</p>
+<div class="grid two">
+<p>
+<b>Interpretación válida.</b> Variación de medias de bloque en la muestra especificada.</p>
+<p>
+<b>Interpretación inválida.</b> Visualización ya implementada en la app o cambio causal por entrenador.</p>
+</div>
+</div>
+</details>
+</div>
+<p>Los mapas de la aplicación tienen ejes definidos a mano a partir de percentiles. No son las componentes de PCA ni los clusters de research. El CSV exploratorio conserva 160 etiquetas equipo-entrenador-temporada; el modelo B/F publica 159 puntos de mapa bajo filtros diferentes.</p>
+</section>
+<section id="resultados" aria-labelledby="h-resultados">
+<div class="section-label">12</div>
+<h2 id="h-resultados">Qué resultados están respaldados</h2>
+<div class="table-wrap" tabindex="0" role="region" aria-label="R01–R07 · Evidencia y alcance">
+<table>
+<caption>R01–R07 · Evidencia y alcance</caption>
+<thead>
+<tr>
+<th scope="col">Resultado</th>
+<th scope="col">Valor / observación</th>
+<th scope="col">Fuente exacta</th>
+<th scope="col">Lectura permitida</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<th scope="row">R01 · Cobertura F</th>
+<td>24 entidades;445 partidos MX distintos;68 Open Data;159 unidades de mapa</td>
+<td>820e749:model/model.json y IDs de coverage</td>
+<td>Tamaño del artefacto analítico, no toda la liga</td>
+</tr>
+<tr>
+<th scope="row">R02 · Estilo Jardine</th>
+<td>raw: posesión 0,535; verticalidad suministrada 0,875; ritmo 2,634; PPDA 15,025; npxG 1,478; npxGA 0,862</td>
+<td>F entities[ame_jardine].raw;70 valores team-stats por métrica</td>
+<td>Medias suministradas; fórmulas del proveedor no reconstruidas</td>
+</tr>
+<tr>
+<th scope="row">R03 · Marcador</th>
+<td>Proxy pases 62,82% perdiendo vs 54,11% empatando</td>
+<td>F entities[ame_jardine].context.score_state</td>
+<td>Asociación descriptiva con exposición</td>
+</tr>
+<tr>
+<th scope="row">R04 · Temporal</th>
+<td>9 bloques; PPDA medio 14,382129 a 34,630511</td>
+<td>F entities[ame_jardine].temporal.periods</td>
+<td>Variación de medias de partido</td>
+</tr>
+<tr>
+<th scope="row">R05 · Personal</th>
+<td>55 identificados;46 con minutos;317 sustituciones</td>
+<td>F entities[ame_jardine].personnel</td>
+<td>Participación registrada y advertencias</td>
+</tr>
+<tr>
+<th scope="row">R06 · Peligro histórico</th>
+<td>Top 5 de P;5 goles,2 fuera de ventana 70</td>
+<td>e6f37b6:model/model.json dangerous_plays</td>
+<td>Ejemplos de otra población, con sesgo de selección</td>
+</tr>
+<tr>
+<th scope="row">R07 · Verificación F</th>
+<td>25 casos correctos aN=100;575.758 comprobaciones reglamentarias con 0 infracciones</td>
+<td>F validation_summary.json y referee_current_report.txt</td>
+<td>Reportes técnicos históricos; no prueba de ajuste estadístico</td>
+</tr>
+</tbody>
+</table>
+</div>
+<h3>Una discrepancia que se mantiene visible</h3>
+<div class="grid two">
+<article>
+<span class="ref">R02 · team-stats suministrado</span>
+<h3>103,451162 xG no penal</h3>
+<p>Suma de 70 respuestas por partido para Jardine. Media≈1,477874; el modelo publica 1,478. Total tiros no penales:919.</p>
+</article>
+<article>
+<span class="ref">R02 · eventos del proveedor</span>
+<h3>107,352638 xG no penal</h3>
+<p>Suma de Shot no penal de los mismos70 IDs, periodos 1–4. Media≈1,533609, consistente con temporal.xg. Total tiros no penales:919.</p>
+</article>
+</div>
+<p>La diferencia no se explica aquí con una causa inventada. Las dos fuentes conservan su nombre y población; I16 propone conciliar partido a partido antes de intercambiar sus valores.</p>
+<h3>Calibración: límites medidos</h3>
+<p>El modelo F informa R² en muestra de 0,01 para directness,0,11 para saque largo y 0,14 para tiros tras recuperación alta. Las tres estimaciones quedan omitidas en Barcelona; conserva 11 de 14 dimensiones. Jardine dispone de 14 por team-stats. El R² no prueba identidad táctica ni transferencia entre Liga MX y La Liga 2009–11.</p>
+<h3>Qué verifican los tests existentes</h3>
+<p>F incorpora pruebas de cobertura/IDs, null, calibración, autogoles, añadido, cronología, API, codificación, publicación respaldada, personal y formato de frontend. Su informe registra 29 pruebas Python y 6 JavaScript. B conserva el árbitro con 1.916.547 comprobaciones en 240 partidos. Son evidencias históricas inspeccionadas: esas suites no se reejecutaron en esta entrega documental.</p>
+<p>
+<code>validate.js</code> de F comprueba estructura, finitud, rangos y W+D+L=N. Compara descriptivamente goles y posesión con targets, sin exigir una tolerancia estadística. No resta xG/tiros totales simulados a referencias no penales. Además, el rival simulado es la liga promedio, mientras que la referencia procede del calendario real.</p>
+<p class="source">
+<strong>Trazabilidad:</strong> R02: cache v1_matches_{id}_team-stats.json y v8_events_{id}.json para los 70 IDs de coverage F; M18/M35; A05/A27. R07: reportes versionados F, no ejecuciones nuevas.</p>
+</section>
+<section id="evolucion" aria-labelledby="h-evolucion">
+<div class="section-label">13</div>
+<h2 id="h-evolucion">Cómo evolucionó el proyecto</h2>
+<p>La historia combina una base importada, ramas de producto y checkpoints de trabajo. Se reconstruye por cambios de archivos y artefactos, no únicamente por mensajes de commit.</p>
+<div class="timeline">
+<article>
+<span class="time-index">1</span>
+<div>
+<p class="ref">429c4ec · 15 oct 2026</p>
+<h3>Investigación ya incluida en la primera entrega</h3>
+<p>
+<b>Problema.</b> Explorar diferencias entre entrenadores y comprobar datos 360.</p>
+<p>
+<b>Método/cambio.</b> Proxies por marcador, simulación Bernoulli de tiros (5.000 repeticiones), variantes de ritmo/directness, KMeans y PCA. El primer commit importa estos experimentos juntos: Git no fecha su ejecución individual.</p>
+<p class="small">
+<b>Archivos.</b> research/poc.py, dl.py, sliders.py, metric_lab.py, clusters.py y clusters.csv; docs/DOCUMENTACION.md §§7–8.</p>
+<p class="small">
+<b>Resultado actual.</b> Experimental. No hay salidas locales data/out ni frames 360 en el inventario actual. El CSV conserva 160 filas de agrupaciones; los índices de silhouette citados por documentación son un reporte histórico, sin log de ejecución conservado.</p>
+</div>
+</article>
+<article>
+<span class="time-index">2</span>
+<div>
+<p class="ref">429c4ec · 15 oct 2026</p>
+<h3>Webapp y cadena por zonas</h3>
+<p>
+<b>Problema.</b> Explicar enfrentamientos de estilos con datos agregados.</p>
+<p>
+<b>Método/cambio.</b> 18 zonas, fases E/T, 14 métricas de estilo, once representativo, mapas con ejes manuales, simulación y árbitro. K=8.</p>
+<p class="small">
+<b>Archivos.</b> pipeline/extract.py, build_model.py, entities.py; frontend/engine.js e index.html; app/main.py.</p>
+<p class="small">
+<b>Resultado actual.</b> Activo en main local y feat/docHTML. El primer modelo registra 24 entidades; league.matches=884 son observaciones equipo-partido.</p>
+</div>
+</article>
+<article>
+<span class="time-index">3</span>
+<div>
+<p class="ref">ecdf05e · 17 oct 2026</p>
+<h3>Firmas de jugadas y ampliación de ventana</h3>
+<p>
+<b>Problema.</b> Resumir formas recurrentes de iniciar y terminar ataques.</p>
+<p>
+<b>Método/cambio.</b> Añade plays_open [conteo,xG,goles], balón parado detallado y etiquetas inicio|carril|definición. Amplía Jardine hasta junio de 2026.</p>
+<p class="small">
+<b>Archivos.</b> pipeline/extract.py::classify_open; build_model.py::signature_plays; frontend/index.html::signaturePlays.</p>
+<p class="small">
+<b>Resultado actual.</b> Solo en la línea de jugadas. Clasificación geométrica y nombres de denominadores presentan problemas; no se consolida como taxonomía táctica.</p>
+</div>
+</article>
+<article>
+<span class="time-index">4</span>
+<div>
+<p class="ref">e6f37b6 · 19 oct 2026; merge d6db8e8 en origin/main</p>
+<h3>Secuencias rivales y descripción de jugadas</h3>
+<p>
+<b>Problema.</b> Mostrar ocasiones peligrosas observadas y dibujar una jugada escrita.</p>
+<p>
+<b>Método/cambio.</b> Top 5 de posesiones rivales con tiro; puntuación gol+xG+zona; parser local por expresiones regulares y posiciones configuradas.</p>
+<p class="small">
+<b>Archivos.</b> pipeline/dangerous.py; app/main.py::dangerous_plays; frontend/index.html::drawDangerous, parseNL, nlPositions.</p>
+<p class="small">
+<b>Resultado actual.</b> Disponible en origin/main, ausente en main local y fix/model. El modelo de esa rama conserva n=0 y 129 partidos agregados para Jardine. El dibujo desde texto es ilustración, no una jugada recuperada del proveedor.</p>
+</div>
+</article>
+<article>
+<span class="time-index">5</span>
+<div>
+<p class="ref">ddc1571 (checkpoint) y f334f92 · 19 oct 2026</p>
+<h3>Retorno de la línea de trabajo y contexto inicial</h3>
+<p>
+<b>Problema.</b> Recuperar consistencia de conteos, estilo ausente y lectura contextual.</p>
+<p>
+<b>Método/cambio.</b> El checkpoint ddc1571 elimina dangerous.py y las vistas de jugadas. f334f92 parte de la base 429c4ec, cambia n a att.matches, añade origen del estilo y contexto inicial por marcador/localía.</p>
+<p class="small">
+<b>Archivos.</b> pipeline/extract.py, build_model.py, check_model.py, test_metrics.py; docs/METRICAS_TACTICAS.md.</p>
+<p class="small">
+<b>Resultado actual.</b> Corrección activa en fix/model; contexto inicial reemplazado en 820e749. No se infiere una decisión de producto de un checkpoint ni una integración entre ramas que Git no muestra.</p>
+</div>
+</article>
+<article>
+<span class="time-index">6</span>
+<div>
+<p class="ref">763d415 · 20 oct 2026; tag fase-2-estabilidad-temporal; 1924e17 cierre sin diff</p>
+<h3>Bloques cronológicos</h3>
+<p>
+<b>Problema.</b> Describir variación del equipo a lo largo de su muestra.</p>
+<p>
+<b>Método/cambio.</b> Bloques de 8 partidos; cola menor de 5 se fusiona; medias por partido y dispersión entre bloques.</p>
+<p class="small">
+<b>Archivos.</b> pipeline/temporal.py, test_temporal.py; API /temporal; frontend::renderTemporal.</p>
+<p class="small">
+<b>Resultado actual.</b> Activo en fix/model. El nombre del tag no demuestra estabilidad estadística. 820e749 reutiliza el resumen contextual corregido y elimina doble conteo de matches.</p>
+</div>
+</article>
+<article>
+<span class="time-index">7</span>
+<div>
+<p class="ref">1ee7667 · checkpoint 20 oct 2026; incorporado a 820e749</p>
+<h3>Participación de jugadores</h3>
+<p>
+<b>Problema.</b> Reconstruir titulares, minutos, sustituciones y jugadores simultáneos.</p>
+<p>
+<b>Método/cambio.</b> Intervalos de posiciones del lineup, eventos de sustitución, combinaciones y métricas dentro de intervalos.</p>
+<p class="small">
+<b>Archivos.</b> pipeline/personnel.py, test_personnel.py; docs/PERSONAL_JUGADORES.md; API y vista de jugadores.</p>
+<p class="small">
+<b>Resultado actual.</b> Activo en fix/model. Conserva un reloj y PPDA propios: no equivale al contexto global. La integración aparece primero en checkpoint, no en un commit autónomo de rama pública.</p>
+</div>
+</article>
+<article>
+<span class="time-index">8</span>
+<div>
+<p class="ref">820e749 · 20 oct 2026</p>
+<h3>Corrección prioritaria y contratos de datos</h3>
+<p>
+<b>Problema.</b> Distinguir ausencia, corregir contextos y publicar un modelo verificable.</p>
+<p>
+<b>Método/cambio.</b> IDs procesados, cobertura por métrica, null, calibración protegida, tiempo por periodo, marcador posterior al gol, cuarentena y publicación respaldada/atómica.</p>
+<p class="small">
+<b>Archivos.</b> metric_utils.py, contextual.py, extract.py, build_model.py, targets.py, check_model.py, tests; informes y context_view.js.</p>
+<p class="small">
+<b>Resultado actual.</b> Última versión analítica disponible en fix/model. Modelo schema_version=2, 445 partidos MX distintos y 68 Open Data. No integra dangerous.py.</p>
+</div>
+</article>
+</div>
+<aside class="callout">
+<strong>Un error histórico reproducible</strong>
+<p>En la línea de jugadas, <code>n=len(filas team-stats)</code> coexistió con los conteos de extractos, produciendo el caso Jardine 0/129. La corrección F cambia el contrato a IDs procesados y cobertura por métrica. El informe anterior no lo había reproducido en su línea de trabajo; al inspeccionar el modelo de la otra rama sí aparece. Esta auditoría no adjudica el fallo a una causa de codificación no demostrada.</p>
+</aside>
+<p>El checkpoint ddc1571 elimina las jugadas de su árbol; no demuestra por sí solo una decisión de descartarlas del producto. fix/model no las contiene. El tag temporal tampoco demuestra estabilidad estadística;1924e17 cierra la fase sin diff de código.</p>
+</section>
+<section id="limites" aria-labelledby="h-limites">
+<div class="section-label">14</div>
+<h2 id="h-limites">Límites e inconsistencias pendientes</h2>
+<div class="grid two">
+<article>
+<h3>Alcance del framework</h3>
+<p>Ubicación de eventos, posesiones observadas, circulación, avance aproximado, tiros/xG, presiones registradas, contextos marginales, bloques temporales y participación de jugadores con intervalos disponibles. También define la procedencia de simulaciones e ilustraciones.</p>
+</article>
+<article>
+<h3>Fuera de alcance</h3>
+<p>Tracking continuo, estructura sin balón completa, espacios libres, distancias reales entre líneas, amplitud exacta, intención o causalidad del entrenador, predicción deportiva validada, OBV/xT/VAEP, recuperación automática de jugadas reales desde texto y patrones tácticos validados.</p>
+</article>
+</div>
+<p>La auditoría detecta <strong>17 incidencias</strong>. Las propuestas siguientes no se ejecutaron: esta entrega modifica documentación. La estructura, enlaces y UTF-8 se comprobaron con validación estática; la revisión visual quedó pendiente porque el navegador integrado bloqueó el protocolo de archivo local. Las referencias completas y las decisiones de estandarización están en el framework.</p>
+<h3 class="family">CRÍTICOS</h3>
+<details class="issue">
+<summary>
+<span class="ref">I01</span> Conteo y ventana incompatibles en origin/main/P</summary>
+<div class="metric-content">
+<p>
+<b>Evidencia.</b> P model ame_jardine: n=0, att.matches=dfn.matches=129, style={}; d1=2026-05-11. B/F:70/70 y d1=2024-12-16.</p>
+<p>
+<b>Impacto.</b> El problema exacto sí es reproducible leyendo e6f37b6:model/model.json; el informe F decía que no se reprodujo en su línea de trabajo. No se atribuye sin prueba una causa de codificación concreta.</p>
+<p>
+<b>Corrección propuesta.</b> Separar ventana/número de filas de team-stats y partidos realmente procesados; portar coverage/contratos F a la rama que se integre, conservando IDs y pruebas.</p>
+</div>
+</details>
+<details class="issue">
+<summary>
+<span class="ref">I02</span> Mezcla de orientaciones en cancha peligrosa</summary>
+<div class="metric-content">
+<p>
+<b>Evidencia.</b> P frontend::drawDangerous dibuja sin reflejar acciones analizado/rival. Cada equipo usa orientación propia.</p>
+<p>
+<b>Impacto.</b> Puntos defensivos no son una configuración espacial coherente frente al ataque rival. Puede aparentar una relación espacial que no existe.</p>
+<p>
+<b>Corrección propuesta.</b> Normalizar toda coordenada al marco del rival antes de dibujar y probar con posesión mixta. Mantener historial observado, sin interpolar 22 jugadores.</p>
+</div>
+</details>
+<h3 class="family">IMPORTANTES</h3>
+<details class="issue">
+<summary>
+<span class="ref">I03</span> Tres objetos llamados transición</summary>
+<div class="metric-content">
+<p>
+<b>Evidencia.</b> B/F cadena 10s, estilo/temporal15s+x&lt;60, contexto F10s cuenta cada tiro; C contexto From Counter contaba posesiones.</p>
+<p>
+<b>Impacto.</b> Métricas con nombre parecido no son equivalentes; recuperaciones y punto de inicio también difieren.</p>
+<p>
+<b>Corrección propuesta.</b> Adoptar narrativa de tiro contextual10s para nuevas comparaciones; renombrar legado y migrar cálculos solo con acuerdo y prueba de sensibilidad.</p>
+</div>
+</details>
+<details class="issue">
+<summary>
+<span class="ref">I04</span> Tres PPDA y agregaciones diferentes</summary>
+<div class="metric-content">
+<p>
+<b>Evidencia.</b> B/F: team-stats suministrado; territorial local; F personnel ppda_all_zone. C contexto incluía cualquier Duel; F lo restringe a Tackle.</p>
+<p>
+<b>Impacto.</b> No se comparan magnitudes ni percentiles directamente. La media temporal de PPDA por partido difiere de razón contextual de sumas.</p>
+<p>
+<b>Corrección propuesta.</b> Nombre oficial documental PPDA territorial aproximado; conservar etiqueta all_zone explícita y plantear uso de función compartida si se busca equivalencia.</p>
+</div>
+</details>
+<details class="issue">
+<summary>
+<span class="ref">I05</span> Directness y ritmo comparten rótulos</summary>
+<div class="metric-content">
+<p>
+<b>Evidencia.</b> Estilo raw.verticalidad viene de team-stats; global local Pass+Carry sin BP; contexto/personnel solo Pass. Ritmo global suelo0,5 vs contextual Δt&gt;0.</p>
+<p>
+<b>Impacto.</b> R² de directness0,01 rechaza equivalencia desde eventos; los rótulos pueden inducir inferencia falsa.</p>
+<p>
+<b>Corrección propuesta.</b> Indicar fuente, población y unidad en cada vista; diferenciar directness_eventos, directness_pases y directness_proveedor sin cambiar código en esta tarea.</p>
+</div>
+</details>
+<details class="issue">
+<summary>
+<span class="ref">I06</span> Reloj/estado de personnel no reutiliza contextual</summary>
+<div class="metric-content">
+<p>
+<b>Evidencia.</b> F personnel usa max(minute*60+second), no filtra period5; _states_at procesa goles con t&lt;momento, y al cortar en t_gol conserva estado previo para intervalo siguiente hasta otra frontera. No usa Own Goal Against sin pareja.</p>
+<p>
+<b>Impacto.</b> Tiempo añadido, eventos simultáneos o autogoles pueden producir exposición/estado distinto a contexto. Es un riesgo verificable en lógica, sin cuantificar aquí cuántos resultados reales afecta.</p>
+<p>
+<b>Corrección propuesta.</b> Unificar reloj acumulado por periodos y estado posterior al gol; comprobar intervalos/titulares contra metadatos y añadido con fixtures específicos.</p>
+</div>
+</details>
+<details class="issue">
+<summary>
+<span class="ref">I07</span> Firmas experimentales con geometría/nombre incorrectos</summary>
+<div class="metric-content">
+<p>
+<b>Evidencia.</b> H/P classify_open compara columna0 y 2 para centro/profundo, sin área; llama robo_alto a Regular Play x&gt;=60 sin regain. xg_per_shot divide por posesiones.</p>
+<p>
+<b>Impacto.</b> Etiquetas no respaldan intención, banda o profundidad.</p>
+<p>
+<b>Corrección propuesta.</b> Revisar taxonomía y denominadores; publicar únicamente como clasificador experimental hasta corregir y validar.</p>
+</div>
+</details>
+<details class="issue">
+<summary>
+<span class="ref">I08</span> Ranking peligro: leyenda y población</summary>
+<div class="metric-content">
+<p>
+<b>Evidencia.</b> P UI dice gol&gt;xG&gt;zona; score mezcla 10*xG+zona. Top 5 incluye fechas2025/2026 para entidad etiquetada Tricampeonato.</p>
+<p>
+<b>Impacto.</b> Orden dentro de goles puede estar dominado por zona; no representa todas las amenazas ni ventana 70 de F.</p>
+<p>
+<b>Corrección propuesta.</b> Mostrar fórmula ponderada exacta; decidir ventana explícita; mantener ejemplos históricos fuera del caso 70.</p>
+</div>
+</details>
+<details class="issue">
+<summary>
+<span class="ref">I09</span> Tiros y xG no siempre comparten población</summary>
+<div class="metric-content">
+<p>
+<b>Evidencia.</b> Temporal.shots usa prefijo no BP; temporal.xg incluye todos los tiros no penales; contexto/personnel/simulador incluyen penales; targets np_* no.</p>
+<p>
+<b>Impacto.</b> Tiros/xG comparados como si fueran equivalentes generan ratios o validaciones inválidas.</p>
+<p>
+<b>Corrección propuesta.</b> Etiquetar poblaciones; conservar la corrección F que evita restar simulación total−referencia no penal; ampliar salidas por tipo si se necesita comparabilidad.</p>
+</div>
+</details>
+<details class="issue">
+<summary>
+<span class="ref">I10</span> Ausencia no uniforme</summary>
+<div class="metric-content">
+<p>
+<b>Evidencia.</b> B fcLabels ausente→50; B razones con max; F contexto propaga xG faltante, personnel omite sin aviso y temporal usa varios defaults0.</p>
+<p>
+<b>Impacto.</b> Un cero o etiqueta equilibrada puede esconder falta de observación.</p>
+<p>
+<b>Corrección propuesta.</b> Usar null+causa+exposición consistentemente; no aplicar retrospectivamente F a B ni sobrestimar cobertura de personal.</p>
+</div>
+</details>
+<details class="issue">
+<summary>
+<span class="ref">I11</span> Referencia liga, modelo y ventana distintas</summary>
+<div class="metric-content">
+<p>
+<b>Evidencia.</b> F style referencia 108 equipo-temporadas y targets1801 partidos; league deriva445 seleccionados; official no filtra esos universos.</p>
+<p>
+<b>Impacto.</b> Percentiles y simulación no son estrictamente análisis de la ventana oficial del reto.</p>
+<p>
+<b>Corrección propuesta.</b> Explicitar poblaciones; definir una construcción oficial restringida si el jurado la requiere y comparar sensibilidad.</p>
+</div>
+</details>
+<details class="issue">
+<summary>
+<span class="ref">I16</span> xG de team-stats y eventos no idéntico aun con mismos70 IDs</summary>
+<div class="metric-content">
+<p>
+<b>Evidencia.</b> Cache local de Jardine: team-stats Σnp_xg=103.451162; eventos Shot no penal ΣxG=107.352638; temporal sigue eventos.</p>
+<p>
+<b>Impacto.</b> La media raw.xg=1,478 suministrada y media de eventos≈1,5336 no son la misma serie. No se atribuye la diferencia a una causa del proveedor sin evidencia adicional.</p>
+<p>
+<b>Corrección propuesta.</b> Conciliar partido por partido los campos del proveedor y documentar versión/filtros. Mientras tanto presentar ambos resultados con procedencia, sin intercambiarlos.</p>
+</div>
+</details>
+<h3 class="family">MENORES</h3>
+<details class="issue">
+<summary>
+<span class="ref">I12</span> Carriles y texto estático desactualizados</summary>
+<div class="metric-content">
+<p>
+<b>Evidencia.</b> P dangerSummary divide y/20 en 4 franjas; cadena 6×3. F frontend conserva texto884 actuaciones aunque league.matches=890. B etiqueta PPDA invierte palabras (acciones por pase).</p>
+<p>
+<b>Impacto.</b> Lectura documental confusa y cifras obsoletas.</p>
+<p>
+<b>Corrección propuesta.</b> Unificar nombre de zona, derivar cobertura de meta y decir pases por acción defensiva.</p>
+</div>
+</details>
+<details class="issue">
+<summary>
+<span class="ref">I13</span> Portabilidad de research y reproducción</summary>
+<div class="metric-content">
+<p>
+<b>Evidencia.</b> research/dl.py importa sb inexistente; sliders.py escribe a ruta absoluta antigua; metric_lab if ...:pass no filtra.</p>
+<p>
+<b>Impacto.</b> Experimentos no ejecutables directamente como pipeline consolidado.</p>
+<p>
+<b>Corrección propuesta.</b> Reparar rutas/filtros y guardar salidas/versiones si se retoman; no incorporarlos al resultado principal.</p>
+</div>
+</details>
+<details class="issue">
+<summary>
+<span class="ref">I14</span> Cobertura de bloque y series</summary>
+<div class="metric-content">
+<p>
+<b>Evidencia.</b> F temporal.sufficient_sample usa total del bloque, no válidos por métrica; diferencias eliminan null antes de restar.</p>
+<p>
+<b>Impacto.</b> Una serie puede conectar bloques separados o anunciar suficiencia con pocos valores de una métrica.</p>
+<p>
+<b>Corrección propuesta.</b> Añadir suficiencia por métrica e índices de bloque a diferencias.</p>
+</div>
+</details>
+<details class="issue">
+<summary>
+<span class="ref">I15</span> Advertencias de jugadores y reproducibilidad</summary>
+<div class="metric-content">
+<p>
+<b>Evidencia.</b> Jardine F contiene aviso de segmento invertido para Igor Lichnovsky; identificados55 incluye suplentes sin minutos.</p>
+<p>
+<b>Impacto.</b> No todos los intervalos están libres de advertencias; no llamarlos55 participantes efectivos.</p>
+<p>
+<b>Corrección propuesta.</b> Conservar aviso en UI/documentos y distinguir identificados de jugadores con minutos.</p>
+</div>
+</details>
+<details class="issue">
+<summary>
+<span class="ref">I17</span> Marcadores frecuentes agrupan goleadas sin distinguirlas</summary>
+<div class="metric-content">
+<p>
+<b>Evidencia.</b> B/F engine.simulateMany guarda Math.min(goles,5) para cada equipo y frontend muestra clave como marcador.</p>
+<p>
+<b>Impacto.</b> Un5–0 puede reunir5–0,6–0 y más. No es una distribución exacta de marcadores.</p>
+<p>
+<b>Corrección propuesta.</b> Mostrar categoría5+ o conservar marcadores enteros antes de calcular frecuencias.</p>
+</div>
+</details>
+</section>
+<section id="trazabilidad" aria-labelledby="h-trazabilidad">
+<div class="section-label">15</div>
+<h2 id="h-trazabilidad">De la visualización a la definición</h2>
+<p>El contrato es <b>visualización → objeto → fuente → métrica → supuesto → versión</b>. Los IDs de esta tabla coinciden con las fichas del <a href="framework_metodologico.md">framework completo</a> y con los resultados de este HTML. Ninguna conclusión se apoya en una función de otra rama sin identificarla.</p>
+<div class="table-wrap" tabindex="0" role="region" aria-label="Matriz de trazabilidad de las vistas">
+<table>
+<caption>Matriz de trazabilidad de las vistas</caption>
+<thead>
+<tr>
+<th scope="col">Vista</th>
+<th scope="col">Objetos / métricas / supuestos</th>
+<th scope="col">Fuentes D</th>
+<th scope="col">Transformación</th>
+<th scope="col">Implementación y estado</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<th scope="row">V01 · Selección y cobertura</th>
+<td>O01/O02; n,d0,d1,formation,official; A01–05</td>
+<td>D01/D02/D03/D04</td>
+<td>Texto/chips de metadatos; aviso de muestra pequeña n&lt;8.</td>
+<td>B/F · chips</td>
+</tr>
+<tr>
+<th scope="row">V02 · Plan y etiquetas FC</th>
+<td>O18; M34/M35; A24–28/A49</td>
+<td>D02/D04/D05/D09/D10</td>
+<td>14 barras percentiles y etiquetas por reglas; s/d si falta métrica.</td>
+<td>B/F · renderPlan/fcLabels/tags</td>
+</tr>
+<tr>
+<th scope="row">V03 · Vista táctica con/sin balón</th>
+<td>O13; shape y actors; A37</td>
+<td>D02/D03/D05</td>
+<td>Cancha y dorsales; medias por puesto separadas por dueño de posesión.</td>
+<td>B/F · drawTactical</td>
+</tr>
+<tr>
+<th scope="row">V04 · Mapa con balón</th>
+<td>O18; M36; A24–26</td>
+<td>D02/D04/D05/D09/D10</td>
+<td>SVG de ejes manuales: promedio P_ritmo/P_contra vs P_posesión; cuadrantes.</td>
+<td>B/F · renderMap(off)</td>
+</tr>
+<tr>
+<th scope="row">V05 · Mapa sin balón, trayectoria y vecinos</th>
+<td>O18/O01; M36; A25/A49</td>
+<td>D02/D04/D05/D09/D10/D01</td>
+<td>P_altura vs media P_volumen/P_contrapresión; línea de temporadas, top3 por distancia4D.</td>
+<td>B/F · renderMap(dfn)/similar</td>
+</tr>
+<tr>
+<th scope="row">V06 · Partido animado y resumen</th>
+<td>O19; M37–39; A43–48/A53</td>
+<td>D09/D10 + entrada textual de usuario en P</td>
+<td>Canvas de jugadores/ballAt interpolados desde log simulado; resumen de posesiones con remate.</td>
+<td>B/F · renderFrame; engine.choreograph</td>
+</tr>
+<tr>
+<th scope="row">V07 · Dominio por minuto, crónica y estadísticas</th>
+<td>O19; M39/M41; A43/A47/A54</td>
+<td>D09/D10 + entrada textual de usuario en P</td>
+<td>Momentum por minuto:0,02 por pase/conducción al tercio final más xG de tiros; suavizado de3 minutos; barras acumuladas y log.</td>
+<td>B/F · drawMomentum/renderLive/buildCum</td>
+</tr>
+<tr>
+<th scope="row">V08 · Simulación rápida, marcadores y mapas</th>
+<td>O19/O07; M38/M39; A43–48</td>
+<td>D09/D10 + entrada textual de usuario en P/D02/D05</td>
+<td>Medias de partidos simulados, W/D/L, marcadores frecuentes; mapas6×3 de tiros/xG y recuperaciones.</td>
+<td>B/F · runQuick/heatHTML</td>
+</tr>
+<tr>
+<th scope="row">V09 · Contexto por marcador/localía</th>
+<td>O14/O04/O05; M01/02/04/07/08/16/20/24–26; A09/A28–31</td>
+<td>D01/D02/D05</td>
+<td>Tarjetas de exposición y tabla de métricas/diferencias; null=s/d, advertencias de muestra.</td>
+<td>F · context_view.js::render</td>
+</tr>
+<tr>
+<th scope="row">V10 · Evolución temporal</th>
+<td>O15; M01/03/06/08/12/15/18/19/27; A32/A33</td>
+<td>D01/D02/D09</td>
+<td>Tabla por bloques, cobertura y texto de contextos. El frontend no dibuja una serie de línea.</td>
+<td>T/F · renderTemporal</td>
+</tr>
+<tr>
+<th scope="row">V11 · Jugadores y alineación inicial</th>
+<td>O12/O13; M28–30; A10/A34–36</td>
+<td>D02/D03/D05</td>
+<td>Tabla top12 jugadores, conjunto inicial más frecuente, primeras8 sustituciones y cobertura.</td>
+<td>F · renderPersonnel</td>
+</tr>
+<tr>
+<th scope="row">V12 · Firmas ofensivas y BP detallado</th>
+<td>O17/O11; M33; A20–22/A39</td>
+<td>D02/D04/D05</td>
+<td>Cards de firma con share/lift/xG10 y tablas de lanzadores/destinos/técnica.</td>
+<td>H/P · signaturePlays/setPieceHTML</td>
+</tr>
+<tr>
+<th scope="row">V13 · Top5 rival observado</th>
+<td>O16; M31/32; A38</td>
+<td>D02</td>
+<td>Lista, flechas/puntos de eventos, contexto defensivo y resumen del top5.</td>
+<td>P · renderDangerous/drawDangerous</td>
+</tr>
+<tr>
+<th scope="row">V14 · Jugada desde descripción</th>
+<td>O19; reglas de parser y coordenadas fijas; A48</td>
+<td>D09/D10 + entrada textual de usuario en P</td>
+<td>Regex→lista de acciones→cancha y narrativa animadas; fallback posesión estructurada.</td>
+<td>P · parseNL/nlPositions/drawNL</td>
+</tr>
+<tr>
+<th scope="row">V15 · Clustering/PCA y exploración 360</th>
+<td>O18/O03; M40; A40–42</td>
+<td>D02/D04/D05/D09/D10</td>
+<td>KMeans ofensivo/defensivo, PCA2, conteos visibles tipo packing; salidas parciales.</td>
+<td>research · salida consola/CSV; doc histórico</td>
+</tr>
+<tr>
+<th scope="row">V16 · Diagramas documentales previos</th>
+<td>O05/O07/O18/O19; B</td>
+<td>D02/D05/D04/D09/D10/D10 + entrada textual de usuario en P</td>
+<td>Cancha por zonas, flujo, fórmulas, tablas de validación y ejemplos editoriales.</td>
+<td>docs/como-funciona.html y DOCUMENTACION.md</td>
+</tr>
+<tr>
+<th scope="row">V17 · Gráfico temporal de esta documentación</th>
+<td>O15/O10; M08/M27; A32/A33; F entities[ame_jardine].temporal.periods</td>
+<td>D01/D02/D09/D04/D05</td>
+<td>SVG estático accesible de nueve medias de partido, con tabla completa.</td>
+<td>Nuevo HTML documental, datos F</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="trace-example">
+<b>Ejemplo auditable</b>
+<p>PPDA temporal (V10/V17) → partidos/bloques (O15) + defensa territorial (O10) → eventos MX (D02) → pases rival x&lt;72 / acciones seleccionadas x≥48 (M08) → media de partido y bloque8/cola&lt;5 (A16/A32/A33) → <code>820e749:pipeline/temporal.py</code> → R04.</p>
+</div>
+<div class="table-wrap" tabindex="0" role="region" aria-label="Versiones de artefactos verificadas">
+<table>
+<caption>Versiones de artefactos verificadas</caption>
+<thead>
+<tr>
+<th scope="col">Referencia</th>
+<th scope="col">Commit</th>
+<th scope="col">Bytes</th>
+<th scope="col">SHA-256</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<th scope="row">main</th>
+<td>429c4ec</td>
+<td>479280</td>
+<td>df86d3f310f5a5b6366460700f21450dae1ccc22a0c8f969ccf994e90c215a7f</td>
+</tr>
+<tr>
+<th scope="row">origin/main</th>
+<td>d6db8e8</td>
+<td>874520</td>
+<td>028dca81de5f2665102ba8316bd19d5f72f3c7e6992fb7df0885390f3419dfcd</td>
+</tr>
+<tr>
+<th scope="row">fix/model</th>
+<td>820e749</td>
+<td>19568283</td>
+<td>1ca33302d26468e6ffe98d9ffd0ad16aa1afeae087d46235a041391a3db8f826</td>
+</tr>
+<tr>
+<th scope="row">feat/game_description</th>
+<td>e6f37b6</td>
+<td>874520</td>
+<td>028dca81de5f2665102ba8316bd19d5f72f3c7e6992fb7df0885390f3419dfcd</td>
+</tr>
+</tbody>
+</table>
+</div>
+<details>
+<summary>Ramas y archivos históricos consultados</summary>
+<div class="table-wrap" tabindex="0" role="region" aria-label="Ramas disponibles">
+<table>
+<caption>Ramas disponibles</caption>
+<thead>
+<tr>
+<th scope="col">Referencia</th>
+<th scope="col">Commit</th>
+<th scope="col">Contenido</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<th scope="row">feat/docHTML / main local</th>
+<td>429c4ec</td>
+<td>Checkout documentado; webapp base.</td>
+</tr>
+<tr>
+<th scope="row">origin/main</th>
+<td>d6db8e8</td>
+<td>Referencia remota almacenada; merge de jugadas.</td>
+</tr>
+<tr>
+<th scope="row">feat/game_description / origin/feat/game_description</th>
+<td>e6f37b6</td>
+<td>Firmas, secuencias peligrosas y parser de texto.</td>
+</tr>
+<tr>
+<th scope="row">fix/model / origin/fix/model</th>
+<td>820e749</td>
+<td>Correcciones, contextos, temporal y personal; sin jugadas.</td>
+</tr>
+<tr>
+<th scope="row">Tag fase-2-estabilidad-temporal</th>
+<td>763d415</td>
+<td>Análisis temporal antes de la corrección prioritaria.</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>También se revisaron los checkpoints def5adc,89ffd25,71482eb,ddc1571 y 1ee7667; las versiones ecdf05e,f334f92,763d415 y 1924e17; las diferencias y atribuciones de Git blame; DOCUMENTACION_TECNICA_COMPLETA.txt; las dos documentaciones iniciales; los módulos/validadores/pruebas de cada línea y los respaldos locales.</p>
+<p>Los tres respaldos gzip pre-build tienen contenido descomprimido idéntico de 16.835.671 bytes; pre-fix es idéntico al modelo B. Sus nombres no representan tres metodologías diferentes. Los hashes y comandos completos están en el framework.</p>
+<pre>
+<code>git show e6f37b6:pipeline/dangerous.py
+git show 820e749:pipeline/contextual.py
+git show 763d415:pipeline/temporal.py
+git show 1ee7667:pipeline/personnel.py
+git diff main fix/model --stat</code>
+</pre>
+</details>
+<p>El literal de construcción de B/P es 2026-10-15; no prueba la fecha real de regeneración. F registra <code>2026-10-21T03:05:18.227255+00:00</code>. El commit y el hash identifican de forma más precisa cada resultado.</p>
+</section>
+<section id="futuro" aria-labelledby="h-futuro">
+<div class="section-label">16</div>
+<h2 id="h-futuro">Trabajo futuro derivado de la auditoría</h2>
+<ol class="next-steps">
+<li>
+<b>Acordar la población de entrega.</b> Decidir qué ramas y ventanas integrar; mantener IDs y cobertura por métrica. Reproducir y evitar el 0/129 antes de publicar una combinación de funciones.</li>
+<li>
+<b>Conciliar definiciones.</b> Proponer nombres separados para transición10s/contra 15s, PPDA territorial/all_zone y directness por fuente. Comparar antes/después al migrar cálculos.</li>
+<li>
+<b>Corregir relojes y coordenadas.</b> Compartir reloj por periodo/estado posterior al gol con personal y normalizar la orientación del dibujo peligroso; probar añadido, autogoles y eventos simultáneos.</li>
+<li>
+<b>Conciliar xG y taxonomías.</b> Revisar los 70 partidos con diferencias entre team-stats/eventos; corregir zonas y denominadores de firmas antes de hablar de patrones consolidados.</li>
+<li>
+<b>Validar fuera de muestra.</b> Separar temporadas/equipos, publicar error de calibración, sensibilidad a umbrales y factores de confusión. No deducir validez por un test estructural correcto.</li>
+<li>
+<b>Hacer reproducibles los experimentos.</b> Reparar imports/rutas de research, guardar configuraciones y salidas de clustering/PCA/360 si se retoman. Su existencia en código no garantiza un resultado disponible.</li>
+<li>
+<b>Automatizar regresión de entrega.</b> Mantener invariantes de población/ausencia, pruebas de navegación y CI sin credenciales, con artefactos e informes identificados por commit.</li>
+</ol>
+<p class="closing">Cada nueva métrica o lectura debe conservar el mismo contrato: <b>objeto definido, fuente identificable, supuesto explícito y resultado reproducible en su versión</b>.</p>
+</section>
+<footer>
+<p>CAON · Metodología y resultados · versión documental de 21 de octubre de 2026. Datos numéricos estáticos identificados por rama y commit; no se actualizan al abrir el archivo. <a href="framework_metodologico.md">Fuente conceptual completa</a> · <a href="#resumen">Volver al inicio</a>.</p>
+</footer>
+</main>
+</div>
+</body>
+</html>
