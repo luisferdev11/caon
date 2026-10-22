@@ -499,9 +499,9 @@ Presiones por partido ajustadas por la posesión rival (team_match_pressures_adj
 - **Límites:** En etiquetas y mapa se usa su percentil frente a la liga (0–100).
 - **Fuente:** team-stats
 
-### Presión (PPDA de team-stats) (`presion`)
+### Pases que permite al rival (PPDA · alto = permite pocos) (`presion`)
 
-PPDA de StatsBomb por partido; para el percentil se invierte (menor PPDA = más presión).
+PPDA de StatsBomb por partido; para el percentil se invierte: un percentil alto es un PPDA bajo (el rival hace pocos pases antes de que el equipo actúe).
 
 - **Fórmula:** team_match_ppda
 - **Unidad:** pases por acción
@@ -591,7 +591,7 @@ Eje y del mapa defensivo: media de los percentiles de volumen de presión, PPDA 
 
 ### Perfil de presión (regla de coherencia) (`perfil_presion`)
 
-Volumen, PPDA y contrapresión nunca cuentan historias opuestas. Si el volumen es ≥65 y el PPDA invertido ≤45 (con contrapresión <75), el equipo "presiona mucho, roba poco" y la tarjeta es "Línea alta: presiona mucho, roba poco" o "Línea baja: presiona mucho, roba poco". Si el volumen es ≤45 y el PPDA invertido ≥65, la presión es selectiva: "Línea alta, presión selectiva" o "Línea baja, presión selectiva". Ese nombre sustituye al del cuadrante; los nombres de cuadrante solo hablan de la altura de la línea y de la intensidad combinada, nunca del volumen. "Presión asfixiante" exige las tres señales altas y "Espera al rival" las tres bajas con línea baja.
+Volumen, PPDA y contrapresión nunca cuentan historias opuestas. Si el volumen es ≥65 y el PPDA invertido ≤45 (con contrapresión <75), el equipo "presiona mucho, deja jugar" y la tarjeta es "Línea alta: presiona mucho, deja jugar" o "Línea baja: presiona mucho, deja jugar". Si el volumen es ≤45 y el PPDA invertido ≥65, la presión es selectiva: "Línea alta, presión selectiva" o "Línea baja, presión selectiva". Ese nombre sustituye al del cuadrante; los nombres de cuadrante solo hablan de la altura de la línea y de la intensidad combinada, nunca del volumen. "Presión asfixiante" exige las tres señales altas y "Espera al rival" las tres bajas con línea baja.
 
 - **Fórmula:** sin_robo: vol≥65, ppda≤45, cp<75 · selectiva: vol≤45, ppda≥65 · asfixiante: vol≥75, ppda≥60, cp≥50 · espera: vol≤30, ppda≤40, cp≤50, línea≤40
 - **Unidad:** categoría
@@ -700,30 +700,30 @@ Una sola función (`labels.identity`) produce tarjetas, etiquetas y puntos del m
 - **Mapa ofensivo:** x = Velocidad del ataque, y = Posesión.
 - **Mapa defensivo:** x = Altura de línea, y = Intensidad de presión (media de volumen de presión, PPDA invertido y contrapresión).
 - **Regla combinada:** "Directo pero paciente" (verticalidad alta con ritmo bajo; sustituye a las dos etiquetas sueltas).
-- **Presión selectiva:** "Presión selectiva: pocas presiones, pero roba pronto (PPDA bajo)".
+- **Presión selectiva:** "Presión selectiva: pocas presiones, pero corta pronto el pase rival (PPDA bajo)".
 
 | Cuadrante ofensivo | | Cuadrante defensivo | |
 |---|---|---|---|
 | tl | Posesión elaborada | tl | Bloque medio agresivo |
 | tr | Dominio vertical | tr | Presión alta |
 | bl | Reactivo | bl | Bloque bajo |
-| br | Contragolpe | br | Línea alta, baja intensidad |
+| br | Contragolpe | br | Línea alta, sin asfixiar |
 
 ### Regla de presión
 
-Volumen, PPDA y contrapresión nunca cuentan historias opuestas. Si el volumen es ≥65 y el PPDA invertido ≤45 (con contrapresión <75), el equipo "presiona mucho, roba poco" y la tarjeta es "Línea alta: presiona mucho, roba poco" o "Línea baja: presiona mucho, roba poco". Si el volumen es ≤45 y el PPDA invertido ≥65, la presión es selectiva: "Línea alta, presión selectiva" o "Línea baja, presión selectiva". Ese nombre sustituye al del cuadrante; los nombres de cuadrante solo hablan de la altura de la línea y de la intensidad combinada, nunca del volumen. "Presión asfixiante" exige las tres señales altas y "Espera al rival" las tres bajas con línea baja.
+Volumen, PPDA y contrapresión nunca cuentan historias opuestas. Si el volumen es ≥65 y el PPDA invertido ≤45 (con contrapresión <75), el equipo "presiona mucho, deja jugar" y la tarjeta es "Línea alta: presiona mucho, deja jugar" o "Línea baja: presiona mucho, deja jugar". Si el volumen es ≤45 y el PPDA invertido ≥65, la presión es selectiva: "Línea alta, presión selectiva" o "Línea baja, presión selectiva". Ese nombre sustituye al del cuadrante; los nombres de cuadrante solo hablan de la altura de la línea y de la intensidad combinada, nunca del volumen. "Presión asfixiante" exige las tres señales altas y "Espera al rival" las tres bajas con línea baja.
 
 | Perfil | Texto | Afirma (percentiles) |
 |---|---|---|
 | `asfixiante` | Presión asfixiante | volumen_presion 75–100, presion 60–100, contrapresion 50–100, intensidad_presion 62–100 |
-| `sin_robo` | Presiona mucho, pero roba poco (PPDA alto) | volumen_presion 65–100, presion 0–45, contrapresion 0–74 |
-| `selectiva` | Presión selectiva: pocas presiones, pero roba pronto (PPDA bajo) | volumen_presion 0–45, presion 65–100 |
+| `sin_robo` | Presiona mucho, pero deja jugar al rival (PPDA alto) | volumen_presion 65–100, presion 0–45, contrapresion 0–74 |
+| `selectiva` | Presión selectiva: pocas presiones, pero corta pronto el pase rival (PPDA bajo) | volumen_presion 0–45, presion 65–100 |
 | `espera` | Espera al rival | volumen_presion 0–30, presion 0–40, contrapresion 0–50, linea 0–40, intensidad_presion 0–40 |
 
 | Línea | Perfil | Tarjeta y nombre en el mapa |
 |---|---|---|
-| alta | `sin_robo` | Línea alta: presiona mucho, roba poco |
-| baja | `sin_robo` | Línea baja: presiona mucho, roba poco |
+| alta | `sin_robo` | Línea alta: presiona mucho, deja jugar |
+| baja | `sin_robo` | Línea baja: presiona mucho, deja jugar |
 | alta | `selectiva` | Línea alta, presión selectiva |
 | baja | `selectiva` | Línea baja, presión selectiva |
 
@@ -768,42 +768,42 @@ Pares excluyentes (nunca aparecen juntos; incluye los deducidos de afirmaciones 
 - Equilibrado ↔ Cede el balón
 - Bloque medio agresivo ↔ Presión alta
 - Bloque medio agresivo ↔ Bloque bajo
-- Bloque medio agresivo ↔ Línea alta, baja intensidad
-- Bloque medio agresivo ↔ Línea alta: presiona mucho, roba poco
+- Bloque medio agresivo ↔ Línea alta, sin asfixiar
+- Bloque medio agresivo ↔ Línea alta: presiona mucho, deja jugar
 - Bloque medio agresivo ↔ Línea alta, presión selectiva
 - Bloque medio agresivo ↔ Espera al rival
 - Bloque medio agresivo ↔ Línea muy alta
 - Presión alta ↔ Bloque bajo
-- Presión alta ↔ Línea alta, baja intensidad
-- Presión alta ↔ Línea baja: presiona mucho, roba poco
+- Presión alta ↔ Línea alta, sin asfixiar
+- Presión alta ↔ Línea baja: presiona mucho, deja jugar
 - Presión alta ↔ Línea baja, presión selectiva
 - Presión alta ↔ Espera al rival
 - Presión alta ↔ Línea muy baja
-- Bloque bajo ↔ Línea alta, baja intensidad
-- Bloque bajo ↔ Línea alta: presiona mucho, roba poco
+- Bloque bajo ↔ Línea alta, sin asfixiar
+- Bloque bajo ↔ Línea alta: presiona mucho, deja jugar
 - Bloque bajo ↔ Línea alta, presión selectiva
 - Bloque bajo ↔ Presión asfixiante
 - Bloque bajo ↔ Línea muy alta
-- Línea alta, baja intensidad ↔ Línea baja: presiona mucho, roba poco
-- Línea alta, baja intensidad ↔ Línea baja, presión selectiva
-- Línea alta, baja intensidad ↔ Presión asfixiante
-- Línea alta, baja intensidad ↔ Espera al rival
-- Línea alta, baja intensidad ↔ Línea muy baja
+- Línea alta, sin asfixiar ↔ Línea baja: presiona mucho, deja jugar
+- Línea alta, sin asfixiar ↔ Línea baja, presión selectiva
+- Línea alta, sin asfixiar ↔ Presión asfixiante
+- Línea alta, sin asfixiar ↔ Espera al rival
+- Línea alta, sin asfixiar ↔ Línea muy baja
 - Equilibrado ↔ Presión asfixiante
 - Equilibrado ↔ Espera al rival
 - Equilibrado ↔ Línea muy alta
 - Equilibrado ↔ Línea muy baja
-- Línea alta: presiona mucho, roba poco ↔ Línea baja: presiona mucho, roba poco
-- Línea alta: presiona mucho, roba poco ↔ Línea alta, presión selectiva
-- Línea alta: presiona mucho, roba poco ↔ Línea baja, presión selectiva
-- Línea alta: presiona mucho, roba poco ↔ Presión asfixiante
-- Línea alta: presiona mucho, roba poco ↔ Espera al rival
-- Línea alta: presiona mucho, roba poco ↔ Línea muy baja
-- Línea baja: presiona mucho, roba poco ↔ Línea alta, presión selectiva
-- Línea baja: presiona mucho, roba poco ↔ Línea baja, presión selectiva
-- Línea baja: presiona mucho, roba poco ↔ Presión asfixiante
-- Línea baja: presiona mucho, roba poco ↔ Espera al rival
-- Línea baja: presiona mucho, roba poco ↔ Línea muy alta
+- Línea alta: presiona mucho, deja jugar ↔ Línea baja: presiona mucho, deja jugar
+- Línea alta: presiona mucho, deja jugar ↔ Línea alta, presión selectiva
+- Línea alta: presiona mucho, deja jugar ↔ Línea baja, presión selectiva
+- Línea alta: presiona mucho, deja jugar ↔ Presión asfixiante
+- Línea alta: presiona mucho, deja jugar ↔ Espera al rival
+- Línea alta: presiona mucho, deja jugar ↔ Línea muy baja
+- Línea baja: presiona mucho, deja jugar ↔ Línea alta, presión selectiva
+- Línea baja: presiona mucho, deja jugar ↔ Línea baja, presión selectiva
+- Línea baja: presiona mucho, deja jugar ↔ Presión asfixiante
+- Línea baja: presiona mucho, deja jugar ↔ Espera al rival
+- Línea baja: presiona mucho, deja jugar ↔ Línea muy alta
 - Línea alta, presión selectiva ↔ Línea baja, presión selectiva
 - Línea alta, presión selectiva ↔ Presión asfixiante
 - Línea alta, presión selectiva ↔ Espera al rival
@@ -824,11 +824,11 @@ Pares excluyentes (nunca aparecen juntos; incluye los deducidos de afirmaciones 
 - Portero en largo ↔ Sale jugando desde el portero
 - Contragolpe ↔ Ataques pausados
 - Posesión elaborada ↔ Ataques rápidos
-- Presión asfixiante ↔ Presión selectiva: pocas presiones, pero roba pronto (PPDA bajo)
-- Presión asfixiante ↔ Presiona mucho, pero roba poco (PPDA alto)
+- Presión asfixiante ↔ Presión selectiva: pocas presiones, pero corta pronto el pase rival (PPDA bajo)
+- Presión asfixiante ↔ Presiona mucho, pero deja jugar al rival (PPDA alto)
 - Línea muy baja ↔ Bloque medio agresivo
-- Línea alta: presiona mucho, roba poco ↔ Roba y remata
-- Línea baja: presiona mucho, roba poco ↔ Roba y remata
+- Línea alta: presiona mucho, deja jugar ↔ Roba y remata
+- Línea baja: presiona mucho, deja jugar ↔ Roba y remata
 
 ## Supuestos
 

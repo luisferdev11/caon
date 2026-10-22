@@ -13,6 +13,7 @@ import sys
 from multiprocessing import Pool
 from typing import Any, Optional
 
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))   # run.py arranca con -I
 import sequences
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]

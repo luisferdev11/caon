@@ -38,7 +38,7 @@ class IdentityTests(unittest.TestCase):
     def test_presion_selectiva_text(self):
         ident = labels.identity(dict(JARDINE, presion=90, volumen_presion=30))
         self.assertEqual(ident['defense'], 'Línea alta, presión selectiva')
-        self.assertEqual(ident['pressing']['texto'], 'Presión selectiva: pocas presiones, pero roba pronto (PPDA bajo)')
+        self.assertEqual(ident['pressing']['texto'], 'Presión selectiva: pocas presiones, pero corta pronto el pase rival (PPDA bajo)')
         self.assertNotIn('Corta con duelos, no presiona', ident['tags'])
 
     def test_missing_data(self):
@@ -94,7 +94,7 @@ class PressingCoherenceTests(unittest.TestCase):
     def test_ame_jardine_presses_a_lot_but_wins_little_not_selective(self):
         ident = labels.identity(AME_JARDINE)
         self.assertEqual(ident['pressing']['perfil'], 'sin_robo')
-        self.assertEqual(ident['defense'], 'Línea alta: presiona mucho, roba poco')
+        self.assertEqual(ident['defense'], 'Línea alta: presiona mucho, deja jugar')
         self.assertEqual(ident['defense'], ident['map']['dfn'][2])
         self.assertNotIn('selectiva', ident['defense'].lower())
         self.assertFalse(any('selectiva' in t.lower() for t in ident['tags']))
@@ -113,8 +113,8 @@ class PressingCoherenceTests(unittest.TestCase):
     def test_high_line_low_intensity_base_name_is_neutral(self):
         ident = labels.identity(dict(AME_JARDINE, volumen_presion=6, presion=21, contrapresion=7, linea=65))
         self.assertEqual(ident['pressing']['perfil'], None)
-        self.assertEqual(ident['defense'], 'Línea alta, baja intensidad')
-        self.assertEqual(labels.QUADRANTS['dfn']['br'], 'Línea alta, baja intensidad')
+        self.assertEqual(ident['defense'], 'Línea alta, sin asfixiar')
+        self.assertEqual(labels.QUADRANTS['dfn']['br'], 'Línea alta, sin asfixiar')
 
     def test_region_names_speak_only_of_line_and_combined_intensity(self):
         for name in labels.QUADRANTS['dfn'].values():
@@ -147,10 +147,10 @@ class PressingCoherenceTests(unittest.TestCase):
             for b in texts:
                 if a != b and labels.disjoint(claims[a], claims[b]):
                     self.assertIn(frozenset((a, b)), pairs, (a, b))
-        for a, b in (('Presión asfixiante', 'Línea alta: presiona mucho, roba poco'),
+        for a, b in (('Presión asfixiante', 'Línea alta: presiona mucho, deja jugar'),
                      ('Presión asfixiante', 'Línea alta, presión selectiva'), ('Espera al rival', 'Presión alta'),
-                     ('Línea alta, presión selectiva', 'Línea alta: presiona mucho, roba poco'),
-                     ('Presión asfixiante', 'Línea alta, baja intensidad'), ('Línea muy alta', 'Bloque bajo')):
+                     ('Línea alta, presión selectiva', 'Línea alta: presiona mucho, deja jugar'),
+                     ('Presión asfixiante', 'Línea alta, sin asfixiar'), ('Línea muy alta', 'Bloque bajo')):
             self.assertIn(frozenset((a, b)), pairs, (a, b))
 
     def test_stale_selective_card_is_a_claim_violation(self):

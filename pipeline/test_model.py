@@ -4,6 +4,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
+import framework as fw
 import labels
 from build_model import (
     STY,
@@ -137,8 +138,9 @@ class PpdaLabelTests(unittest.TestCase):
     def test_pressing_control_label_states_the_orientation(self):
         label = {k: lab for k, _, _, lab in STY}['presion']
         self.assertEqual(label, labels.PPDA_LABEL)
-        self.assertIn('alto = deja pocos pases', label)
-        self.assertNotIn('Pases rivales por acción defensiva', label)
+        self.assertIn('alto = permite pocos', label)
+        self.assertNotIn('Presión', label)   # un concepto, un nombre: no se confunde con el volumen de presión
+        self.assertEqual(label, fw.DEFINITIONS['presion']['nombre'])
 
     def test_the_control_is_inverted_in_sty(self):
         self.assertTrue({k: inv for k, _, inv, _ in STY}['presion'])

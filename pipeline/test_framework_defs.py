@@ -163,15 +163,15 @@ class PressingRuleDocTests(unittest.TestCase):
         import labels
         et = fw.framework_payload()['etiquetas']
         self.assertEqual(set(et['perfiles_presion']), set(labels.PRESS_PROFILES))
-        self.assertEqual(et['cuadrantes']['dfn']['br'], 'Línea alta, baja intensidad')
+        self.assertEqual(et['cuadrantes']['dfn']['br'], 'Línea alta, sin asfixiar')
         self.assertEqual(len(et['conflictos']), len(labels.conflict_pairs()))
-        self.assertIn('Línea alta: presiona mucho, roba poco', et['nombres_calificados'])
+        self.assertIn('Línea alta: presiona mucho, deja jugar', et['nombres_calificados'])
         json.dumps(et, ensure_ascii=False, allow_nan=False)
 
     def test_marco_documents_the_pressing_rule(self):
         text = fw.render_marco()
         self.assertIn('### Regla de presión', text)
-        self.assertIn('Línea alta: presiona mucho, roba poco', text)
+        self.assertIn('Línea alta: presiona mucho, deja jugar', text)
         self.assertIn(labels_selective(), text)
 
 

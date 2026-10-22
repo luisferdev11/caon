@@ -1,5 +1,6 @@
 """Tests de run.py: el orden de los pasos del pipeline."""
 import pathlib
+import subprocess
 import sys
 import unittest
 
@@ -32,6 +33,15 @@ class TestSteps(unittest.TestCase):
         mod = [c for c in run.STEPS['analysis'] if '-m' in c]
         self.assertTrue(mod and all(run.cwd_for(c) == run.HERE for c in mod))
         self.assertIsNone(run.cwd_for(run.STEPS['extract'][0]))
+
+
+class TestIsolatedStart(unittest.TestCase):
+    """run.py arranca los scripts con -I (sin el directorio del script en sys.path): deben poder importar sus módulos."""
+
+    def test_extract_analysis_starts_in_isolated_mode(self):
+        cmd = next(c for c in run.STEPS['extract'] if c[-1].endswith('extract_analysis.py')) + ['--help']
+        done = subprocess.run(cmd, capture_output=True, text=True, check=False, timeout=60)
+        self.assertEqual(done.returncode, 0, done.stderr[-300:])
 
 
 if __name__ == '__main__':

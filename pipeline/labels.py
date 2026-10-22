@@ -10,7 +10,7 @@ puede contradecir los percentiles de los que sale (``claim_violations``).
 
 Regla de presión (``perfil_presion`` en DEFINITIONS): el eje y del mapa es la media de volumen, PPDA
 invertido y contrapresión; cuando volumen y PPDA cuentan historias opuestas (uno ≥65 y el otro ≤45) el
-perfil lo nombra ("presiona mucho, roba poco" o "presión selectiva") y ese nombre sustituye al del
+perfil lo nombra ("presiona mucho, deja jugar" o "presión selectiva") y ese nombre sustituye al del
 cuadrante, para que la tarjeta nunca diga "selectiva" de un equipo que presiona mucho ni lo contrario.
 """
 from __future__ import annotations
@@ -27,7 +27,7 @@ VERTICAL_MIN, PATIENT_MAX = 70, 40  # "Directo pero paciente"
 TOP_TAGS = 4
 EPS = 1e-6
 PROFILE_STRONG, PROFILE_WEAK = 65, 45   # volumen vs PPDA: uno ≥65 y el otro ≤45 → historias opuestas
-SIN_ROBO_MAX_CP = 75            # "roba poco" no se dice si la contrapresión es ≥75
+SIN_ROBO_MAX_CP = 75            # "deja jugar" no se dice si la contrapresión es ≥75
 ASFIXIANTE = {'volumen_presion': 75, 'presion': 60, 'contrapresion': 50}  # mínimos
 ESPERA = {'volumen_presion': 30, 'presion': 40, 'contrapresion': 50, 'linea': 40}  # máximos
 SHORT_POS, SHORT_POS_STRICT, SHORT_RITMO_MAX = 65, 80, 55  # tarjeta "Pase corto"
@@ -38,14 +38,14 @@ VEL, INT = 'vel_ataque', 'intensidad_presion'   # señales compuestas de los eje
 
 QUADRANTS = {
     'off': {'tl': 'Posesión elaborada', 'tr': 'Dominio vertical', 'bl': 'Reactivo', 'br': 'Contragolpe'},
-    'dfn': {'tl': 'Bloque medio agresivo', 'tr': 'Presión alta', 'bl': 'Bloque bajo', 'br': 'Línea alta, baja intensidad'},
+    'dfn': {'tl': 'Bloque medio agresivo', 'tr': 'Presión alta', 'bl': 'Bloque bajo', 'br': 'Línea alta, sin asfixiar'},
 }
 AXES = {'off': ('Velocidad del ataque', 'Posesión'), 'dfn': ('Altura de línea', 'Intensidad de presión')}
-SELECTIVE = 'Presión selectiva: pocas presiones, pero roba pronto (PPDA bajo)'
-SIN_ROBO = 'Presiona mucho, pero roba poco (PPDA alto)'
+SELECTIVE = 'Presión selectiva: pocas presiones, pero corta pronto el pase rival (PPDA bajo)'
+SIN_ROBO = 'Presiona mucho, pero deja jugar al rival (PPDA alto)'
 COMBINED = 'Directo pero paciente'
-# Texto del control `presion` (percentil invertido: alto = PPDA bajo = el rival hace pocos pases). Provisional: lo revisa el advisor.
-PPDA_LABEL = 'Presión por PPDA (alto = deja pocos pases)'
+# Texto del control `presion` (percentil invertido: alto = PPDA bajo = el rival hace pocos pases). Sin la palabra «presión»: no se confunde con el volumen de presión.
+PPDA_LABEL = 'Pases que permite al rival (PPDA · alto = permite pocos)'
 
 
 def _ge(x: float) -> tuple:
@@ -80,8 +80,8 @@ PRESS_PROFILES: dict[str, dict[str, Any]] = {
 PROFILE_TAGS = ('asfixiante', 'espera')         # perfiles de acuerdo: van como etiqueta
 # Perfiles de desacuerdo: su nombre sustituye al del cuadrante (lado de la línea, perfil) → tarjeta.
 DFN_QUALIFIED = {
-    ('alta', 'sin_robo'): 'Línea alta: presiona mucho, roba poco',
-    ('baja', 'sin_robo'): 'Línea baja: presiona mucho, roba poco',
+    ('alta', 'sin_robo'): 'Línea alta: presiona mucho, deja jugar',
+    ('baja', 'sin_robo'): 'Línea baja: presiona mucho, deja jugar',
     ('alta', 'selectiva'): 'Línea alta, presión selectiva',
     ('baja', 'selectiva'): 'Línea baja, presión selectiva',
 }

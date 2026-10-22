@@ -164,8 +164,9 @@ DEF_STYLE: dict[str, dict[str, str]] = {
     'volumen_presion': _d('Volumen de presión', 'Presiones por partido ajustadas por la posesión rival '
                           '(team_match_pressures_adj).', 'team_match_pressures_adj', 'presiones/partido',
                           STYLE_NOTE, TS),
-    'presion': _d('Presión (PPDA de team-stats)', 'PPDA de StatsBomb por partido; para el percentil se invierte '
-                  '(menor PPDA = más presión).', 'team_match_ppda', 'pases por acción', STYLE_NOTE, TS),
+    'presion': _d('Pases que permite al rival (PPDA · alto = permite pocos)', 'PPDA de StatsBomb por partido; para el '
+                  'percentil se invierte: un percentil alto es un PPDA bajo (el rival hace pocos pases antes de que '
+                  'el equipo actúe).', 'team_match_ppda', 'pases por acción', STYLE_NOTE, TS),
     'saque_largo': _d('Saque largo del portero', 'Proporción de pases largos del portero '
                       '(team_match_gk_long_pass_ratio).', 'team_match_gk_long_pass_ratio', 'proporción',
                       STYLE_NOTE, TS),
@@ -194,8 +195,8 @@ DEF_STYLE: dict[str, dict[str, str]] = {
                              'Señal compuesta: si volumen y PPDA discrepan, manda el perfil de presión.', TS),
     'perfil_presion': _d('Perfil de presión (regla de coherencia)', 'Volumen, PPDA y contrapresión nunca cuentan '
                          'historias opuestas. Si el volumen es ≥65 y el PPDA invertido ≤45 (con contrapresión '
-                         '<75), el equipo "presiona mucho, roba poco" y la tarjeta es "Línea alta: presiona mucho, '
-                         'roba poco" o "Línea baja: presiona mucho, roba poco". Si el volumen es ≤45 y el PPDA '
+                         '<75), el equipo "presiona mucho, deja jugar" y la tarjeta es "Línea alta: presiona mucho, '
+                         'deja jugar" o "Línea baja: presiona mucho, deja jugar". Si el volumen es ≤45 y el PPDA '
                          'invertido ≥65, la presión es selectiva: "Línea alta, presión selectiva" o "Línea baja, '
                          'presión selectiva". Ese nombre sustituye al del cuadrante; los nombres de cuadrante solo hablan de la '
                          'altura de la línea y de la intensidad combinada, nunca del volumen. "Presión asfixiante" exige las '

@@ -77,10 +77,40 @@ def _size(obj) -> int:
     return len(json.dumps(obj, ensure_ascii=False, separators=(',', ':'), allow_nan=False).encode('utf-8'))
 
 
+SHRINKABLE = {'dangerous': ('juego_abierto', 'balon_parado', 'penales')}   # listas Top-N que se pueden recortar
+MIN_TOP_KEPT = 3
+
+
+def _halve(block: dict, keys: tuple) -> tuple:
+    """(bloque con la mitad de cada lista Top-N, ¿cambió?); mínimo MIN_TOP_KEPT por lista."""
+    out, changed = dict(block), False
+    for k in keys:
+        rows = out.get(k)
+        if isinstance(rows, list) and len(rows) > MIN_TOP_KEPT:
+            out[k], changed = rows[:max(MIN_TOP_KEPT, len(rows) // 2)], True
+    return out, changed
+
+
+def _shrink(topic: dict, keys: tuple) -> dict | None:
+    """Recorta las listas Top-N del tema y de cada ``ventanas.<ventana>``; None si ya no hay nada que recortar."""
+    out, changed = _halve(topic, keys)
+    if isinstance(out.get('ventanas'), dict):
+        wins = {w: _halve(b, keys) for w, b in out['ventanas'].items() if isinstance(b, dict)}
+        out['ventanas'] = dict(out['ventanas'], **{w: b for w, (b, _) in wins.items()})
+        changed = changed or any(c for _, c in wins.values())
+    return out if changed else None
+
+
 def enforce_budget(payload: dict, limit: int = ANALYSIS_LIMIT_BYTES) -> tuple[dict, list[str]]:
-    """Si el archivo excede el límite, reemplaza los temas más pesados por null con motivo."""
+    """Si el archivo excede el límite, recorta las listas Top-N de ``dangerous`` y, si no basta, anula el tema más pesado."""
     out, warnings = dict(payload), []
     while _size(out) > limit:
+        shrunk = next((k for k, keys in SHRINKABLE.items() if isinstance(out.get(k), dict) and _shrink(out[k], keys)), None)
+        if shrunk:
+            before = _size(out[shrunk])
+            out[shrunk] = _shrink(out[shrunk], SHRINKABLE[shrunk])
+            warnings.append(f'{shrunk}: recortado de {before} a {_size(out[shrunk])} bytes por presupuesto')
+            continue
         topics = [k for k in out if k != 'meta' and not (isinstance(out[k], dict) and 'motivo' in out[k])]
         if not topics:
             break

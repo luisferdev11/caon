@@ -53,6 +53,33 @@ class BuildAnalysisTests(unittest.TestCase):
         self.assertFalse(hasattr(ba, 'replay_meta'))
 
 
+class ShrinkBeforeNullTests(unittest.TestCase):
+    """T-04: antes de anular un tema se recortan sus listas Top-N (solo ``dangerous``)."""
+
+    def _payload(self):
+        plays = [{'match_id': i, 'hecho': 'x' * 400} for i in range(10)]
+        return {'meta': {'id': 'a'}, 'big': {'v': 'y' * 3000},
+                'dangerous': {'top_n': 10, 'ventanas': {'oficial': {'resumen': {'n': 30}, 'juego_abierto': list(plays),
+                                                                    'balon_parado': list(plays), 'penales': list(plays)}}}}
+
+    def test_dangerous_lists_are_halved_instead_of_dropping_the_topic(self):
+        payload = self._payload()
+        limit = ba._size(payload) - 5000
+        out, warnings = ba.enforce_budget(payload, limit=limit)
+        self.assertLessEqual(ba._size(out), limit)
+        win = out['dangerous']['ventanas']['oficial']
+        self.assertIn('resumen', win)
+        self.assertLess(len(win['juego_abierto']), 10)
+        self.assertGreaterEqual(len(win['juego_abierto']), ba.MIN_TOP_KEPT)
+        self.assertEqual(out['big'], {'v': 'y' * 3000})
+        self.assertTrue(any('recortado' in w for w in warnings))
+
+    def test_still_nulls_a_topic_when_shrinking_is_not_enough(self):
+        out, warnings = ba.enforce_budget(self._payload(), limit=3500)
+        self.assertIn('motivo', out['big'] if 'motivo' in out['big'] else out['dangerous'])
+        self.assertTrue(warnings)
+
+
 REPLAY = {'resumen': {'n': 2}, 'por_torneo': [], 'por_ventana': {}, 'textos': {'veredicto': {}},
           'partidos': [{'match_id': 7, 'xpts': 1.5, 'ficha': {'merecio': {}}}, {'match_id': 8, 'xpts': 0.4, 'ficha': {}}]}
 

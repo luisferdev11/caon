@@ -180,3 +180,55 @@ Reconstrucción con `build_model` (alcance de liga: todas las entidades, 748 par
 | Auditoría de coherencia | — | 0 conflictos en 58 payloads |
 
 Advertencias: (1) los 442 extractos `mx_` antiguos difieren de los hashes de la línea base porque se regeneraron con `extract_version` 2 (ver `data/out/requests/A1.md`); la salida actual es reproducible. (2) `model.league` ahora incluye partidos de las entidades de Comparación; `CAON_LEAGUE_SCOPE=legacy` permite comparar con el alcance anterior (no se ejecutó en G1). (3) La descarga P5–P6 seguía en curso.
+
+### Después (G2) — 21 Oct 2026, 18:18
+
+Reconstrucción completa de T-04 (`run.py build`: `extract`, `extract_analysis` v5, `extract_360`, referencias 360 y A4, `build_model`, `check_model`, `targets`, `build_analysis`). Cambios de datos respecto de G1: la referencia de percentiles de estilo y la de A4 usan **solo la ventana oficial** (antes incluían equipos-temporada 2025/26); los mapas de estilo salen de `labels.map_points`; las muestras neutrales 360 ya tienen eventos.
+
+| Prueba | Antes | Después (G1) | Después (G2) |
+|---|---|---|---|
+| Prueba dorada del motor | pasa | pasa (2/2) | pasa (2/2); `engine.js` sin diff contra `main` |
+| `check_model.py` | 0 errores | 0 errores, 1 advertencia | 0 errores, 1 advertencia (barca_guardiola) |
+| `validate.js 100` | 25 correctas | 31 evaluadas, 25 correctas, 6 advertencias | **31 evaluadas, 31 correctas, 0 advertencias, 0 errores** (`targets.py` ya cubre las entidades nuevas) |
+| `referee.js 2` | 0 infracciones | 478,429 revisiones, 0 | 478,429 revisiones, 0 infracciones |
+| Auditoría de coherencia | — | 0 conflictos (58 payloads) | **0 errores en 87 payloads** (antes de reconstruir: 52 de etiquetas) |
+| América · Jardine (Tricampeonato) | n=70 | n=91, sim 1.56–1.17 goles | n=91, sim 1.56–1.17 goles (sin deriva en goles) |
+
+Tamaños: `model.json` 1.16 MB; `model/analysis/*.json` ≤ 372 KB (28 entidades; el tema `dangerous` de Toluca·Mohamed se recorta a la mitad de cada Top-N en vez de anularse); fichas de partido ≤ 3 KB; `/api/explorer/*` ≤ 300 KB.
+
+**Simulado contra real por entidad** (goles a favor y posesión; el simulador enfrenta a cada entidad con la liga promedio, 100 partidos por cruce; es una comparación descriptiva, no un ajuste estadístico):
+
+| Entidad | n | Goles a favor real / sim | Posesión real / sim |
+|---|---|---|---|
+| América · Jardine (Tricampeonato) | 91 | 1.75 / 1.56 | 54% / 55% |
+| América · Jardine (Epílogo 2025/26) | 38 | 1.55 / 1.42 | 57% / 57% |
+| América · Almada | 10 | 2.20 / 1.23 | 56% / 54% |
+| Pachuca · Almada | 139 | 1.57 / 1.40 | 51% / 51% |
+| América · Solari (antes de Jardine) | 27 | 1.15 / 1.44 | 51% / 52% |
+| América · Ortiz (antes de Jardine) | 55 | 2.00 / 1.64 | 55% / 54% |
+| Atlético San Luis · Jardine | 54 | 1.09 / 1.04 | 45% / 45% |
+| Santos · Almada | 20 | 1.35 / 1.17 | 53% / 51% |
+| Chivas · Paunović | 42 | 1.29 / 1.16 | 48% / 48% |
+| Chivas · Gago | 32 | 1.22 / 1.26 | 53% / 52% |
+| Chivas · Milito | 51 | 1.69 / 1.62 | 57% / 54% |
+| Atlas · Cocca (Bicampeonato) | 46 | 1.20 / 1.06 | 49% / 50% |
+| Atlante · Miguel Herrera | 11 | 1.09 / 0.93 | 44% / 47% |
+| Atlas · Hernán Crespo | 10 | 1.30 / 1.31 | 52% / 50% |
+| San Luis · Diego Mejía | 11 | 1.27 / 1.08 | 52% / 52% |
+| Cruz Azul · Joel Huiqui | 18 | 1.94 / 1.34 | 53% / 53% |
+| Juárez · Gustavo Lema | 5 | 1.00 / 1.16 | 49% / 50% |
+| León · Javier Gandolfi | 17 | 1.47 / 1.28 | 53% / 52% |
+| Monterrey · Matías Almeyda | 10 | 1.70 / 1.52 | 55% / 53% |
+| Necaxa · Juan Reynoso | 3 | 2.00 / 1.38 | 45% / 49% |
+| Pachuca · Benjamín Mora | 11 | 1.64 / 1.44 | 48% / 49% |
+| Puebla · Gerardo Espinoza | 11 | 1.09 / 1.14 | 43% / 47% |
+| Pumas · Esteban Solari | 11 | 1.54 / 1.03 | 47% / 47% |
+| Querétaro · Esteban González | 27 | 1.15 / 1.18 | 39% / 41% |
+| Santos · Renato Paiva | 11 | 1.00 / 1.49 | 50% / 49% |
+| Tigres · Víctor Vucetich | 7 | 1.00 / 1.27 | 50% / 50% |
+| Tijuana · Sebastián Abreu | 47 | 1.38 / 1.16 | 46% / 48% |
+| Toluca · Antonio Mohamed | 76 | 1.90 / 1.87 | 55% / 54% |
+| Barcelona 2009–11 (Guardiola) | 68 | s/d | s/d |
+| Autobús y contra (arquetipo tipo Atlético) | 60 | s/d | s/d |
+
+Deriva respecto de G1: la liga de referencia del simulador (`LEAGUE_SCOPE=all`) y su cantidad de partidos no cambiaron entre G1 y G2; la referencia de percentiles de estilo ahora es solo de la ventana oficial y mueve los percentiles de las entidades, no el motor; la deriva no se midió por separado (en goles a favor de Jardine el simulado no cambió: 1.56). Si hiciera falta volver a la referencia anterior se puede con `CAON_LEAGUE_SCOPE=legacy`.

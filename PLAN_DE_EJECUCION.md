@@ -292,16 +292,16 @@ node pipeline/validate.js 100 2>&1 | tail -4 && node pipeline/referee.js 2 2>&1 
 - **Aceptación de T-03:** cada subtarea con su test en verde y su entrada TDD; `ruff` limpio. ✅ *(517 unittest y 54 node en verde; TDD en `data/out/tdd/T-03.*`.)*
 
 **T-04 · Reconstrucción completa**
-- [ ] Correr `flock data/out/heavy.lock .venv/bin/python -X utf8 pipeline/run.py build`. Tiempo estimado: varios minutos; vigilar la RAM con `Pool(4)`.
-- [ ] Revisar: `model/model.json` ≤4 MB; `model/analysis/*.json` ≤400 KB y sin tópicos nulos por presupuesto; existen `model/explorer.json` v2 y `model/xg_grid.json` v2.
-- [ ] `check_model` 0 errores; `validate.js 100` 0 errores; `referee.js 2` 0 infracciones; prueba dorada OK.
-- [ ] Anotar en `docs/VALIDACION_MODELOS.md` la sección "Después (G2)": entidades y su n, simulado contra real por entidad, y la deriva respecto a G1 (por la liga de referencia ampliada; existe el flag `LEAGUE_SCOPE`).
-- **Aceptación:** **`audit_coherence.py` con 0 errores** (los 52 desaparecen); el AC-05 de `acceptance.py` en ✅.
+- [x] Correr `flock data/out/heavy.lock .venv/bin/python -X utf8 pipeline/run.py build`. Tiempo estimado: varios minutos; vigilar la RAM con `Pool(4)`. *(22 min; RAM ≤ 7.9 GB usados de 13.8; terminó en el error esperado de `kpis.py` inexistente, todo lo anterior publicado.)*
+- [x] Revisar: `model/model.json` ≤4 MB; `model/analysis/*.json` ≤400 KB y sin tópicos nulos por presupuesto; existen `model/explorer.json` v2 y `model/xg_grid.json` v2. *(Toluca perdía `dangerous`: ahora `enforce_budget` recorta los Top-N antes de anular; `test_budget.py` en verde.)*
+- [x] `check_model` 0 errores; `validate.js 100` 0 errores; `referee.js 2` 0 infracciones; prueba dorada OK.
+- [x] Anotar en `docs/VALIDACION_MODELOS.md` la sección "Después (G2)": entidades y su n, simulado contra real por entidad, y la deriva respecto a G1 (por la liga de referencia ampliada; existe el flag `LEAGUE_SCOPE`).
+- **Aceptación:** **`audit_coherence.py` con 0 errores** (los 52 desaparecen); el AC-05 de `acceptance.py` en ✅. ✅ *(0 errores en 87 payloads.)*
 
 **T-05 · Verificar la coherencia del estilo de juego en datos reales**
-- [ ] Imprimir `labels.identity()` de `ame_jardine`, `ame_jardine_epi`, `pac_almada`, `ame_almada` y `atl_cocca` (`python -c`). Para cada uno: construcción, enfoque defensivo, ataque, tags, cuadrantes con y sin balón, y los percentiles de evidencia.
-- [ ] Revisar a mano que no se contradigan con los percentiles: volumen P71 + PPDA P18 no puede decir "presión selectiva" sin explicación; "Directo pero paciente" debe salir de verticalidad ≥70 y ritmo ≤40.
-- **Aceptación:** tabla en `data/out/estilo_check.md`; **el advisor la revisa y aprueba los textos.**
+- [x] Imprimir `labels.identity()` de `ame_jardine`, `ame_jardine_epi`, `pac_almada`, `ame_almada` y `atl_cocca` (`python -c`). Para cada uno: construcción, enfoque defensivo, ataque, tags, cuadrantes con y sin balón, y los percentiles de evidencia.
+- [x] Revisar a mano que no se contradigan con los percentiles: volumen P71 + PPDA P18 no puede decir "presión selectiva" sin explicación; "Directo pero paciente" debe salir de verticalidad ≥70 y ritmo ≤40.
+- **Aceptación:** tabla en `data/out/estilo_check.md`; **el advisor la revisa y aprueba los textos.** ✅ *(aprobada con cambios de texto aplicados: PPDA «Pases que permite al rival (PPDA · alto = permite pocos)», «deja jugar al rival», cuadrante «Línea alta, sin asfixiar». Jardine hoy: PPDA P8, no P18.)*
 
 **T-06 · KPIs** (`pipeline/kpis.py` + `pipeline/test_kpis.py`, TDD)
 Los 7 KPIs, con definiciones en `DEFINITIONS`:
