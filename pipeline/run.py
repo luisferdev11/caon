@@ -26,7 +26,8 @@ def _py(name: str) -> list:
 
 EXTRACT = [_py('extract.py'), _py('extract_analysis.py'), _py('extract_360.py')]
 ANALYSIS = [PYM + ['analytics.shape360_ref'], PYM + ['analytics.a4_reference'], _py('build_model.py'),
-            _py('check_model.py'), _py('targets.py'), _py('build_analysis.py'), _py('kpis.py'), _py('story.py')]
+            _py('check_model.py'), _py('targets.py'), _py('build_analysis.py'), _py('kpis.py'), _py('story.py'),
+            [sys.executable, '-X', 'utf8', str(HERE / 'audit_coherence.py')]]   # al final: audita lo ya publicado
 STEPS = {
     'download': [_py('download.py'), _py('download_lineups.py'), _py('download_opendata.py')],
     'extract': EXTRACT,

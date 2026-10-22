@@ -20,7 +20,7 @@ class TestSteps(unittest.TestCase):
     def test_analysis_is_steps_4_to_9(self):
         self.assertEqual(names(run.STEPS['analysis']),
                          ['analytics.shape360_ref', 'analytics.a4_reference', 'build_model.py', 'check_model.py',
-                          'targets.py', 'build_analysis.py', 'kpis.py', 'story.py'])
+                          'targets.py', 'build_analysis.py', 'kpis.py', 'story.py', 'audit_coherence.py'])
 
     def test_build_is_extract_then_analysis(self):
         self.assertEqual(names(run.STEPS['build']),

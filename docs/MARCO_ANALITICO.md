@@ -517,12 +517,12 @@ Presiones por partido ajustadas por la posesión rival (team_match_pressures_adj
 - **Límites:** En etiquetas y mapa se usa su percentil frente a la liga (0–100).
 - **Fuente:** team-stats
 
-### Pases que permite al rival (PPDA · alto = permite pocos) (`presion`)
+### PPDA de team-stats (pases del rival por acción defensiva) (`presion`)
 
 PPDA de StatsBomb por partido; para el percentil se invierte: un percentil alto es un PPDA bajo (el rival hace pocos pases antes de que el equipo actúe).
 
 - **Fórmula:** team_match_ppda
-- **Unidad:** pases por acción
+- **Unidad:** pases por acción defensiva (menos = más presión)
 - **Límites:** En etiquetas y mapa se usa su percentil frente a la liga (0–100).
 - **Fuente:** team-stats
 

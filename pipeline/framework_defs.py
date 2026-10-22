@@ -170,9 +170,9 @@ DEF_STYLE: dict[str, dict[str, str]] = {
     'volumen_presion': _d('Volumen de presión', 'Presiones por partido ajustadas por la posesión rival '
                           '(team_match_pressures_adj).', 'team_match_pressures_adj', 'presiones/partido',
                           STYLE_NOTE, TS),
-    'presion': _d('Pases que permite al rival (PPDA · alto = permite pocos)', 'PPDA de StatsBomb por partido; para el '
+    'presion': _d('PPDA de team-stats (pases del rival por acción defensiva)', 'PPDA de StatsBomb por partido; para el '
                   'percentil se invierte: un percentil alto es un PPDA bajo (el rival hace pocos pases antes de que '
-                  'el equipo actúe).', 'team_match_ppda', 'pases por acción', STYLE_NOTE, TS),
+                  'el equipo actúe).', 'team_match_ppda', 'pases por acción defensiva (menos = más presión)', STYLE_NOTE, TS),
     'saque_largo': _d('Saque largo del portero', 'Proporción de pases largos del portero '
                       '(team_match_gk_long_pass_ratio).', 'team_match_gk_long_pass_ratio', 'proporción',
                       STYLE_NOTE, TS),

@@ -2,7 +2,7 @@
 
 Descubre los módulos registrados en pipeline/analytics/ (cada uno expone build(ctx) -> dict y se
 registra con analytics.register), arma el contexto de cada entidad (partidos con ventana, rival, marcador)
-y escribe un archivo por entidad con presupuesto de tamaño. Al final corre audit_coherence.py si existe.
+y escribe un archivo por entidad con presupuesto de tamaño. La auditoría corre al final de run.py, después de kpis y story.
 
     python pipeline/build_analysis.py            # todas las entidades con datos
     python pipeline/build_analysis.py ame_jardine pac_almada
@@ -26,7 +26,6 @@ ANALYSIS_LIMIT_BYTES = 400 * 1024
 NARRATIVE_IDS = ('ame_jardine', 'ame_jardine_epi', 'ame_almada', 'pac_almada', 'ame_solari', 'ame_ortiz',
                  'slp_jardine', 'san_almada')
 GLOBAL_BUILDERS = (('explorer.py', 'explorer.json'), ('xg_grid.py', 'xg_grid.json'))
-AUDIT_SCRIPT = HERE / 'audit_coherence.py'
 from framework import EPILOGUE_END, OFFICIAL_END
 
 
@@ -220,7 +219,6 @@ def main(argv: list[str]) -> int:
     status = 0
     for script, out in GLOBAL_BUILDERS:
         status |= run_script(HERE / script, '--out', str(MODEL_DIR / out))
-    status |= run_script(AUDIT_SCRIPT)
     return status
 
 

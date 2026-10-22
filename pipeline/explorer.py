@@ -87,6 +87,15 @@ def sig(v: float, digits: int = SIG_DIGITS) -> float:
     return round(v, digits - 1 - math.floor(math.log10(abs(v))))
 
 
+# Junto a valores crudos (no a percentiles) el nombre del PPDA no puede traer la orientación del percentil.
+CATALOG_NAMES = {'presion': 'PPDA (pases del rival por acción defensiva)'}
+
+
+def name_of(key: str, label: str) -> str:
+    """Nombre publicado de la métrica en el explorador."""
+    return CATALOG_NAMES.get(key, label)
+
+
 def unit_of(key: str) -> str:
     """Unidad publicada de la métrica: la del glosario DEFINITIONS (una sola fuente de verdad)."""
     return (fw.DEFINITIONS.get(key) or {}).get('unidad', 'por partido')
@@ -143,7 +152,7 @@ def metric_record(vals: list, mu0: Optional[float], sd: float, ref: list, metric
     unidad viene del catálogo y la fuente y la ventana de la unidad).
     """
     key, _col, inv, label = metric
-    rec = {'n': len(vals)} if compact else {'id': key, 'nombre': label, 'unit': unit_of(key), 'n': len(vals),
+    rec = {'n': len(vals)} if compact else {'id': key, 'nombre': name_of(key, label), 'unit': unit_of(key), 'n': len(vals),
                                             'source': SOURCE, 'window': window}
     if not vals or mu0 is None:
         return dict(rec, value=None, motivo='sin dato en team-stats para estos partidos')
@@ -260,7 +269,7 @@ def build_payload(rows: list, metrics: Optional[list] = None) -> dict:
     cols = [m[1] for m in metrics]
     rows = [r for r in rows if r['coach']]
     refs = league_refs(rows, cols)
-    catalog = [{'id': k, 'nombre': lab, 'unit': unit_of(k), 'menos_es_mejor': inv, 'columna': col,
+    catalog = [{'id': k, 'nombre': name_of(k, lab), 'unit': unit_of(k), 'menos_es_mejor': inv, 'columna': col,
                 'fuente': SOURCE} for k, col, inv, lab in _ordered(metrics)]
     return {'version': VERSION, 'equipos': team_items(rows, refs, metrics, cols),
             'entrenadores': coach_items(rows, refs, metrics, cols), 'metricas': catalog, 'metodo': _method()}

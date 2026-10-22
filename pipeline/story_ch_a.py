@@ -16,8 +16,15 @@ PRESS_READING = {'sin_robo': 'Presiona mucho en volumen, pero esas presiones no 
                  'selectiva': 'Presiona poco, pero cuando lo hace corta pronto el pase.',
                  'asfixiante': 'Presiona mucho y corta el circuito: el rival casi no sale jugando.',
                  'espera': 'Espera atrás y presiona poco.'}
-NAMES = {'field_tilt': 'dominio territorial', 'progresion_limpia': 'progresión limpia',
-         'npxg_por_tiro': 'calidad de ocasión', 'perdida_costosa': 'pérdidas costosas'}
+# Nombre de cada KPI cuando destaca y cuando flojea: «pérdidas costosas» no puede ser una fortaleza (lo mejor es tener pocas).
+KPI_PHRASES = {'field_tilt': ('dominio territorial', 'poco dominio territorial'),
+               'progresion_limpia': ('progresión limpia', 'poca progresión limpia'),
+               'npxg_por_tiro': ('calidad de ocasión', 'baja calidad de ocasión'),
+               'perdida_costosa': ('pocas pérdidas costosas', 'muchas pérdidas costosas'),
+               'contrapresion_efectiva': ('contrapresión efectiva', 'poca contrapresión efectiva'),
+               'vigilancias': ('vigilancias 360 altas', 'pocas vigilancias 360'),
+               'bp_diferencial': ('diferencial de balón parado favorable', 'diferencial de balón parado desfavorable')}
+FOUR = ('field_tilt', 'progresion_limpia', 'npxg_por_tiro', 'perdida_costosa')
 
 
 def _p(record: Optional[dict]) -> Optional[float]:
@@ -52,18 +59,18 @@ def _result(s: Src, fid: str = 'portada_resultado', chapter: str = 'portada') ->
 
 
 def _four_kpis(s: Src) -> Optional[dict]:
-    rows = [s.kpi(k) for k in NAMES]
+    rows = [s.kpi(k) for k in FOUR]
     rows = [k for k in rows if k]
     if not rows:
         return None
     good = {k['id']: st.good_pct(k.get('ref_pct'), k['mejor']) for k in rows}
-    strong = [NAMES[i] for i, g in good.items() if g is not None and g >= st.HIGH_MIN]
-    weak = [NAMES[i] for i, g in good.items() if g is not None and g <= st.LOW_MAX]
+    strong = [KPI_PHRASES[i][0] for i, g in good.items() if g is not None and g >= st.HIGH_MIN]
+    weak = [KPI_PHRASES[i][1] for i, g in good.items() if g is not None and g <= st.LOW_MAX]
     if strong:
         title = 'Fuerte en ' + _join(strong) + ('; flojo en ' + _join(weak) if weak else '')
     else:
         title = 'Flojo en ' + _join(weak) if weak else 'Perfil intermedio en los cuatro indicadores clave'
-    fact = '; '.join(f"{NAMES[k['id']]}: {st.auto(k['value'])} {k['unit']} ({rank(k.get('ref_pct')) or 'sin referencia'})"
+    fact = '; '.join(f"{k['nombre'].lower()}: {st.auto(k['value'])} {k['unit']} ({rank(k.get('ref_pct')) or 'sin referencia'})"
                      for k in rows) + '.'
     reading = ('Los indicadores donde destaca son los que definen su identidad; el tablero (capítulo 11) los '
                'compara partido a partido.' if strong else 'Ningún indicador clave se separa de la liga: su identidad '

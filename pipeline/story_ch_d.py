@@ -6,7 +6,7 @@ from typing import Optional
 
 import framework as fw
 import story_text as st
-from story_ch_a import _join, _result
+from story_ch_a import KPI_PHRASES, _join, _result
 from story_text import Src, dig, finding, num, rank
 
 
@@ -167,14 +167,30 @@ def merecio(s: Src) -> dict:
 # ---------------------------------------------------------------- 11. tablero de KPIs
 def _board(s: Src, rows: list) -> Optional[dict]:
     good = [(k, st.good_pct(k.get('ref_pct'), k['mejor'])) for k in rows]
-    top = [k['nombre'].lower() for k, g in good if g is not None and g >= st.HIGH_MIN]
-    low = [k['nombre'].lower() for k, g in good if g is not None and g <= st.LOW_MAX]
+    top = [KPI_PHRASES.get(k['id'], (k['nombre'].lower(),) * 2)[0] for k, g in good if g is not None and g >= st.HIGH_MIN]
+    low = [KPI_PHRASES.get(k['id'], (k['nombre'].lower(),) * 2)[1] for k, g in good if g is not None and g <= st.LOW_MAX]
     title = (f"{len(top)} de {len(rows)} indicadores destacan sobre la liga" + (f"; {len(low)} {'queda' if len(low) == 1 else 'quedan'} por debajo de la mayoría" if low else ''))
     fact = '; '.join(f"{k['nombre']}: {num(k['value'])} ({rank(k.get('ref_pct')) or 'sin referencia de liga'})" for k in rows) + '.'
     return finding('tablero_resumen', 'tablero_kpis', ['kpis', 'xg', 'field_tilt', 'progresivos'], title, fact,
                    'Cada indicador se compara con la liga (percentil) y consigo mismo (semáforo en sus terciles); '
-                   + (f"destaca en {_join(top)}." if top else 'ninguno destaca sobre la liga.'), rows,
+                   + (f"destaca en {_join(top)}." if top else 'ninguno destaca sobre la liga.')
+                   + (' ' + tilt_note(s) if tilt_note(s) else ''), rows,
                    'Revisar el tablero antes de cada partido.')
+
+
+def tilt_note(s: Src) -> str:
+    """Aclara por qué el semáforo del field tilt puede dar menos puntos en verde: sube cuando el equipo va perdiendo."""
+    tilt = s.kpi('field_tilt')
+    sem = (tilt or {}).get('semaforo')
+    groups = dig(s.win('context'), ('dimensiones', 'marcador', 'grupos')) or {}
+    lose, win = (dig(groups, (k, 'field_tilt', 'valor')) for k in ('perdiendo', 'ganando'))
+    if not sem or lose is None or win is None or lose <= win:
+        return ''
+    green, red = sem['verde']['pts_partido'], sem['rojo']['pts_partido']
+    if green is None or red is None or green >= red:
+        return ''
+    return (f"El field tilt sube cuando el equipo va perdiendo ({num(lose, 1)} %) y baja cuando va ganando ({num(win, 1)} %): "
+            f"por eso los partidos en verde de ese indicador no suman más puntos.")
 
 
 def _lights(s: Src, rows: list) -> Optional[dict]:
@@ -188,7 +204,8 @@ def _lights(s: Src, rows: list) -> Optional[dict]:
                    f"En partidos en verde de {k['nombre'].lower()} sumó {num(v['pts_partido'])} puntos por partido contra {num(r['pts_partido'])} en rojo",
                    k['frase'] + f" Umbrales propios: {num(k['umbrales']['p33'], 2)} y {num(k['umbrales']['p67'], 2)}.",
                    'Asociación descriptiva: el semáforo no prueba que el indicador cause los puntos (el marcador también mueve el '
-                   'territorio y la posesión).', [k], 'No tomar una asociación como regla sin revisar el contexto del partido.', modo='dt')
+                   'territorio y la posesión).' + (' ' + tilt_note(s) if k['id'] == 'field_tilt' and tilt_note(s) else ''), [k],
+                   'No tomar una asociación como regla sin revisar el contexto del partido.', modo='dt')
 
 
 def tablero(s: Src) -> dict:

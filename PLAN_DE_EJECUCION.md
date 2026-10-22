@@ -369,6 +369,7 @@ Los 7 KPIs, con definiciones en `DEFINITIONS`:
 - [x] Reiniciar el servidor en 8010 y verificar que `/api/story/jardine`, `/api/explorer/teams` y `/api/entities/ame_jardine/analysis` devuelvan 200.
 - [x] Bitácora.
 - → **Revisión del advisor (profunda):** coherencia, textos de la historia y las decisiones de T-03.11 y T-05.
+  - ✅ *Revisión hecha: aprobada con 9 correcciones aplicadas en el commit G2.1.*
 
 ### ETAPA Ola 3 · Interfaz (antes de empezar, cargar el skill `dataviz`)
 Reglas de interfaz para toda la etapa:

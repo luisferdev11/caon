@@ -46,7 +46,8 @@ class BuildAnalysisTests(unittest.TestCase):
         import run
         names = [c[-1].rsplit('/', 1)[-1] for c in run.STEPS['build']]
         self.assertLess(names.index('build_model.py'), names.index('build_analysis.py'))
-        self.assertEqual(names[-1], 'story.py')
+        self.assertLess(names.index('story.py'), names.index('audit_coherence.py'))   # se audita lo ya publicado
+        self.assertEqual(names[-1], 'audit_coherence.py')
 
     def test_replay_has_no_adapter_any_more(self):
         self.assertFalse(hasattr(ba, 'replay_ctx'))

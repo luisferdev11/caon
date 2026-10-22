@@ -83,6 +83,9 @@ def style_phrase(key: str, p: Optional[float]) -> str:
     name = STYLE_NAMES.get(key, key)
     if p is None:
         return f'{name}: sin referencia'
+    if key == 'presion':   # percentil invertido: alto = PPDA bajo = corta pronto el pase
+        return (f'{name}: más bajo que {min(99, round(p))} de cada 100 equipos-temporada (corta pronto el pase)' if p >= 50 else
+                f'{name}: más alto que {min(99, round(100 - p))} de cada 100 equipos-temporada (deja jugar al rival)')
     if key in INVERTED:
         return (f'{name}: mejor que {min(99, round(p))} de cada 100 equipos-temporada' if p >= 50 else
                 f'{name}: peor que {min(99, round(100 - p))} de cada 100 equipos-temporada')

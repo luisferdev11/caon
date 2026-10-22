@@ -32,7 +32,8 @@ ALMADA_PACHUCA, ALMADA_AMERICA = 'pac_almada', 'ame_almada'
 # Componentes del reto (AC-06): cada uno debe tener al menos un hallazgo con evidencia en los capítulos 1–11.
 REQUIRED_COMPONENTS = ('construccion', 'progresion', 'ocasiones', 'presion', 'organizacion_defensiva', 'transiciones',
                        'identidad', 'consistencia', 'contexto_localia', 'contexto_rival', 'contexto_marcador',
-                       'contexto_minuto', 'roles', 'alineaciones', 'sustituciones', 'bp_ofensivo', 'bp_defensivo', 'xg',
+                       'contexto_minuto', 'roles', 'alineaciones', 'sustituciones', 'bp_ofensivo', 'bp_defensivo', 'bp_entrega_corner',
+                       'bp_zonas_remate', 'bp_saques_banda', 'bp_zonas_vulnerables', 'xg',
                        'obv', 'progresivos', 'ppda', 'field_tilt', 'kpis', '360')
 
 

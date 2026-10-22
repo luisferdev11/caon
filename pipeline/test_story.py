@@ -16,6 +16,7 @@ import story_almada as sa
 import story_ch_a as ca
 import story_ch_b as cb
 import story_ch_c as cc
+import story_ch_d as cd
 import story_text as st
 from story_text import Src
 
@@ -95,6 +96,90 @@ ALMADA_EXPLORER = {
         {'n': 139, 'confidence': 'alta', 'entidades': [{'id': 'pac_almada'}],
          'metrics': {'xg': {'n': 139, 'value': 1.1, 'raw': 1.1, 'ci': [1.0, 1.2], 'ref_pct': 50},
                      'posesion': {'n': 139, 'value': 0.52, 'raw': 0.52, 'ci': [0.5, 0.54], 'ref_pct': 60}}}]}]}
+
+
+def kpi(kid, nombre, mejor, value, pct, **extra):
+    return dict({'id': kid, 'nombre': nombre, 'mejor': mejor, 'value': value, 'n': 91, 'unit': 'u', 'window': 'oficial',
+                 'ref_pct': pct, 'kpi': 1}, **extra)
+
+
+class KpiWordingTests(unittest.TestCase):
+    def rows(self):
+        return [kpi('field_tilt', 'Dominio territorial', 'alto', 59.8, 99), kpi('progresion_limpia', 'Progresión limpia', 'alto', 36.8, 97),
+                kpi('npxg_por_tiro', 'Calidad de ocasión', 'alto', 0.12, 99),
+                kpi('perdida_costosa', 'Pérdidas costosas por partido', 'bajo', 2.76, 33)]
+
+    def test_a_strength_where_less_is_better_is_named_in_the_positive(self):
+        f = ca._four_kpis(src(kpis=self.rows()))
+        self.assertIn('pocas pérdidas costosas', f['titulo'])
+        self.assertNotIn('Fuerte en dominio territorial, progresión limpia, calidad de ocasión y pérdidas costosas', f['titulo'])
+
+    def test_a_weakness_where_less_is_better_is_named_as_many(self):
+        rows = self.rows()
+        rows[3]['ref_pct'] = 90
+        f = ca._four_kpis(src(kpis=rows))
+        self.assertIn('muchas pérdidas costosas', f['titulo'])
+
+    def test_board_uses_positive_names_too(self):
+        s = src(kpis=self.rows())
+        f = cd._board(s, s.kpi_rows)
+        self.assertIn('pocas pérdidas costosas', f['interpretacion'])
+
+
+class FieldTiltNoteTests(unittest.TestCase):
+    def ctx(self, perdiendo, ganando):
+        grupos = {'perdiendo': {'field_tilt': {'valor': perdiendo}}, 'ganando': {'field_tilt': {'valor': ganando}}}
+        return {'context': {'ventanas': {'oficial': {'dimensiones': {'marcador': {'grupos': grupos}}}}}}
+
+    def tilt(self, green, red):
+        return kpi('field_tilt', 'Dominio territorial', 'alto', 59.8, 99, semaforo={'verde': {'n': 30, 'pts_partido': green},
+                   'ambar': {'n': 30, 'pts_partido': 1.9}, 'rojo': {'n': 30, 'pts_partido': red}},
+                   frase='En partidos en verde sumó 1.73 pts/partido vs 2.13 en rojo (n=30/30); descriptivo.',
+                   umbrales={'p33': 54.0, 'p67': 69.0})
+
+    def test_the_marker_effect_is_explained_when_green_scored_less(self):
+        s = src(self.ctx(74.1, 48.4), kpis=[self.tilt(1.73, 2.13)])
+        note = cd.tilt_note(s)
+        self.assertIn('74.1', note)
+        self.assertIn('48.4', note)
+        f = cd._lights(s, s.kpi_rows)
+        self.assertIn('va perdiendo', f['interpretacion'])
+
+    def test_no_note_when_green_scored_more_or_the_marker_effect_is_absent(self):
+        self.assertEqual(cd.tilt_note(src(self.ctx(74.1, 48.4), kpis=[self.tilt(2.4, 1.2)])), '')
+        self.assertEqual(cd.tilt_note(src(self.ctx(50.0, 60.0), kpis=[self.tilt(1.7, 2.1)])), '')
+        self.assertEqual(cd.tilt_note(src()), '')
+
+
+class SetPieceWordingTests(unittest.TestCase):
+    def sp(self):
+        zones = {'ofensivo': {'xg_bp': rec('bp_ofensivo', 0.35), 'saques_banda': {'n': 440, 'con_remate_pct': 10.9, 'xg': 5.3},
+                              'corners': {'entrega': [{'zona': 'punto_penal', 'n': 205, 'pct': 45.1}, {'zona': 'corto', 'n': 113, 'pct': 24.8},
+                                                      {'zona': 'primer_palo', 'n': 48, 'pct': 10.5}],
+                                          'remates': {'por_zona': [{'zona': 'zona_remate', 'n': 97}, {'zona': 'fuera_area', 'n': 39}]}}},
+                 'defensivo': {'xg_bp': rec('bp_defensivo', 0.28),
+                               'zonas_vulnerables': [{'zona': 'zona_remate', 'remates': 190, 'xg': 20.2, 'goles': 12},
+                                                     {'zona': 'fuera_area', 'remates': 190, 'xg': 5.0, 'goles': 8}]}}
+        return src({'setpieces': {'ventanas': {'oficial': zones}}})
+
+    def test_zones_findings_cover_delivery_shot_zones_throw_ins_and_vulnerability(self):
+        off, dfn = cc._sp_zones_off(self.sp()), cc._sp_zones_def(self.sp())
+        self.assertEqual(set(off['componentes']), {'bp_entrega_corner', 'bp_zonas_remate', 'bp_saques_banda'})
+        self.assertIn('punto penal', off['hecho'])
+        self.assertIn('zona de remate', off['hecho'])
+        self.assertIn('440', off['hecho'])
+        self.assertEqual(dfn['componentes'], ['bp_zonas_vulnerables'])
+        self.assertIn('zona de remate', dfn['titulo'])
+        self.assertIn('tentativ', dfn['interpretacion'])
+
+    def test_two_definitions_of_set_piece_xg_are_named_in_both_texts(self):
+        s = self.sp()
+        self.assertIn('de peligro', cc._sp_off(s)['titulo'])
+        self.assertIn('de peligro', cc._sp_def(s)['titulo'])
+        dang = src({'dangerous': {'ventanas': {'oficial': {'resumen': {
+            'jugadas_por_partido': rec('jugada_peligrosa_concedida', 10.7),
+            'xg_por_tipo': {'juego_abierto': rec('xg_concedido', 0.45), 'balon_parado': rec('xg_concedido', 0.41)}}}}}})
+        self.assertIn('cualquier reanudación', cc._danger_summary(dang)['hecho'])
 
 
 class AlmadaTests(unittest.TestCase):
@@ -180,6 +265,8 @@ class PublishedJardineTests(unittest.TestCase):
         for comp, ids in self.doc['cobertura'].items():
             self.assertTrue(ids, comp)
         self.assertEqual(set(self.doc['cobertura']), set(story.REQUIRED_COMPONENTS))
+        for comp in ('bp_entrega_corner', 'bp_zonas_remate', 'bp_saques_banda', 'bp_zonas_vulnerables'):
+            self.assertIn(comp, story.REQUIRED_COMPONENTS)
 
     def test_no_finding_contradicts_its_main_percentile(self):
         self.assertEqual([m for f in self.findings for m in st.contradictions(f)], [])

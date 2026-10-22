@@ -243,7 +243,7 @@ Los errores 404 llevan mensaje en español; los archivos se releen cuando cambia
 
 ### 7.10 Cómo se reconstruye todo
 
-`python pipeline/run.py build` corre, en orden: `extract.py` → `extract_analysis.py` → `extract_360.py` → `analytics.shape360_ref` → `analytics.a4_reference` → `build_model.py` → `check_model.py` → `targets.py` → `build_analysis.py` → `kpis.py` → `story.py`. `python pipeline/run.py analysis` repite solo desde las referencias, sin volver a extraer. Es pesado (≈ 20 min para toda la liga): córrelo con `flock data/out/heavy.lock` y no lo repitas por cambios de texto. Las referencias de percentiles de las conclusiones son solo de la ventana oficial; el explorador usa una referencia ampliada y lo dice en su método.
+`python pipeline/run.py build` corre, en orden: `extract.py` → `extract_analysis.py` → `extract_360.py` → `analytics.shape360_ref` → `analytics.a4_reference` → `build_model.py` → `check_model.py` → `targets.py` → `build_analysis.py` → `kpis.py` → `story.py` → `audit_coherence.py` (al final, para auditar lo ya publicado). `python pipeline/run.py analysis` repite solo desde las referencias, sin volver a extraer. Es pesado (≈ 20 min para toda la liga): córrelo con `flock data/out/heavy.lock` y no lo repitas por cambios de texto. Las referencias de percentiles de las conclusiones son solo de la ventana oficial; el explorador usa una referencia ampliada y lo dice en su método.
 
 ---
 

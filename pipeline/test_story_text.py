@@ -46,6 +46,8 @@ class RankTests(unittest.TestCase):
     def test_style_phrase_uses_human_names_and_orientation(self):
         self.assertEqual(st.style_phrase('xga', 88), 'solidez defensiva (xG en contra): mejor que 88 de cada 100 equipos-temporada')
         self.assertEqual(st.style_phrase('xga', 20), 'solidez defensiva (xG en contra): peor que 80 de cada 100 equipos-temporada')
+        self.assertEqual(st.style_phrase('presion', 78), 'PPDA: más bajo que 78 de cada 100 equipos-temporada (corta pronto el pase)')
+        self.assertEqual(st.style_phrase('presion', 8), 'PPDA: más alto que 92 de cada 100 equipos-temporada (deja jugar al rival)')
         self.assertEqual(st.style_phrase('posesion', 81), 'posesión: más que 81 de cada 100 equipos-temporada')
         self.assertEqual(st.style_phrase('verticalidad', 31), 'verticalidad: menos que 69 de cada 100 equipos-temporada')
         self.assertEqual(st.style_phrase('raro', 60), 'raro: más que 60 de cada 100 equipos-temporada')

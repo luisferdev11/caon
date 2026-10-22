@@ -29,9 +29,11 @@ def _danger_summary(s: Src) -> Optional[dict]:
     share = (100 * sp['value'] / sum(parts)) if sp and sp.get('value') is not None and sum(parts) > 0 else None
     goals, lost, tags = r.get('goles_por_tipo') or {}, r.get('goles_tras_perdida'), r.get('por_etiqueta') or {}
     title = f"Concede {num(per['value'], 1)} jugadas con tiro por partido" + (
-        f"; {num(share, 0)} % de su xG concedido en jugadas peligrosas nace de balón parado" if share is not None else '')
+        f"; {num(share, 0)} % de su xG concedido en jugadas peligrosas nace de una reanudación (córner, falta o banda)"
+        if share is not None else '')
     fact = (f"{num(per['value'], 1)} posesiones rivales con tiro por partido. xG de posesión por partido: juego abierto "
-            f"{num(open_['value']) if open_ else 's/d'}, balón parado {num(sp['value']) if sp else 's/d'}. Goles concedidos: "
+            f"{num(open_['value']) if open_ else 's/d'}, cualquier reanudación de balón parado (córner, falta o saque de banda) "
+            f"{num(sp['value']) if sp else 's/d'}. Goles concedidos: "
             f"{goals.get('juego_abierto', 's/d')} en juego abierto, {goals.get('balon_parado', 's/d')} a balón parado y "
             f"{goals.get('penales', 's/d')} penales"
             + (f"; {num(lost['value'], 0)} llegaron tras una pérdida propia" if lost and lost.get('value') is not None else '')
@@ -75,7 +77,7 @@ def _sp_off(s: Src) -> Optional[dict]:
         return None
     total = sum(v['xg'] for v in kinds.values()) or None
     corner_share = (100 * kinds['corner']['xg'] / total) if total and kinds.get('corner') else None
-    title = f"A balón parado genera {num(xg['value'])} xG por partido" + (
+    title = f"A balón parado de peligro genera {num(xg['value'])} xG por partido" + (
         f"; {num(corner_share, 0)} % sale de córners" if corner_share is not None else '')
     fact = (f"{num(xg['value'])} xG por partido de jugadas de balón parado de peligro ({xg['n']} partidos)"
             + (f"; {num(corners['por_partido'], 1)} córners por partido, {num(corners['corto_pct'], 0)} % cortos, "
@@ -92,7 +94,7 @@ def _sp_def(s: Src) -> Optional[dict]:
     pair, area = m.get('corner_emparejamiento'), m.get('corner_area')
     if not xg:
         return None
-    title = f"Concede {num(xg['value'])} xG por partido a balón parado"
+    title = f"Concede {num(xg['value'])} xG por partido a balón parado de peligro"
     if pair and pair.get('value') is not None:
         title += pick(_p(pair), {'alto': '; marca al hombre más que casi toda la liga en córners',
                                  'medio': '; marca en córners como la mayoría',
@@ -101,9 +103,12 @@ def _sp_def(s: Src) -> Optional[dict]:
             + (f"; en córners rivales {num(pair['value'], 1)} % de los atacantes en el área tiene marca a 1.5 yd o menos "
                f"({rank(_p(pair))})" if pair and pair.get('value') is not None else '')
             + (f"; {num(area['value'], 1)} defensores visibles en el área ({rank(_p(area))})." if area and area.get('value') is not None else '.'))
+    every = dig(s.win('dangerous'), ('resumen', 'xg_por_tipo', 'balon_parado', 'value'))
+    note = (f" No es el {num(every)} del capítulo 6: allí cuenta toda reanudación; aquí solo las de peligro (todos los córners, "
+            f"faltas desde x≥80 y saques de banda desde x≥90).") if every is not None else ''
     return finding('bp_defensivo', 'balon_parado', ['bp_defensivo', '360'], title, fact,
                    'La marca se infiere de posiciones 360 (jugadores visibles, cota inferior): es una lectura tentativa, '
-                   'no un esquema confirmado.', [xg, pair, area], 'Revisar la marca en los córners rivales con video.')
+                   'no un esquema confirmado.' + note, [xg, pair, area], 'Revisar la marca en los córners rivales con video.')
 
 
 def _sp_diff(s: Src) -> Optional[dict]:
@@ -112,13 +117,13 @@ def _sp_diff(s: Src) -> Optional[dict]:
         return None
     lo, hi = (d.get('ci') or [None, None])
     if lo is not None and lo > 0:
-        title, reading = (f"A balón parado gana la partida: {st.signed(d['value'])} xG por partido",
+        title, reading = (f"A balón parado de peligro gana la partida: {st.signed(d['value'])} xG por partido",
                           'La banda del 80 % queda por encima de cero: el saldo favorable supera el ruido.')
     elif hi is not None and hi < 0:
-        title, reading = (f"A balón parado pierde la partida: {st.signed(d['value'])} xG por partido",
+        title, reading = (f"A balón parado de peligro pierde la partida: {st.signed(d['value'])} xG por partido",
                           'La banda del 80 % queda por debajo de cero: el saldo desfavorable supera el ruido.')
     else:
-        title, reading = (f"A balón parado está parejo: {st.signed(d['value'])} xG por partido",
+        title, reading = (f"A balón parado de peligro está parejo: {st.signed(d['value'])} xG por partido",
                           'La banda del 80 % incluye el cero: no se puede afirmar un saldo.')
     fact = (f"Diferencial {st.signed(d['value'], 3)} xG por partido" + (f" (banda 80 %: {num(lo, 3)} a {num(hi, 3)})" if lo is not None else '')
             + f" en {d['n']} partidos.")
@@ -126,8 +131,50 @@ def _sp_diff(s: Src) -> Optional[dict]:
                    'Seguir el diferencial de balón parado (KPI 7).')
 
 
+ZONE_ES = {'punto_penal': 'punto penal', 'corto': 'córner corto', 'primer_palo': 'primer palo', 'fuera_area': 'fuera del área',
+           'centro_area_chica': 'centro del área chica', 'segundo_palo': 'segundo palo', 'zona_remate': 'zona de remate',
+           'area_chica': 'área chica', 'resto_area': 'resto del área'}
+
+
+def _zone(name: str) -> str:
+    return ZONE_ES.get(name, name.replace('_', ' '))
+
+
+def _sp_zones_off(s: Src) -> Optional[dict]:
+    xg = s.rec('setpieces', 'ofensivo', 'xg_bp')
+    corners = dig(s.win('setpieces'), ('ofensivo', 'corners')) or {}
+    throws = dig(s.win('setpieces'), ('ofensivo', 'saques_banda')) or {}
+    delivery, shots = corners.get('entrega') or [], dig(corners, ('remates', 'por_zona')) or []
+    if not xg or not delivery:
+        return None
+    top, total = delivery[0], sum(z['n'] for z in shots) or None
+    title = f"Sus córners caen sobre todo en {_zone(top['zona'])} ({num(top['pct'], 0)} %)"
+    share = next((100 * z['n'] / total for z in shots if z['zona'] == 'zona_remate'), None) if total else None
+    if share is not None:
+        title += f"; {num(share, 0)} % de sus remates de córner salen de la zona de remate"
+    fact = ('Dónde caen: ' + ', '.join(f"{_zone(z['zona'])} {num(z['pct'], 1)} %" for z in delivery[:4])
+            + ('. Dónde remata: ' + ', '.join(f"{_zone(z['zona'])} {z['n']}" for z in shots[:3]) if shots else '')
+            + (f". Saques de banda en zona de peligro: {throws['n']}, {num(throws['con_remate_pct'], 1)} % terminan en remate."
+               if throws.get('n') else '.'))
+    return finding('bp_ofensivo_zonas', 'balon_parado', ['bp_entrega_corner', 'bp_zonas_remate', 'bp_saques_banda'], title, fact,
+                   'Las zonas son las de la cancha en el marco del equipo que cobra; el córner se normaliza como cobrado desde y=0.',
+                   [xg], 'Reforzar los patrones de entrega que llevan al remate en la zona de remate.')
+
+
+def _sp_zones_def(s: Src) -> Optional[dict]:
+    xg, zones = s.rec('setpieces', 'defensivo', 'xg_bp'), dig(s.win('setpieces'), ('defensivo', 'zonas_vulnerables')) or []
+    if not xg or not zones:
+        return None
+    top = max(zones, key=lambda z: z['xg'])
+    title = f"Su zona más vulnerable a balón parado es {_zone(top['zona'])}: {num(top['xg'], 1)} xG concedido en {top['remates']} remates"
+    fact = '; '.join(f"{_zone(z['zona'])}: {z['remates']} remates, {num(z['xg'], 1)} xG, {z['goles']} goles" for z in zones) + '.'
+    return finding('bp_defensivo_zonas', 'balon_parado', ['bp_zonas_vulnerables'], title, fact,
+                   'Lectura tentativa: son remates concedidos tras balón parado de peligro, sin separar marca zonal de individual.',
+                   [xg], 'Mirar con video qué pasa en esa zona antes de cambiar la marca.')
+
+
 def balon_parado(s: Src) -> dict:
-    fs = [_sp_off(s), _sp_def(s), _sp_diff(s)]
+    fs = [_sp_off(s), _sp_def(s), _sp_diff(s), _sp_zones_off(s), _sp_zones_def(s)]
     first = next((f for f in fs[2:] + fs[:2] if f), None)
     c = dig(s.win('setpieces'), ('ofensivo', 'corners')) or {}
     return st.chapter('balon_parado', 7, 'Balón parado: lo que da y lo que concede', fs,
@@ -192,7 +239,7 @@ def _dim_finding(s: Src, dim: str) -> Optional[dict]:
     title = f"{who}: {name} sin cambio claro ({both})" if noise else f"{who}: {name} {both}"
     reading = ('La diferencia queda dentro del ruido (banda del 80 %): no se puede afirmar un cambio. '
                if noise else 'La diferencia supera el ruido (banda del 80 %), pero no separa el efecto del rival, la plantilla '
-               'ni el calendario. ') + ('Muestra chica: lectura con cautela.' if h['n'] < fw.CONFIDENCE_BANDS[2][0] else '')
+               'ni el calendario.')
     fact = (f"{who} ({h['n']} partidos): {name} {num(v, 2)}{' ' + unit if unit else ''}, resto {num(rest, 2)}{' ' + unit if unit else ''}; "
             f"diferencia {st.signed(_scale(h['metrica'], h['dif']))} con banda del 80 % de {num(_scale(h['metrica'], lo))} a "
             f"{num(_scale(h['metrica'], hi))}; confianza {h['confianza']}.")

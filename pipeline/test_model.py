@@ -140,7 +140,8 @@ class PpdaLabelTests(unittest.TestCase):
         self.assertEqual(label, labels.PPDA_LABEL)
         self.assertIn('alto = permite pocos', label)
         self.assertNotIn('Presión', label)   # un concepto, un nombre: no se confunde con el volumen de presión
-        self.assertEqual(label, fw.DEFINITIONS['presion']['nombre'])
+        self.assertIn('PPDA', fw.DEFINITIONS['presion']['nombre'])   # el glosario y el catálogo llevan nombre neutro
+        self.assertNotIn('alto = permite', fw.DEFINITIONS['presion']['nombre'])
 
     def test_the_control_is_inverted_in_sty(self):
         self.assertTrue({k: inv for k, _, inv, _ in STY}['presion'])

@@ -221,6 +221,14 @@ class EntityLinkTest(unittest.TestCase):
         self.assertEqual([e['id'] for e in tenure['entidades']], ['ame_j'])
 
 
+class CatalogNamesTests(unittest.TestCase):
+    def test_ppda_catalog_name_is_neutral_next_to_raw_values(self):
+        cat = {m['id']: m for m in explorer.build_payload([rec(1, 'América', 'J', 2, 0.6, '2024-01-10')])['metricas']}
+        self.assertNotIn('alto = permite pocos', cat['presion']['nombre'])
+        self.assertIn('PPDA', cat['presion']['nombre'])
+        self.assertIn('menos = más presión', cat['presion']['unit'])
+
+
 class MethodLabelTests(unittest.TestCase):
     def test_method_labels_the_extended_reference(self):
         text = explorer._method()['referencia']
