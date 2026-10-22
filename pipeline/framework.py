@@ -63,6 +63,7 @@ CI_LEVEL = 0.80
 CONFIDENCE_BANDS = ((5, 'muy baja'), (12, 'baja'), (25, 'media'))  # n < límite → etiqueta; si no 'alta'
 SURPRISE_P = 0.20           # "resultado sorpresivo": P(resultado real) < 0.20
 KPI_TRAFFIC_PCT = (33, 67)  # semáforo de KPIs en los terciles propios del DT
+KPI_MIN_MATCHES = CONFIDENCE_BANDS[1][0]  # partidos mínimos para un semáforo de KPI (antes: confianza muy baja)
 VIG_LOW_MAX = 2             # "pocas vigilancias": ≤2 jugadores visibles detrás del balón
 
 # --- 360 (puerta de visibilidad y radios; frames360 debe importarlos de aquí) -----------------------
@@ -105,6 +106,9 @@ FINDINGS_TOP = 12             # hallazgos de contexto ordenados que se publican
 XI_SIZE = 11                  # once titular
 SQUAD_TOP = 25                # jugadores listados en la plantilla
 HALFTIME_MINUTE = 45          # minuto de StatsBomb al reanudar el segundo tiempo
+STORY_BALANCE_PPP = 0.15       # |puntos - xPts| por partido ≤ 0.15 -> resultado acorde a las ocasiones (historia)
+CORE_MINUTES_PCT = 60          # titular de núcleo: juega al menos 60 % de los minutos del equipo
+STORY_PCT_SHIFT = 20           # un KPI «se mueve» entre ventanas si su percentil cambia 20 puntos o más
 WINDOWS = ('oficial', 'epilogo', 'temprano')
 SOURCES = ('eventos', 'team-stats', '360')
 MINUTE_BINS = ((15, '0-15'), (30, '16-30'))

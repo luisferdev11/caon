@@ -247,6 +247,24 @@ Suma de xG de los tiros rivales (por tipo de jugada).
 - **Límites:** Sin penales salvo que se indique.
 - **Fuente:** eventos
 
+### Minutos de un jugador (`minutos_jugador`)
+
+Minutos jugados por un futbolista y su parte de los minutos del equipo en la ventana (alineaciones y cambios).
+
+- **Fórmula:** minutos del jugador / minutos del equipo
+- **Unidad:** % de los minutos del equipo
+- **Límites:** Descriptivo: no distingue lesiones ni suspensiones.
+- **Fuente:** eventos
+
+### Formación inicial (`formacion`)
+
+Esquema con el que el equipo inicia el partido, según la alineación registrada.
+
+- **Fórmula:** partidos con la formación / partidos
+- **Unidad:** % de los partidos
+- **Límites:** La formación registrada no describe el comportamiento durante el juego.
+- **Fuente:** eventos
+
 ### Puntos por partido (`puntos`)
 
 Puntos reales del partido: victoria 3, empate 1, derrota 0 (la tanda de penales no cuenta).
@@ -459,7 +477,7 @@ Minuto medio de cada sustitución y su reparto por marcador.
 Porcentaje de la posesión del partido (team_match_possession).
 
 - **Fórmula:** team_match_possession
-- **Unidad:** % (proporción 0–1 en team-stats)
+- **Unidad:** % del balón
 - **Límites:** En etiquetas y mapa se usa su percentil frente a la liga (0–100).
 - **Fuente:** team-stats
 
@@ -898,6 +916,7 @@ Pares excluyentes (nunca aparecen juntos; incluye los deducidos de afirmaciones 
 | `CI_LEVEL` | 0.8 |
 | `SURPRISE_P` | 0.2 |
 | `KPI_TRAFFIC_PCT` | [33, 67] |
+| `KPI_MIN_MATCHES` | 12 |
 | `VIG_LOW_MAX` | 2 |
 | `GRID_STEP_YD` | 2.0 |
 | `MIN_ROI_VISIBLE` | 0.7 |
@@ -932,4 +951,7 @@ Pares excluyentes (nunca aparecen juntos; incluye los deducidos de afirmaciones 
 | `XI_SIZE` | 11 |
 | `SQUAD_TOP` | 25 |
 | `HALFTIME_MINUTE` | 45 |
+| `STORY_BALANCE_PPP` | 0.15 |
+| `CORE_MINUTES_PCT` | 60 |
+| `STORY_PCT_SHIFT` | 20 |
 | `ROUND_DIGITS` | 4 |

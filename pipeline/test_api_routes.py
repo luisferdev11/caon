@@ -120,6 +120,29 @@ class RouteTests(unittest.TestCase):
         self.assertEqual(self.client.get('/api/replay/ame_jardine').json()['matches'][0]['xpts'], 1.5)
         self.assertEqual(self.client.get('/api/replay/nadie').status_code, 404)
 
+    def test_kpis_route(self):
+        _write(self.root / 'kpis' / 'ame_jardine.json', {'version': 'kpis.v1', 'entity': 'ame_jardine', 'kpis': {'oficial': [{'id': 'field_tilt'}]}})
+        res = self.client.get('/api/kpis/ame_jardine')
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(res.json()['kpis']['oficial'][0]['id'], 'field_tilt')
+        missing = self.client.get('/api/kpis/nadie')
+        self.assertEqual(missing.status_code, 404)
+        self.assertIn('No existen KPIs', missing.json()['detail'])
+        self.assertEqual(self.client.get('/api/kpis/..%2Fmodel').status_code, 404)
+
+    def test_entity_matches_list_is_light_sorted_and_spanish_on_missing(self):
+        rows = [{'match_id': 2, 'fecha': '2024-02-01', 'rival': 'B', 'actual': 'G', 'points': 3, 'xpts': 1.2, 'ficha': {'x': 1}, 'p': {'G': .5}},
+                {'match_id': 1, 'fecha': '2024-01-01', 'rival': 'A', 'actual': 'E', 'points': 1, 'xpts': 1.0, 'marcador': {'propio': 1, 'rival': 1}}]
+        _write(self.root / 'replay' / 'ame_jardine.json', {'partidos': rows})
+        out = self.client.get('/api/entities/ame_jardine/matches').json()
+        self.assertEqual(out['n'], 2)
+        self.assertEqual([m['match_id'] for m in out['partidos']], [1, 2])
+        self.assertEqual(out['partidos'][0]['marcador'], {'propio': 1, 'rival': 1})
+        self.assertNotIn('ficha', out['partidos'][1])
+        missing = self.client.get('/api/entities/nadie/matches')
+        self.assertEqual(missing.status_code, 404)
+        self.assertIn('No existe', missing.json()['detail'])
+
     def test_xg_grid_route(self):
         self.assertEqual(self.client.get('/api/xg_grid').status_code, 404)
         _write(self.root / 'xg_grid.json', {'version': 'xg_grid.v2', 'coef': {'intercepto': 0}})

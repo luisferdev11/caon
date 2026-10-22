@@ -88,6 +88,12 @@ DEF_BASE: dict[str, dict[str, str]] = {
                                      'Etiquetas: penal, balón parado, transición, ataque establecido.', EV),
     'xg_concedido': _d('xG concedido', 'Suma de xG de los tiros rivales (por tipo de jugada).', 'Σ xG rival',
                        'xG por partido', 'Sin penales salvo que se indique.', EV),
+    'minutos_jugador': _d('Minutos de un jugador', 'Minutos jugados por un futbolista y su parte de los minutos del equipo '
+                          'en la ventana (alineaciones y cambios).', 'minutos del jugador / minutos del equipo',
+                          '% de los minutos del equipo', 'Descriptivo: no distingue lesiones ni suspensiones.', EV),
+    'formacion': _d('Formación inicial', 'Esquema con el que el equipo inicia el partido, según la alineación '
+                    'registrada.', 'partidos con la formación / partidos', '% de los partidos',
+                    'La formación registrada no describe el comportamiento durante el juego.', EV),
     'puntos': _d('Puntos por partido', 'Puntos reales del partido: victoria 3, empate 1, derrota 0 (la tanda de '
                 'penales no cuenta).', 'Σ puntos / partidos', 'puntos por partido', 'Resultado en tiempo regular.', EV),
     'xg_dif': _d('Diferencia de xG', 'xG sin penales a favor menos xG sin penales en contra, por partido.',
@@ -154,7 +160,7 @@ DEF_CONTEXT: dict[str, dict[str, str]] = {
 }
 DEF_STYLE: dict[str, dict[str, str]] = {
     'posesion': _d('Posesión del balón', 'Porcentaje de la posesión del partido (team_match_possession).',
-                   'team_match_possession', '% (proporción 0–1 en team-stats)', STYLE_NOTE, TS),
+                   'team_match_possession', '% del balón', STYLE_NOTE, TS),
     'verticalidad': _d('Verticalidad', 'Proporción del avance del balón que va directo hacia la portería rival '
                        '(team_match_directness).', 'team_match_directness', 'proporción', STYLE_NOTE, TS),
     'ritmo': _d('Velocidad del ataque', 'Velocidad media con la que el balón avanza hacia la portería rival '

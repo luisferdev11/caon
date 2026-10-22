@@ -26,11 +26,12 @@ Abre http://127.0.0.1:8010 (portal) o http://127.0.0.1:8010/lab.html (laboratori
 ## Estructura
 
 ```
-app/main.py          servidor (FastAPI): sirve la página y una API de solo lectura sobre el modelo
-frontend/index.html  la página (HTML + JS sin framework)
-frontend/engine.js   motor de simulación y animación (corre en el navegador y en Node)
-model/model.json     modelo ya construido (solo agregados, sin eventos crudos)
-pipeline/            descarga de datos y construcción del modelo
+app/main.py          servidor (FastAPI): sirve el portal y una API de solo lectura sobre el modelo
+frontend/index.html  el portal (historia, partidos, explorador, laboratorio y método; HTML + JS sin framework)
+frontend/lab.html    el laboratorio de simulación original
+frontend/engine.js   motor de simulación y animación (corre en el navegador y en Node; congelado)
+model/               modelo ya construido: model.json ligero, entities/, analysis/, kpis/, story/, replay/, matches/
+pipeline/            descarga, extracción, framework, analítica por tema, KPIs, historia y auditorías
 research/            exploraciones (prueba de concepto, agrupamiento, laboratorio de métricas)
 docs/                documentación técnica completa
 ```
@@ -38,7 +39,7 @@ docs/                documentación técnica completa
 Cómo fluye todo:
 
 ```
-StatsBomb API / Open Data → data/cache → pipeline/extract.py → data/extract → pipeline/build_model.py → model/model.json → app + frontend
+StatsBomb API / Open Data → data/cache → extract* (mx_, an_, f360_) → build_model → build_analysis → kpis → story → model/ → app + frontend
 ```
 
 ### API
@@ -52,7 +53,14 @@ StatsBomb API / Open Data → data/cache → pipeline/extract.py → data/extrac
 | `GET /api/teams/{id}/personnel` | Jugadores, intervalos, posiciones observadas y sustituciones |
 | `GET /api/teams/{id}/lineups` | Alineaciones iniciales y partidos con participación |
 | `GET /api/teams/{id}/substitutions` | Sustituciones observadas y cobertura |
-| `GET /api/model` | El modelo completo que usa la página |
+| `GET /api/model` | El modelo ligero que usa el simulador |
+| `GET /api/framework` | Definiciones de cada métrica y nombres de las etiquetas |
+| `GET /api/story/{jardine\|almada}` | La historia en capítulos y hallazgos con su evidencia |
+| `GET /api/entities/{id}/analysis`, `/matches` | Analítica por entidad y lista de sus partidos |
+| `GET /api/kpis/{id}` | Los 7 KPIs con semáforo en sus terciles |
+| `GET /api/matches/{id}`, `/api/replay/{id}` | Ficha de un partido y repetición con xG |
+| `GET /api/explorer/{teams\|coaches}` | Todos los equipos y DTs con intervalo y confianza |
+| `POST /api/play/parse` | Jugada en texto → pasos animables (reglas o LLM) |
 
 ## Reconstruir el modelo (necesita credenciales de StatsBomb)
 
@@ -61,8 +69,9 @@ StatsBomb API / Open Data → data/cache → pipeline/extract.py → data/extrac
 
 ```bash
 python pipeline/run.py download   # baja eventos, alineaciones y estadísticas (~2.7 GB, con caché)
-python pipeline/run.py extract    # resume cada partido (~10 s)
-python pipeline/run.py build      # model/model.json ligero + model/entities/ + model/analysis/ (CAON_LEAGUE_SCOPE=legacy: liga anterior)
+python pipeline/run.py extract    # mx_ (cadena), an_ (posesiones) y f360_ (360) por partido
+python pipeline/run.py build      # extract + referencias + model.json ligero + analysis/ + kpis/ + story/ (~20 min; CAON_LEAGUE_SCOPE=legacy: liga anterior)
+python pipeline/run.py analysis   # lo mismo sin volver a extraer
 python pipeline/check_model.py    # comprueba invariantes del modelo generado
 python pipeline/run.py validate   # compara la simulación con los datos reales (requiere Node 18+)
 python pipeline/run.py referee    # árbitro automático: revisa el reglamento (requiere Node 18+)

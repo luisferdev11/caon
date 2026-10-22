@@ -146,5 +146,53 @@ class PressingAuditTests(unittest.TestCase):
             self.assertIn('etiquetas_vistas', rep['errores'])
 
 
+STORY_DOC = {'ventana': 'oficial', 'capitulos': [{'hallazgos': [{'id': 'f', 'window': 'oficial', 'titulo': 'Crea ocasiones',
+                                                                 'hecho': 'xG por tiro 0.12', 'interpretacion': 'Lectura.',
+                                                                 'accion': 'Seguir.', 'evidencia': [REC]}],
+                                                'aficionado': {'conclusion': 'Bien.', 'curioso': 'Dato.'}}]}
+
+
+class WindowAndTextChecksTest(unittest.TestCase):
+    def test_every_payload_family_carries_its_window_flag(self):
+        good = {'story/jardine.json': STORY_DOC,
+                'kpis/e.json': {'kpis': {'oficial': [{'id': 'field_tilt', 'window': 'oficial'}]}},
+                'replay/e.json': {'partidos': [{'match_id': 1, 'window': 'oficial'}]},
+                'analysis/e.json': {'meta': {'windows': {'oficial': 91}}, 'offense': {'ventanas': {'oficial': {}}},
+                                    'dangerous': {'valor': None, 'motivo': 'presupuesto'},
+                                    'replay': {'resumen': {}, 'por_ventana': {'oficial': {}}}},
+                'explorer.json': {'equipos': [{'window': 'oficial'}], 'entrenadores': [{'window': 'temprano'}]}}
+        self.assertEqual(ac.check_window_flags(good), [])
+
+    def test_missing_flags_are_reported_by_file(self):
+        bad = {'story/jardine.json': {'capitulos': [{'hallazgos': [{'id': 'f'}]}]},
+               'kpis/e.json': {'kpis': {'quien-sabe': [{'id': 'x'}]}},
+               'replay/e.json': {'partidos': [{'match_id': 1}]},
+               'analysis/e.json': {'meta': {}, 'offense': {'sin': 'ventanas'}},
+               'explorer.json': {'equipos': [{'label': 'x'}], 'entrenadores': []}}
+        errs = ac.check_window_flags(bad)
+        for name in ('story/jardine.json', 'kpis/e.json', 'replay/e.json', 'analysis/e.json', 'explorer.json'):
+            self.assertTrue(any(e.startswith(name) for e in errs), (name, errs))
+
+    def test_user_text_rejects_english_unknown_and_raw_values(self):
+        self.assertEqual(ac.check_user_text({'story/jardine.json': STORY_DOC}), [])
+        dirty = json.loads(json.dumps(STORY_DOC))
+        dirty['capitulos'][0]['hallazgos'][0]['hecho'] = 'Directness unknown None NaN'
+        dirty['capitulos'][0]['aficionado']['curioso'] = 'La tasa de losing es undefined'
+        errs = ac.check_user_text({'story/jardine.json': dirty})
+        self.assertTrue(any('Directness' in e for e in errs))
+        self.assertTrue(any('unknown' in e for e in errs))
+        self.assertTrue(any('losing' in e for e in errs))
+
+    def test_user_text_checks_the_explorer_catalog_names(self):
+        errs = ac.check_user_text({'explorer.json': {'metricas': [{'id': 'x', 'nombre': 'Possession', 'unit': 'proporción 0–1 en team-stats'}]}})
+        self.assertTrue(errs)
+
+    def test_run_includes_the_new_checks(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            rep = ac.run(pathlib.Path(tmp))
+        self.assertIn('ventana', rep['conteo'])
+        self.assertIn('texto_usuario', rep['conteo'])
+
+
 if __name__ == '__main__':
     unittest.main()

@@ -13,6 +13,7 @@ from __future__ import annotations
 import ast
 import json
 import pathlib
+import re
 import sys
 from collections.abc import Iterator
 from typing import Any, Optional
@@ -224,6 +225,63 @@ def window_badge_warnings(payloads: dict[str, Any]) -> list[str]:
     return warns
 
 
+USER_TEXT_BANNED = re.compile(r'\b(unknown|undefined|None|NaN|nan|null|Directness|losing|winning|Possession|Pressing)\b'
+                              r'|proporción 0–1|team-stats')
+STORY_TEXT_KEYS = ('titulo', 'hecho', 'interpretacion', 'accion')
+
+
+def _story_findings(doc: Any) -> Iterator[dict[str, Any]]:
+    for ch in (doc or {}).get('capitulos') or []:
+        yield from ch.get('hallazgos') or []
+
+
+def check_window_flags(payloads: dict[str, Any]) -> list[str]:
+    """Todo payload publicado declara su ventana (historia, KPIs, repetición, analítica y explorador)."""
+    errs = []
+    for name, doc in payloads.items():
+        if name.startswith(STORY_PREFIX + '/'):
+            if not doc.get('ventana'):
+                errs.append(f'{name}: sin ventana')
+            errs += [f"{name}: hallazgo {f.get('id')} sin ventana" for f in _story_findings(doc) if not f.get('window')]
+        elif name.startswith('kpis/'):
+            for w, rows in (doc.get('kpis') or {}).items():
+                if w not in fw.WINDOWS or any(not r.get('window') for r in rows):
+                    errs.append(f'{name}: KPIs con ventana inválida o ausente ({w})')
+        elif name.startswith('replay/'):
+            errs += [f"{name}: partido {r.get('match_id')} sin ventana" for r in doc.get('partidos') or [] if not r.get('window')]
+        elif name.startswith('analysis/'):
+            if not (doc.get('meta') or {}).get('windows'):
+                errs.append(f'{name}: meta sin ventanas')
+            errs += [f'{name}: tema {k} sin ventana' for k, v in doc.items()
+                     if k != 'meta' and not (isinstance(v, dict) and any(x in v for x in ('ventanas', 'por_ventana', 'motivo', 'error')))]
+        elif name == 'explorer.json':
+            for key in ('equipos', 'entrenadores'):
+                errs += [f"{name}: {key} «{i.get('label') or i.get('key')}» sin ventana" for i in doc.get(key) or [] if not i.get('window')]
+    return errs
+
+
+def check_user_text(payloads: dict[str, Any]) -> list[str]:
+    """Sin inglés, «unknown», NaN ni unidades técnicas en los textos que lee la persona usuaria."""
+    errs = []
+
+    def scan(name: str, field: str, text: Any) -> None:
+        found = dict.fromkeys(m.group(0) for m in USER_TEXT_BANNED.finditer(text)) if isinstance(text, str) else {}
+        errs.extend(f'{name}: {field}: «{tok}»' for tok in found)
+    for name, doc in payloads.items():
+        if name.startswith(STORY_PREFIX + '/'):
+            for ch in doc.get('capitulos') or []:
+                for k in ('conclusion', 'curioso'):
+                    scan(name, f"capítulo {ch.get('orden')} {k}", (ch.get('aficionado') or {}).get(k))
+            for f in _story_findings(doc):
+                for k in STORY_TEXT_KEYS:
+                    scan(name, f"{f.get('id')}.{k}", f.get(k))
+        elif name == 'explorer.json':
+            for m in doc.get('metricas') or []:
+                for k in ('nombre', 'unit'):
+                    scan(name, f"métrica {m.get('id')}.{k}", m.get(k))
+    return errs
+
+
 def _code_files() -> list[pathlib.Path]:
     pipe = ROOT / 'pipeline'
     files = [p for p in pipe.glob('*.py') if p.name not in ('framework.py',) and not p.name.startswith('test_')]
@@ -237,7 +295,8 @@ def run(model_dir: pathlib.Path = MODEL_DIR) -> dict[str, Any]:
     payloads = load_payloads(model_dir)
     checks = {'etiquetas': check_labels(model), 'etiquetas_vistas': check_payload_identities(payloads),
               'ids_metricas': check_metric_ids(payloads),
-              'mismo_valor': check_same_values(payloads), 'umbrales': check_thresholds()}
+              'mismo_valor': check_same_values(payloads), 'umbrales': check_thresholds(),
+              'ventana': check_window_flags(payloads), 'texto_usuario': check_user_text(payloads)}
     warns = {'umbrales': threshold_warnings(), 'insignia_ventana': window_badge_warnings(payloads)}
     return {'ok': not any(checks.values()), 'payloads': len(payloads),
             'errores': {k: v[:200] for k, v in checks.items()}, 'conteo': {k: len(v) for k, v in checks.items()},

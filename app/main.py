@@ -270,6 +270,32 @@ def explorer_item(kind: str, key: str):
     return found
 
 
+MATCH_ROW_KEYS = ('match_id', 'fecha', 'torneo', 'window', 'equipo', 'rival', 'localia', 'actual', 'points', 'xpts', 'p',
+                  'p_actual', 'sorpresivo', 'veredicto', 'xg', 'marcador')
+
+
+@app.get('/api/kpis/{entity_id}')
+def kpis(entity_id: str):
+    """Los 7 KPIs de una entidad por ventana (valor, percentil, IQR, semáforo y frase descriptiva)."""
+    data = read_json(MODEL_DIR / 'kpis' / f'{safe_key(entity_id, "la entidad")}.json')
+    if data is None:
+        raise HTTPException(404, f'No existen KPIs para la entidad {entity_id}')
+    return data
+
+
+@app.get('/api/entities/{entity_id}/matches')
+def entity_matches(entity_id: str):
+    """Partidos reales de una entidad con su resultado, xPts y veredicto (sin la ficha completa)."""
+    data = read_json(MODEL_DIR / 'replay' / f'{safe_key(entity_id, "la entidad")}.json')
+    if data is None:
+        data = (analysis_for(entity_id) or {}).get('replay') or {}
+    rows = data.get('partidos') or data.get('matches')
+    if not rows:
+        raise HTTPException(404, f'No existe la lista de partidos para la entidad {entity_id}')
+    light = sorted(({k: r.get(k) for k in MATCH_ROW_KEYS if k in r} for r in rows), key=lambda r: r.get('fecha') or '')
+    return {'entity': entity_id, 'n': len(light), 'partidos': light}
+
+
 @app.get('/api/xg_grid')
 def xg_grid():
     """Rejilla y coeficientes del modelo de xG (distancia, ángulo, cabeza) para interpretar jugadas."""

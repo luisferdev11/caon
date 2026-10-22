@@ -18,10 +18,11 @@ from datetime import datetime
 from pathlib import Path
 from typing import NamedTuple
 
+import acceptance_checks as ck
 import labels
+from acceptance_checks import FAIL, OK, PENDING
 
 ROOT = Path(__file__).resolve().parents[1]
-OK, FAIL, PENDING = 'ok', 'fail', 'pending'
 SYMBOL = {OK: '✅', FAIL: '❌', PENDING: '⏳'}
 BASE_URL = 'http://127.0.0.1:8010'
 HTTP_TIMEOUT_S = 5
@@ -212,17 +213,16 @@ def check_ac02(ctx: Context) -> Result:
 
 
 def check_ac03(ctx: Context) -> Result:
-    model = load_json(ctx.root / 'model' / 'model.json')
-    j, epi = entity(model, 'ame_jardine'), entity(model, 'ame_jardine_epi')
-    if j is None:
-        return FAIL, 'ame_jardine ausente en model.json'
-    ev = ['ame_jardine n={} official={}'.format(j.get('n'), j.get('official'))]
-    ok = j.get('n') == JARDINE_N and j.get('official') is True
-    ev.append('ame_jardine_epi n={}'.format((epi or {}).get('n')) if epi else 'ame_jardine_epi ausente')
-    ok = ok and bool(epi) and epi.get('n') == JARDINE_EPI_N
-    ev.append('pac_almada %s' % ('presente' if entity(model, 'pac_almada') else 'ausente'))
-    return (OK if ok else FAIL), '; '.join(ev) + '; cobertura mx_/an_/f360_ por verificar'
+    ext, cache = ctx.root / 'data' / 'extract', ctx.root / 'data' / 'cache'
+    files = {'mx': 'mx_{}.json', 'an': 'an_{}.json', 'f360': 'f360_{}.json'}
 
+    def have(kind: str, mid: object) -> bool:
+        return (cache / f'v8_events_{mid}.json').exists() if kind == 'events' else (ext / files[kind].format(mid)).exists()
+
+    def rows(eid: str) -> list:
+        return (load_json(ctx.root / 'model' / 'replay' / f'{eid}.json') or {}).get('partidos') or []
+    return ck.ac03(load_json(ctx.root / 'model' / 'model.json'), rows('ame_jardine'), rows('pac_almada'),
+                   have if ext.is_dir() else None)
 
 def check_ac04(ctx: Context) -> Result:
     fw, doc = ctx.root / 'pipeline' / 'framework.py', ctx.root / 'docs' / 'MARCO_ANALITICO.md'
@@ -252,28 +252,31 @@ def _pending_files(ctx: Context, files: list[str], what: str) -> Result:
     return PENDING, f'{what}: archivos presentes, verificación de contenido manual/por revisor'
 
 
-def check_ac06(ctx: Context) -> Result:
-    return _pending_files(ctx, ['model/story/jardine.json'], 'componentes del reto')
+def _analysis(ctx: Context) -> dict | None:
+    return load_json(ctx.root / 'model' / 'analysis' / 'ame_jardine.json')
 
+
+def _story(ctx: Context, name: str) -> dict | None:
+    return load_json(ctx.root / 'model' / 'story' / f'{name}.json')
+
+
+def check_ac06(ctx: Context) -> Result:
+    return ck.ac06(_story(ctx, 'jardine'))
 
 def check_ac07(ctx: Context) -> Result:
-    return _pending_files(ctx, ['pipeline/frames360.py', 'pipeline/extract_360.py'], 'métricas 360')
-
+    return ck.ac07(_analysis(ctx))
 
 def check_ac08(ctx: Context) -> Result:
-    return _pending_files(ctx, ['pipeline/analytics/transitions.py'], 'tipología de pérdidas')
-
+    views = sorted((ctx.root / 'frontend' / 'views').glob('*.js'))
+    ui = any('loss_types' in f.read_text(encoding='utf-8', errors='replace') for f in views)
+    return ck.ac08(_analysis(ctx), _story(ctx, 'jardine'), ui)
 
 def check_ac09(ctx: Context) -> Result:
-    body = http_get(ctx, '/api/entities/ame_jardine/analysis')
-    if body is None:
-        return _pending_files(ctx, ['pipeline/analytics/dangerous.py'], 'jugadas peligrosas')
-    return (OK if len(body) <= DANGEROUS_MAX_BYTES else FAIL), f'payload análisis {len(body)} bytes (límite {DANGEROUS_MAX_BYTES})'
-
+    return ck.ac09(_analysis(ctx))
 
 def check_ac10(ctx: Context) -> Result:
-    return _pending_files(ctx, ['app/play_rules.py', 'app/openrouter.py', 'docs/NL_BENCHMARK.md'], 'jugadas por texto')
-
+    doc = ctx.root / 'docs' / 'NL_BENCHMARK.md'
+    return ck.ac10(doc.read_text(encoding='utf-8') if doc.exists() else None)
 
 def check_ac11(ctx: Context) -> Result:
     hits = []
@@ -288,28 +291,18 @@ def check_ac11(ctx: Context) -> Result:
 
 
 def check_ac12(ctx: Context) -> Result:
-    teams, coaches = http_get(ctx, '/api/explorer/teams'), http_get(ctx, '/api/explorer/coaches')
-    if teams and coaches:
-        return PENDING, 'explorador responde; revisar prior/intervalo/confianza'
-    return _pending_files(ctx, ['pipeline/explorer.py'], 'explorador')
-
+    return ck.ac12(load_json(ctx.root / 'model' / 'explorer.json'))
 
 def check_ac13(ctx: Context) -> Result:
     return _pending_files(ctx, ['frontend/js/router.js', 'frontend/views/match.js'], 'modo Aficionado/DT')
 
 
 def check_ac14(ctx: Context) -> Result:
-    return _pending_files(ctx, ['pipeline/analytics/replay.py'], 'repetición con xG')
-
+    lab = ctx.root / 'frontend' / 'lab.html'
+    return ck.ac14(_analysis(ctx), lab.read_text(encoding='utf-8') if lab.exists() else None)
 
 def check_ac15(ctx: Context) -> Result:
-    story = load_json(ctx.root / 'model' / 'story' / 'jardine.json')
-    if story is None:
-        return PENDING, 'model/story/jardine.json aún no existe'
-    bad = [c for c in story.get('chapters', []) for h in c.get('findings', []) if h.get('window', 'oficial') != 'oficial'
-           and not h.get('badge')]
-    return (OK if not bad else FAIL), f'{len(bad)} hallazgos fuera de ventana sin insignia'
-
+    return ck.ac15(_story(ctx, 'jardine'), _story(ctx, 'almada'))
 
 def _touched_py(ctx: Context) -> list[str]:
     _, diff = run_cmd(ctx, ['git', 'diff', '--name-only', 'main'])

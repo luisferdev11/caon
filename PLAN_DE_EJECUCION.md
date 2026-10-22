@@ -313,12 +313,12 @@ Los 7 KPIs, con definiciones en `DEFINITIONS`:
 6. Vigilancias 360: media de jugadores visibles detrás del balón y % de pérdidas con ≤2.
 7. Diferencial de balón parado: xG a favor − xG en contra, por partido.
 
-- [ ] Para cada KPI y cada entidad con datos: valor en la ventana, percentil de referencia (solo oficial), IQR entre partidos, semáforo en los P33/P67 propios y la frase descriptiva "en partidos en verde sumó X pts/partido contra Y en rojo (n)".
-- [ ] Salida: `model/kpis.json`, o `kpis` dentro de `model/analysis/<id>.json` (decisión del integrador, documentada).
-- **Aceptación:** tests con fixture sintética de valores conocidos; los 7 KPIs presentes y sin NaN para `ame_jardine`; mismo `id` y mismo valor que en `model/analysis` (el test de coherencia lo verifica).
+- [x] Para cada KPI y cada entidad con datos: valor en la ventana, percentil de referencia (solo oficial), IQR entre partidos, semáforo en los P33/P67 propios y la frase descriptiva "en partidos en verde sumó X pts/partido contra Y en rojo (n)".
+- [x] Salida: `model/kpis.json`, o `kpis` dentro de `model/analysis/<id>.json` (decisión del integrador, documentada).
+- **Aceptación:** tests con fixture sintética de valores conocidos; los 7 KPIs presentes y sin NaN para `ame_jardine`; mismo `id` y mismo valor que en `model/analysis` (el test de coherencia lo verifica). ✅ *(salida en `model/kpis/<id>.json` por entidad, servida en `/api/kpis/{id}`; el valor se copia de `analysis` y la auditoría `mismo_valor` lo ata. Semáforo solo con ≥12 partidos.)*
 
 **T-07 · Historia** (`pipeline/story.py` + `pipeline/test_story.py`, TDD)
-- [ ] Generar `model/story/jardine.json` con estos capítulos:
+- [x] Generar `model/story/jardine.json` con estos capítulos:
   1. Portada (4 KPIs).
   2. Identidad.
   3. Con balón (salida → progresión → creación).
@@ -331,43 +331,43 @@ Los 7 KPIs, con definiciones en `DEFINITIONS`:
   10. ¿Mereció ganar? (repetición con xG).
   11. Tablero de KPIs.
   12. Epílogo (fuera de ventana).
-- [ ] Generar `model/story/almada.json`: identidad en el Pachuca contra la base de Jardine; primeros partidos en el América con valores crudos y encogidos, con intervalos; "qué ya cambió" y "qué vigilar".
-- [ ] Cada hallazgo es `{id, titulo, hecho, interpretacion, evidencia:[{id, value, n, ci, window}], accion, modo:'aficionado'|'dt'|'ambos', window}`:
+- [x] Generar `model/story/almada.json`: identidad en el Pachuca contra la base de Jardine; primeros partidos en el América con valores crudos y encogidos, con intervalos; "qué ya cambió" y "qué vigilar".
+- [x] Cada hallazgo es `{id, titulo, hecho, interpretacion, evidencia:[{id, value, n, ci, window}], accion, modo:'aficionado'|'dt'|'ambos', window}`:
   - `titulo` es el hallazgo mismo;
   - `hecho` se llena con una plantilla a partir de los registros de métrica;
   - `interpretacion` es una plantilla condicional que no puede contradecir los números.
-- [ ] Las conclusiones usan solo `window == 'oficial'`; el epílogo y lo temprano van marcados.
+- [x] Las conclusiones usan solo `window == 'oficial'`; el epílogo y lo temprano van marcados.
 - **Aceptación:**
   - un test por capítulo: al menos 1 hallazgo, con evidencia existente en `analysis/kpis`;
   - test de no contradicción: si la métrica está por debajo de P50, la plantilla no usa "alto/más que la mayoría";
   - test de ventana: ningún hallazgo de los capítulos 1–11 tiene evidencia fuera de la ventana oficial;
-  - cobertura del AC-06 (cada componente del reto tiene al menos 1 hallazgo).
+  - cobertura del AC-06 (cada componente del reto tiene al menos 1 hallazgo). ✅ *(44 hallazgos en 12 capítulos, 24 componentes cubiertos; módulos `story_text/ch_a–d/almada`; `almada.json` con 2 capítulos y 5 hallazgos.)*
 
 **T-08 · Rutas y contratos de la API**
-- [ ] `/api/story/{jardine|almada}`, `/api/entities/{id}/analysis`, `/api/entities/{id}/matches`, `/api/matches/{id}`, `/api/replay/{id}`, `/api/kpis/{id}` (si los KPIs van aparte), `/api/xg_grid`, `/api/framework`.
-- [ ] Errores 404 con mensaje en español.
-- [ ] Tests con TestClient en `pipeline/test_api.py`.
-- **Aceptación:** todas las rutas devuelven 200 con datos reales; los tamaños cumplen T-03.6.
+- [x] `/api/story/{jardine|almada}`, `/api/entities/{id}/analysis`, `/api/entities/{id}/matches`, `/api/matches/{id}`, `/api/replay/{id}`, `/api/kpis/{id}` (si los KPIs van aparte), `/api/xg_grid`, `/api/framework`.
+- [x] Errores 404 con mensaje en español.
+- [x] Tests con TestClient en `pipeline/test_api.py`.
+- **Aceptación:** todas las rutas devuelven 200 con datos reales; los tamaños cumplen T-03.6. ✅ *(`/api/kpis/{id}` y `/api/entities/{id}/matches` nuevas; `test_api.py` prueba todas las rutas con datos reales.)*
 
 **T-09 · Extender `audit_coherence.py` y `acceptance.py`**
-- [ ] En `audit_coherence.py` (TDD):
+- [x] En `audit_coherence.py` (TDD):
   - mismo `id` de métrica → mismo valor en story, analysis, kpis y explorer;
   - todos los payloads llevan bandera de ventana;
   - no hay palabras en inglés ni "unknown" en textos de usuario (lista de tokens prohibidos);
   - no hay conflictos de etiquetas;
   - la tarjeta defensiva es igual al cuadrante del mapa.
-- [ ] En `acceptance.py`: checks reales para AC-03…AC-15. Los campos que sugirió A3 son `cordura.aprobado`, la cobertura `n_valid`, `cambios.validos` y `errores.tipos/zonas/jugadores`.
-- **Aceptación:** `audit_coherence` 0 errores; `docs/ACEPTACION.md` regenerado.
+- [x] En `acceptance.py`: checks reales para AC-03…AC-15. Los campos que sugirió A3 son `cordura.aprobado`, la cobertura `n_valid`, `cambios.validos` y `errores.tipos/zonas/jugadores`.
+- **Aceptación:** `audit_coherence` 0 errores; `docs/ACEPTACION.md` regenerado. ✅ *(la auditoría suma `ventana` y `texto_usuario`; AC-03, 06, 07, 09, 10, 12, 14, 15 son checks reales en `acceptance_checks.py`.)*
 
 **T-10 · Documentación técnica**
-- [ ] `docs/DOCUMENTACION.md` y `README.md`: estructura nueva, pipeline (`run.py build|analysis`), rutas, sistema de diseño; sin referencias al endpoint eliminado del PR #1.
-- [ ] `docs/MARCO_ANALITICO.md`: regenerado desde `DEFINITIONS`.
+- [x] `docs/DOCUMENTACION.md` y `README.md`: estructura nueva, pipeline (`run.py build|analysis`), rutas, sistema de diseño; sin referencias al endpoint eliminado del PR #1.
+- [x] `docs/MARCO_ANALITICO.md`: regenerado desde `DEFINITIONS`.
 
 **T-11 · Puerta de control G2**
-- [ ] Comando de verificación estándar, todo en verde.
-- [ ] Commit `G2: integración — KPIs, historia, rutas, coherencia`.
-- [ ] Reiniciar el servidor en 8010 y verificar que `/api/story/jardine`, `/api/explorer/teams` y `/api/entities/ame_jardine/analysis` devuelvan 200.
-- [ ] Bitácora.
+- [x] Comando de verificación estándar, todo en verde.
+- [x] Commit `G2: integración — KPIs, historia, rutas, coherencia`.
+- [x] Reiniciar el servidor en 8010 y verificar que `/api/story/jardine`, `/api/explorer/teams` y `/api/entities/ame_jardine/analysis` devuelvan 200.
+- [x] Bitácora.
 - → **Revisión del advisor (profunda):** coherencia, textos de la historia y las decisiones de T-03.11 y T-05.
 
 ### ETAPA Ola 3 · Interfaz (antes de empezar, cargar el skill `dataviz`)

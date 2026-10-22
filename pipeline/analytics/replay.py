@@ -259,7 +259,8 @@ def build(ctx: Any) -> dict[str, Any]:
 
 def split_cards(payload: dict[str, Any]) -> tuple:
     """(payload sin fichas, {match_id: fila completa con ficha y textos}) para servir /api/matches/{id} aparte."""
-    light = dict(payload, partidos=[{k: v for k, v in r.items() if k != 'ficha'} for r in payload['partidos']])
+    light = dict(payload, partidos=[dict({k: v for k, v in r.items() if k != 'ficha'},
+                                         marcador=(r.get('ficha') or {}).get('marcador')) for r in payload['partidos']])
     cards = {r['match_id']: dict(r, textos=payload.get('textos', TEXTOS)) for r in payload['partidos']}
     return light, cards
 

@@ -137,6 +137,11 @@ class WindowPayloadTest(unittest.TestCase):
         self.assertEqual(por_tipo['corner']['n'], 1)
         self.assertAlmostEqual(por_tipo['corner']['xg_por_jugada'], 0.2)
 
+    def test_differential_publishes_the_per_match_series(self):
+        diff = self.out['diferencial']
+        self.assertEqual([m for m, _ in diff["por_partido"]], [1])
+        self.assertAlmostEqual(diff['por_partido'][0][1], diff['value'], places=4)
+
     def test_missing_an_gives_null_with_reason(self):
         items = [{'events': match_events(), 'an': None, 'team_id': US, 'names': {}}]
         out = setpieces.window_payload(items, 'oficial', seed=1)

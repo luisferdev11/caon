@@ -265,8 +265,11 @@ def _by_type(per_match: list[dict], side: str) -> dict[str, Any]:
                 'xg_por_jugada': _r(v['xg'] / v['n']) if v['n'] else None} for k, v in tot.items()}
 
 
-def _xg_records(per_match: list[dict], window: str, seed: int) -> dict[str, dict[str, Any]]:
-    """Registros bp_ofensivo, bp_defensivo y bp_diferencial (por partido, banda bootstrap 80 %)."""
+def _xg_records(per_match: list[dict], window: str, seed: int,
+                match_ids: Optional[list] = None) -> dict[str, dict[str, Any]]:
+    """Registros bp_ofensivo, bp_defensivo y bp_diferencial (por partido, banda bootstrap 80 %).
+
+    ``match_ids`` (mismo orden que ``per_match``) agrega ``por_partido`` [[id, valor]] al diferencial (semáforo del KPI 7)."""
     n = len(per_match)
     series = {
         'bp_ofensivo': [sum(v['xg'] for v in m['own'].values()) for m in per_match],
@@ -278,6 +281,8 @@ def _xg_records(per_match: list[dict], window: str, seed: int) -> dict[str, dict
         value = sum(vals) / n if n else None
         extra = {'ci': band80(vals, seed)} if n else {}
         out[mid] = fw.metric(mid, value, n, XG_UNIT, 'eventos', window, motivo=NO_AN, **extra)
+    if match_ids and n and len(match_ids) == n:
+        out['bp_diferencial']['por_partido'] = [[m, _r(v)] for m, v in zip(match_ids, series['bp_diferencial'])]
     return out
 
 
@@ -309,8 +314,9 @@ def window_payload(items: list[dict], window: str, seed: int = 0,
     names: dict = {}
     for it in items:
         names.update(it.get('names') or {})
-    per_match = [possession_sp(it['an'], it['team_id']) for it in items if it.get('an')]
-    xg = _xg_records(per_match, window, seed)
+    with_an = [it for it in items if it.get('an')]
+    per_match = [possession_sp(it['an'], it['team_id']) for it in with_an]
+    xg = _xg_records(per_match, window, seed, [it['an'].get('match_id') for it in with_an])
     n_ev = len(recs)
 
     def side(key: str) -> dict[str, list]:

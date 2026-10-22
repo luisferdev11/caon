@@ -305,6 +305,7 @@ class SplitCardsTest(unittest.TestCase):
         self.assertEqual(cards[7]['ficha']['marcador'], {'propio': 1, 'rival': 0})
         self.assertEqual(cards[7]['textos'], out['textos'])
         self.assertEqual(light['partidos'][0]['veredicto'], 'merecio_ganar')
+        self.assertEqual(light['partidos'][0]['marcador'], {'propio': 1, 'rival': 0})   # la lista de partidos lo muestra
 
 
 class ThresholdsTest(unittest.TestCase):
