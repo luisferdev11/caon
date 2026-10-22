@@ -13,6 +13,7 @@ from typing import Any, Optional
 import framework as fw
 
 NA = 's/d'
+MAX_DECIMALS = 2                     # AC-11: ningún número visible con más de dos decimales
 HIGH_MIN, LOW_MAX = 65, 35          # niveles descriptivos del percentil (alto ≥65, bajo ≤35)
 MEDIAN_BAND = 1.0                    # |p-50| < 1 → «a la par»
 EVIDENCE_REQUIRED = ('id', 'value', 'n', 'unit', 'window')
@@ -29,10 +30,10 @@ def _round(v: float, digits: int) -> Decimal:
 
 
 def num(v: Optional[float], digits: int = 2) -> str:
-    """Número con a lo más ``digits`` decimales y sin ceros finales (es-MX: punto decimal)."""
+    """Número con a lo más ``digits`` decimales (tope MAX_DECIMALS) y sin ceros finales (es-MX: punto decimal)."""
     if v is None:
         return NA
-    text = format(_round(v, digits), 'f')
+    text = format(_round(v, min(digits, MAX_DECIMALS)), 'f')
     return text.rstrip('0').rstrip('.') if '.' in text else text
 
 

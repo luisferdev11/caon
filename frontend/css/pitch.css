@@ -27,7 +27,17 @@
 /* marcas de gráficas sobre la cancha (js/charts.js) */
 .ch-cell { fill: var(--chart-protag); }
 .ch-cell.rival { fill: var(--chart-rival); }
-.ch-shot { fill: none; stroke: var(--protag-ink); stroke-width: 0.5; }
-.ch-shot.goal { fill: var(--protag); stroke: var(--on-pitch); stroke-width: 0.25; }
-.ch-shot.rival { stroke: var(--rival-ink); }
-.ch-shot.rival.goal { fill: var(--rival); }
+.ch-shot { fill: var(--protag); fill-opacity: 0.14; stroke: var(--protag-ink); stroke-width: 0.3; }
+.ch-shot.goal { fill: var(--protag); fill-opacity: 1; stroke: var(--on-pitch); stroke-width: 0.25; }
+.ch-shot.rival { fill: var(--rival); fill-opacity: 0.14; stroke: var(--rival-ink); }
+.ch-shot.rival.goal { fill: var(--rival); fill-opacity: 1; }
+/* jugadas dibujadas en la cancha (views/story_plays.js): acciones numeradas y su dirección */
+.play-line { fill: none; stroke-width: 0.5; stroke-linecap: round; opacity: 0.9; }
+.play-line.protag { stroke: var(--protag-ink); }
+.play-line.rival { stroke: var(--rival-ink); }
+.play-pt circle { stroke: var(--disc-ring); stroke-width: 0.3; }
+.play-pt.protag circle { fill: var(--protag); }
+.play-pt.rival circle { fill: var(--rival); }
+.play-pt text { font: 700 1.6px var(--font-body); text-anchor: middle; dominant-baseline: central; pointer-events: none; }
+.play-pt.protag text { fill: var(--on-protag); }
+.play-pt.rival text { fill: var(--on-rival); }

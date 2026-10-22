@@ -65,3 +65,27 @@ dl.defs dd { margin: 0; overflow-wrap: anywhere; }
   .labframe { height: 70vh; }
   .segmented > button, .segmented > a { padding: 6px 10px; }
 }
+
+/* historia: capítulos, navegación, gráficas en rejilla y dato curioso */
+.chapnav { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.chapter { display: flex; flex-direction: column; gap: var(--space-3); padding-top: var(--space-5); border-top: 1px solid var(--line); scroll-margin-top: 84px; min-width: 0; }
+.chapter.out { border-top-style: dashed; }
+.visual { display: flex; flex-direction: column; gap: var(--space-3); min-width: 0; }
+.chart-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); gap: var(--space-4); }
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); gap: var(--space-3); }
+.curioso { border-left: 3px solid var(--protag); }
+.curioso p { margin: 0; color: var(--ink-2); }
+.plays { display: flex; flex-direction: column; gap: var(--space-2); }
+.plays .grid { grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr)); }
+.findings { grid-template-columns: repeat(auto-fill, minmax(min(100%, 360px), 1fr)); }
+.warn-panel { border-left: 3px solid var(--warn); background: var(--warn-bg); }
+.warn-panel p { margin: 0; color: var(--ink-2); }
+
+/* partidos: filtros, momentos clave y gráfica de xG acumulado */
+.field { display: inline-flex; }
+.field select { min-height: 40px; padding: 0 var(--space-3); border-radius: var(--radius-md); border: 1px solid var(--line); background: var(--surface-2); }
+.moments { margin: var(--space-2) 0 0; padding-left: 18px; display: flex; flex-direction: column; gap: 6px; color: var(--ink-2); }
+.xgline { height: 160px; }
+.axis { display: flex; justify-content: space-between; color: var(--muted); font-size: var(--fs-xs); padding: 0 2%; }
+.verdict .kicker { margin-bottom: 2px; }
+.view > .btn { align-self: flex-start; }

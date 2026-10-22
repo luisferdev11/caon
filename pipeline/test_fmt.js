@@ -93,6 +93,16 @@ test('explorer.v2 units: "% del balón" values are shares, unit text without the
   assert.equal(f.ciByUnit([0.5282, 0.5477], '% del balón'), '53% – 55%');
   assert.equal(f.unitLabel('% del balón'), '%');
   assert.equal(f.unitText('% del balón'), 'del balón');
+  // eventos/360: «% de …» ya viene en 0–100 (no se multiplica por 100); team-stats: proporción 0–1
+  assert.equal(f.metricValue({ value: 59.792, unit: '% de acciones en último tercio', source: 'eventos' }), '59.8%');
+  assert.equal(f.metricValue({ value: 14.27, unit: '% de pérdidas con ≤2 vigilancias', source: '360' }), '14.3%');
+  assert.equal(f.metricValue({ value: 0.538, unit: '% del balón', source: 'team-stats' }), '54%');
+  assert.equal(f.ciByUnit([57.63, 62.05], '% de acciones en último tercio', 'eventos'), '57.6% – 62.1%');
+  assert.equal(f.ciByUnit([0.5282, 0.5477], '% del balón', 'team-stats'), '53% – 55%');
+  assert.equal(f.unitTextOf({ unit: '% de acciones en último tercio', source: 'eventos' }), 'de acciones en último tercio');
+  assert.equal(f.unitTextOf({ unit: '% del balón', source: 'team-stats' }), 'del balón');
+  assert.equal(f.unitTextOf({ unit: 'xG por tiro', source: 'eventos' }), 'xG por tiro');
+  assert.equal(f.unitTextOf({ unit: 'proporción' }), '');
   assert.equal(f.unitText('proporción'), '');
   assert.equal(f.unitText('xG por partido'), 'xG por partido');
   assert.equal(f.metricValue({ value: 313.2046, unit: 'presiones por partido (ajustadas)' }), '313.2');

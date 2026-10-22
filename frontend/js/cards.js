@@ -43,7 +43,7 @@ export function metricTile(rec, label, ctx) {
   const { fmt, mode } = ctx;
   const pctText = Number.isFinite(rec.ref_pct) ? `<p class="muted">${fmt.percentile(rec.ref_pct)} de la liga</p>` : '';
   const dt = mode === 'dt'
-    ? `<p class="muted">IC 80%: ${fmt.ciByUnit(rec.ci, rec.unit)} · n = ${fmt.num(rec.n, 0)}</p><div class="badges">${windowBadge(rec.window, fmt)}</div>`
+    ? `<p class="muted">IC 80%: ${fmt.ciByUnit(rec.ci, rec.unit, rec.source)} · n = ${fmt.num(rec.n, 0)}</p><div class="badges">${windowBadge(rec.window, fmt)}</div>`
     : (rec.window && rec.window !== 'oficial' ? `<div class="badges">${windowBadge(rec.window, fmt)}</div>` : '');
   return `<div class="tile"><span class="tlabel">${esc(label)}</span><strong class="tval">${fmt.metricValue(rec)}</strong>
     <span class="tunit">${esc(fmt.unitText(rec.unit))}</span>${pctText}${dt}</div>`;

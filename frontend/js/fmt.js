@@ -84,16 +84,24 @@ export function unitText(unit) {
   if (SHARE_UNITS.has(unit)) return '';
   return String(unit || '').replace(/^%\s*/, '');
 }
-/** Valor de un registro métrico {value, unit} según su unidad (proporción → %). */
+/** «% de …» de eventos o 360 ya viene en 0–100; solo team-stats (o sin fuente) trae la proporción 0–1. */
+const alreadyPercent = (unit, source) => /^%/.test(String(unit || '')) && (source === 'eventos' || source === '360');
+/** Valor de un registro métrico {value, unit, source?} según su unidad (proporción → %; «% de …» de eventos tal cual). */
 export function metricValue(rec, field = 'value') {
   if (!rec || typeof rec !== 'object') return NA;
   const v = rec[field];
+  if (alreadyPercent(rec.unit, rec.source)) return finite(v) ? num(v, 1) + '%' : NA;
   return isShare(rec.unit) ? pct(v) : num(v);
 }
-/** Intervalo formateado según la unidad del registro. */
-export function ciByUnit(ci, unit) {
+/** Intervalo formateado según la unidad (y la fuente) del registro. */
+export function ciByUnit(ci, unit, source) {
   if (!Array.isArray(ci) || !finite(ci[0]) || !finite(ci[1])) return NA;
+  if (alreadyPercent(unit, source)) return `${num(ci[0], 1)}% – ${num(ci[1], 1)}%`;
   return isShare(unit) ? `${pct(ci[0])} – ${pct(ci[1])}` : interval(ci);
+}
+/** Texto de la unidad de un registro: sin el «%» que ya lleva el valor. */
+export function unitTextOf(rec) {
+  return unitText((rec || {}).unit);
 }
 /** Banda de confianza por partidos (= framework.confidence: <5 muy baja, 5–11 baja, 12–24 media, ≥25 alta). */
 export function confidenceOfN(n) {

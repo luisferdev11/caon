@@ -385,8 +385,8 @@ Reglas de interfaz para toda la etapa:
 - móvil a 390 px sin scroll horizontal.
 
 **T-12 · Vista Historia** (`frontend/views/story.js` + helpers `story_*.js`)
-- [ ] Los 12 capítulos desde `/api/story/jardine` y `/api/entities/ame_jardine/analysis`.
-- [ ] **Visuales:**
+- [x] Los 12 capítulos desde `/api/story/jardine` y `/api/entities/ame_jardine/analysis`.
+- [x] **Visuales:**
   - mapa de tiros real;
   - rejilla de calor 6×3;
   - gráfica de puntos contra la liga;
@@ -399,19 +399,19 @@ Reglas de interfaz para toda la etapa:
   - resumen de "¿mereció ganar?";
   - tablero de KPIs con semáforo;
   - epílogo con la insignia "Fuera de ventana oficial".
-- [ ] Tests en `pipeline/test_views.js`: se renderiza con un payload fixture; en modo Aficionado hay ≤3 números por tarjeta; no hay colores literales.
-- **Aceptación:** AC-06 visible (los 12 capítulos), AC-08 visible, AC-13 y AC-15.
+- [x] Tests en `pipeline/test_views.js`: se renderiza con un payload fixture; en modo Aficionado hay ≤3 números por tarjeta; no hay colores literales.
+- **Aceptación:** AC-06 visible (los 12 capítulos), AC-08 visible, AC-13 y AC-15. ✅ *(`views/story.js`, `story_visuals.js`, `story_plays.js`; QA en navegador sin errores en ambos modos; AC-08 ✅.)*
 
 **T-13 · Vista Almada** (`frontend/views/almada.js`)
-- [ ] Huella en el Pachuca contra la base de Jardine; primeros 10 partidos en el América, crudos contra encogidos, con intervalo y confianza; "qué ya cambió / qué vigilar"; insignia de evidencia temprana.
-- **Aceptación:** sin conclusiones fuertes sobre datos con n<12 (confianza baja visible).
+- [x] Huella en el Pachuca contra la base de Jardine; primeros 10 partidos en el América, crudos contra encogidos, con intervalo y confianza; "qué ya cambió / qué vigilar"; insignia de evidencia temprana.
+- **Aceptación:** sin conclusiones fuertes sobre datos con n<12 (confianza baja visible). ✅ *(`views/almada.js`: aviso de evidencia temprana, crudo/ajustado/intervalo/valor del Pachuca.)*
 
 **T-14 · Partidos y ficha de partido** (`frontend/views/match.js`)
-- [ ] `#partidos`: lista filtrable por entidad, temporada y resultado; por defecto Jardine.
-- [ ] `#partido/<id>`, estilo Google:
+- [x] `#partidos`: lista filtrable por entidad, temporada y resultado; por defecto Jardine.
+- [x] `#partido/<id>`, estilo Google:
   - marcador, momentos clave, xG acumulado por minuto, "¿mereció ganar?" (P de ganar/empatar/perder, xPts contra puntos) y 3 datos curiosos;
   - el modo DT agrega posesión, field tilt, OBV y mapa de tiros.
-- **Aceptación:** AC-13 (la ficha incluye "¿mereció ganar?"); cada ficha ≤60 KB.
+- **Aceptación:** AC-13 (la ficha incluye "¿mereció ganar?"); cada ficha ≤60 KB. ✅ *(`views/match.js`; pendiente: el mapa de tiros y el OBV del modo DT, porque la ficha aún no trae los tiros: se agrega en una iteración posterior.)*
 
 **T-15 · Ficha de DT** (`frontend/views/coach.js`)
 - [ ] `#dt/<key>`: 5 rasgos en palabras sencillas (de `labels.identity` y del explorador), línea de tiempo de su carrera por club y KPIs con confianza.

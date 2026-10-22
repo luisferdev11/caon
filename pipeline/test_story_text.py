@@ -24,6 +24,8 @@ class NumberTests(unittest.TestCase):
         self.assertEqual(st.num(2.0), '2')
         self.assertEqual(st.num(0.0756), '0.08')
         self.assertEqual(st.num(None), 's/d')
+        self.assertEqual(st.num(0.1153, 3), '0.12')          # nunca más de dos decimales en pantalla
+        self.assertEqual(st.signed(0.0676, 3), '+0.07')
 
     def test_percent_and_signed(self):
         self.assertEqual(st.pct(59.792), '59.8 %')

@@ -147,6 +147,7 @@ details.how[open], details.seedata[open] { background: var(--surface-2); border-
 .ch-track { stroke: var(--chart-grid); stroke-width: 2; vector-effect: non-scaling-stroke; }
 /* punto = línea de largo cero con remate redondo: no se deforma con preserveAspectRatio="none" */
 .ch-dot { stroke: var(--chart-protag); stroke-width: 10; stroke-linecap: round; vector-effect: non-scaling-stroke; }
+.ch-dot.raw { stroke-width: 6; opacity: 0.45; }
 .ch-dot.rival { stroke: var(--chart-rival); }
 .ch-dot.league { stroke: var(--chart-league); }
 .ch-tsvg { width: 100%; height: 120px; display: block; }
