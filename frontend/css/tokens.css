@@ -1,0 +1,165 @@
+/* Tokens del producto (portal, laboratorio y playlab). Único lugar con colores literales.
+   Derivados de la identidad original del laboratorio: fondo azul marino, Barlow Condensed en mayúsculas,
+   dorado = protagonista / América / local, azul = rival / comparación / visitante, gris = liga / otros,
+   rayado tenue = fuera de la ventana oficial. Oscuro por defecto; claro por prefers-color-scheme o [data-theme].
+   Los rellenos de equipo y la cancha no cambian con el tema (la cancha siempre es verde oscuro). */
+:root {
+  color-scheme: dark;
+  /* superficies y texto */
+  --bg: #10141C;
+  --surface: #171D29;
+  --surface-2: #1D2534;
+  --surface-3: #232C3D;
+  --line: #2A3448;
+  --ink: #E9EDF4;
+  --ink-2: #B7C0D1;
+  --muted: #8E99AE;
+  --on-ink: #10141C;
+  --focus: #E9EDF4;
+  --overlay: rgba(10, 14, 20, 0.85);
+  /* semántica fija de equipos */
+  --protag: #C0870E;
+  --protag-ink: #F2C55C;
+  --on-protag: #1A1204;
+  --protag-gk: #E0B04A;
+  --protag-soft: rgba(242, 197, 92, 0.16);
+  --rival: #3D8FD6;
+  --rival-ink: #8CC4F2;
+  --on-rival: #FFFFFF;
+  --rival-gk: #7FB4E8;
+  --rival-soft: rgba(140, 196, 242, 0.16);
+  --league: #8E99AE;
+  --league-ink: #B7C0D1;
+  --on-league: #10141C;
+  --hatch: rgba(142, 153, 174, 0.35);
+  /* estados */
+  --warn: #F2D024;
+  --warn-ink: #F3B4A3;
+  --warn-bg: #2A1E20;
+  --warn-line: #5A3A35;
+  --info-ink: #BFD8F5;
+  --info-bg: #18263A;
+  --info-line: #2E4A6A;
+  --danger: #E5484D;
+  --ok: #3FB37F;
+  --draw: #4A5468;
+  /* cancha (igual al lienzo del laboratorio) */
+  --pitch: #16301F;
+  --grass: #1B3627;
+  --grass-2: #1F3D2C;
+  --chalk: rgba(220, 240, 228, 0.32);
+  --chalk-strong: rgba(232, 244, 236, 0.55);
+  --net: rgba(255, 255, 255, 0.10);
+  --net-line: rgba(255, 255, 255, 0.75);
+  --ball: #FFFFFF;
+  --ball-line: #0B0F14;
+  --disc-ring: rgba(8, 12, 18, 0.85);
+  --disc-hi: #FFFFFF;
+  --shadow-ball: rgba(0, 0, 0, 0.35);
+  --on-pitch: #FFFFFF;
+  /* paleta de gráficas (apta para daltonismo: dorado/azul + gris) */
+  --chart-protag: var(--protag);
+  --chart-rival: var(--rival);
+  --chart-league: var(--league);
+  --chart-grid: var(--line);
+  --chart-ci: var(--ink);
+  --chart-seq-0: rgba(192, 135, 14, 0.05);
+  --chart-seq-1: rgba(192, 135, 14, 0.90);
+  /* tipografía */
+  --font-display: 'Barlow Condensed', 'Arial Narrow', 'Roboto Condensed', sans-serif;
+  --font-body: 'Barlow', 'Segoe UI', system-ui, sans-serif;
+  --font-mono: ui-monospace, 'SFMono-Regular', Menlo, monospace;
+  --fs-xs: 12.5px;
+  --fs-sm: 13.5px;
+  --fs-md: 15px;
+  --fs-lg: 17px;
+  --fs-xl: 20px;
+  --fs-2xl: 28px;
+  --fs-3xl: clamp(30px, 5vw, 44px);
+  --lh: 1.45;
+  --tracking-eyebrow: 2.4px;
+  /* espaciado, radios y sombras */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 22px;
+  --space-6: 32px;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-pill: 999px;
+  --shadow-1: 0 6px 18px rgba(0, 0, 0, 0.4);
+  --shadow-2: 0 12px 32px rgba(0, 0, 0, 0.45);
+  --tip-bg: #0B0F14;
+  --tip-ink: #E9EDF4;
+  --tip-ink-2: #B7C0D1;
+  /* alias con los nombres originales del laboratorio (su JS los lee con getComputedStyle) */
+  --ground: var(--bg);
+  --panel: var(--surface);
+  --panel-2: var(--surface-2);
+  --home: var(--protag);
+  --home-ink: var(--protag-ink);
+  --away: var(--rival);
+  --away-ink: var(--rival-ink);
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    color-scheme: light;
+    --bg: #F3F5F9;
+    --surface: #FFFFFF;
+    --surface-2: #EBEFF5;
+    --surface-3: #DFE5EE;
+    --line: #CDD5E1;
+    --ink: #121826;
+    --ink-2: #3A4458;
+    --muted: #5F6B80;
+    --on-ink: #FFFFFF;
+    --focus: #121826;
+    --protag-ink: #8A5A00;
+    --protag-soft: rgba(192, 135, 14, 0.14);
+    --rival-ink: #1F6FB8;
+    --rival-soft: rgba(61, 143, 214, 0.14);
+    --league-ink: #3A4458;
+    --hatch: rgba(95, 107, 128, 0.35);
+    --warn-ink: #8A2E1C;
+    --warn-bg: #FCEDE8;
+    --warn-line: #EBC2B6;
+    --info-ink: #1C4E80;
+    --info-bg: #E6F0FB;
+    --info-line: #B9D3EE;
+    --draw: #9AA5B8;
+    --shadow-1: 0 6px 18px rgba(18, 24, 38, 0.12);
+    --shadow-2: 0 12px 32px rgba(18, 24, 38, 0.16);
+    --tip-bg: #121826;
+  }
+}
+:root[data-theme="light"] {
+  color-scheme: light;
+  --bg: #F3F5F9;
+  --surface: #FFFFFF;
+  --surface-2: #EBEFF5;
+  --surface-3: #DFE5EE;
+  --line: #CDD5E1;
+  --ink: #121826;
+  --ink-2: #3A4458;
+  --muted: #5F6B80;
+  --on-ink: #FFFFFF;
+  --focus: #121826;
+  --protag-ink: #8A5A00;
+  --protag-soft: rgba(192, 135, 14, 0.14);
+  --rival-ink: #1F6FB8;
+  --rival-soft: rgba(61, 143, 214, 0.14);
+  --league-ink: #3A4458;
+  --hatch: rgba(95, 107, 128, 0.35);
+  --warn-ink: #8A2E1C;
+  --warn-bg: #FCEDE8;
+  --warn-line: #EBC2B6;
+  --info-ink: #1C4E80;
+  --info-bg: #E6F0FB;
+  --info-line: #B9D3EE;
+  --draw: #9AA5B8;
+  --shadow-1: 0 6px 18px rgba(18, 24, 38, 0.12);
+  --shadow-2: 0 12px 32px rgba(18, 24, 38, 0.16);
+  --tip-bg: #121826;
+}

@@ -1,0 +1,453 @@
+{
+ "metadata": {
+  "match_id": 1,
+  "home_team": {
+   "home_team_id": 1
+  },
+  "away_team": {
+   "away_team_id": 2
+  },
+  "home_score": 0,
+  "away_score": 1
+ },
+ "events": [
+  {
+   "id": "e1",
+   "index": 1,
+   "period": 1,
+   "minute": 0,
+   "second": 0,
+   "timestamp": "00:00:00.000",
+   "type": {
+    "name": "Half Start"
+   },
+   "team": {
+    "id": 1
+   },
+   "possession": 1,
+   "possession_team": {
+    "id": 1
+   },
+   "play_pattern": {
+    "name": "Regular Play"
+   },
+   "player": {
+    "id": 101
+   },
+   "obv_total_net": 0.01
+  },
+  {
+   "id": "e2",
+   "index": 2,
+   "period": 1,
+   "minute": 0,
+   "second": 1,
+   "timestamp": "00:00:01.000",
+   "type": {
+    "name": "Pass"
+   },
+   "team": {
+    "id": 1
+   },
+   "possession": 2,
+   "possession_team": {
+    "id": 1
+   },
+   "play_pattern": {
+    "name": "From Kick Off"
+   },
+   "player": {
+    "id": 102
+   },
+   "obv_total_net": 0.01,
+   "location": [
+    60,
+    40
+   ],
+   "pass": {
+    "end_location": [
+     80,
+     40
+    ],
+    "length": 20
+   }
+  },
+  {
+   "id": "e3",
+   "index": 3,
+   "period": 1,
+   "minute": 0,
+   "second": 4,
+   "timestamp": "00:00:04.000",
+   "type": {
+    "name": "Pass"
+   },
+   "team": {
+    "id": 1
+   },
+   "possession": 2,
+   "possession_team": {
+    "id": 1
+   },
+   "play_pattern": {
+    "name": "From Kick Off"
+   },
+   "player": {
+    "id": 103
+   },
+   "obv_total_net": 0.01,
+   "location": [
+    80,
+    40
+   ],
+   "pass": {
+    "end_location": [
+     100,
+     70
+    ],
+    "length": 36,
+    "outcome": {
+     "name": "Incomplete"
+    },
+    "pass_success_probability": 0.9
+   }
+  },
+  {
+   "id": "e4",
+   "index": 4,
+   "period": 1,
+   "minute": 0,
+   "second": 5,
+   "timestamp": "00:00:05.000",
+   "type": {
+    "name": "Ball Recovery"
+   },
+   "team": {
+    "id": 2
+   },
+   "possession": 3,
+   "possession_team": {
+    "id": 2
+   },
+   "play_pattern": {
+    "name": "Regular Play"
+   },
+   "player": {
+    "id": 204
+   },
+   "obv_total_net": 0.01,
+   "location": [
+    40,
+    40
+   ]
+  },
+  {
+   "id": "e5",
+   "index": 5,
+   "period": 1,
+   "minute": 0,
+   "second": 6,
+   "timestamp": "00:00:06.000",
+   "type": {
+    "name": "Carry"
+   },
+   "team": {
+    "id": 2
+   },
+   "possession": 3,
+   "possession_team": {
+    "id": 2
+   },
+   "play_pattern": {
+    "name": "Regular Play"
+   },
+   "player": {
+    "id": 200
+   },
+   "obv_total_net": 0.01,
+   "location": [
+    40,
+    40
+   ],
+   "carry": {
+    "end_location": [
+     60,
+     40
+    ]
+   }
+  },
+  {
+   "id": "e6",
+   "index": 6,
+   "period": 1,
+   "minute": 0,
+   "second": 7,
+   "timestamp": "00:00:07.000",
+   "type": {
+    "name": "Pressure"
+   },
+   "team": {
+    "id": 1
+   },
+   "possession": 3,
+   "possession_team": {
+    "id": 2
+   },
+   "play_pattern": {
+    "name": "Regular Play"
+   },
+   "player": {
+    "id": 101
+   },
+   "obv_total_net": 0.01,
+   "location": [
+    60,
+    40
+   ],
+   "counterpress": true
+  },
+  {
+   "id": "e7",
+   "index": 7,
+   "period": 1,
+   "minute": 0,
+   "second": 12,
+   "timestamp": "00:00:12.000",
+   "type": {
+    "name": "Shot"
+   },
+   "team": {
+    "id": 2
+   },
+   "possession": 3,
+   "possession_team": {
+    "id": 2
+   },
+   "play_pattern": {
+    "name": "Regular Play"
+   },
+   "player": {
+    "id": 202
+   },
+   "obv_total_net": 0.01,
+   "location": [
+    105,
+    40
+   ],
+   "shot": {
+    "statsbomb_xg": 0.3,
+    "outcome": {
+     "name": "Goal"
+    },
+    "type": {
+     "name": "Open Play"
+    },
+    "body_part": {
+     "name": "Right Foot"
+    }
+   }
+  },
+  {
+   "id": "e8",
+   "index": 8,
+   "period": 1,
+   "minute": 0,
+   "second": 20,
+   "timestamp": "00:00:20.000",
+   "type": {
+    "name": "Pass"
+   },
+   "team": {
+    "id": 1
+   },
+   "possession": 4,
+   "possession_team": {
+    "id": 1
+   },
+   "play_pattern": {
+    "name": "From Kick Off"
+   },
+   "player": {
+    "id": 103
+   },
+   "obv_total_net": 0.01,
+   "location": [
+    60,
+    40
+   ],
+   "pass": {
+    "end_location": [
+     100,
+     30
+    ],
+    "length": 41
+   }
+  },
+  {
+   "id": "e9",
+   "index": 9,
+   "period": 1,
+   "minute": 0,
+   "second": 22,
+   "timestamp": "00:00:22.000",
+   "type": {
+    "name": "Pass"
+   },
+   "team": {
+    "id": 1
+   },
+   "possession": 4,
+   "possession_team": {
+    "id": 1
+   },
+   "play_pattern": {
+    "name": "From Kick Off"
+   },
+   "player": {
+    "id": 104
+   },
+   "obv_total_net": 0.01,
+   "location": [
+    100,
+    30
+   ],
+   "pass": {
+    "end_location": [
+     110,
+     40
+    ],
+    "length": 14
+   }
+  },
+  {
+   "id": "e10",
+   "index": 10,
+   "period": 1,
+   "minute": 0,
+   "second": 23,
+   "timestamp": "00:00:23.000",
+   "type": {
+    "name": "Shot"
+   },
+   "team": {
+    "id": 1
+   },
+   "possession": 4,
+   "possession_team": {
+    "id": 1
+   },
+   "play_pattern": {
+    "name": "From Kick Off"
+   },
+   "player": {
+    "id": 100
+   },
+   "obv_total_net": 0.01,
+   "location": [
+    110,
+    40
+   ],
+   "shot": {
+    "statsbomb_xg": 0.5,
+    "outcome": {
+     "name": "Saved"
+    },
+    "type": {
+     "name": "Open Play"
+    },
+    "body_part": {
+     "name": "Head"
+    }
+   }
+  },
+  {
+   "id": "e11",
+   "index": 11,
+   "period": 1,
+   "minute": 0,
+   "second": 30,
+   "timestamp": "00:00:30.000",
+   "type": {
+    "name": "Pass"
+   },
+   "team": {
+    "id": 2
+   },
+   "possession": 5,
+   "possession_team": {
+    "id": 2
+   },
+   "play_pattern": {
+    "name": "From Goal Kick"
+   },
+   "player": {
+    "id": 201
+   },
+   "obv_total_net": 0.01,
+   "location": [
+    6,
+    40
+   ],
+   "pass": {
+    "end_location": [
+     40,
+     20
+    ],
+    "length": 38
+   }
+  },
+  {
+   "id": "e12",
+   "index": 12,
+   "period": 2,
+   "minute": 0,
+   "second": 40,
+   "timestamp": "00:00:40.000",
+   "type": {
+    "name": "Substitution"
+   },
+   "team": {
+    "id": 2
+   },
+   "possession": 6,
+   "possession_team": {
+    "id": 2
+   },
+   "play_pattern": {
+    "name": "Regular Play"
+   },
+   "player": {
+    "id": 202
+   },
+   "obv_total_net": 0.01
+  },
+  {
+   "id": "e13",
+   "index": 13,
+   "period": 2,
+   "minute": 0,
+   "second": 41,
+   "timestamp": "00:00:41.000",
+   "type": {
+    "name": "Tactical Shift"
+   },
+   "team": {
+    "id": 2
+   },
+   "possession": 6,
+   "possession_team": {
+    "id": 2
+   },
+   "play_pattern": {
+    "name": "Regular Play"
+   },
+   "player": {
+    "id": 203
+   },
+   "obv_total_net": 0.01,
+   "tactics": {
+    "formation": 4231
+   }
+  }
+ ]
+}

@@ -1,5 +1,7 @@
 """Chronological contextual counts; exposure is observed match-clock time, not ball-in-play time."""
 import collections
+
+import framework as fw
 from metric_utils import finite, ratio
 
 STATES = ('winning', 'drawing', 'losing')
@@ -42,8 +44,7 @@ def score_timeline(events, team_ids):
     for e in events:
         before.append(dict(score))
         kind, tid = e.get('type', {}).get('name'), e.get('team', {}).get('id')
-        if kind == 'Shot' and e.get('shot', {}).get('outcome', {}).get('name') == 'Goal': score[tid] += 1
-        elif kind == 'Own Goal For': score[tid] += 1
+        if kind == 'Shot' and e.get('shot', {}).get('outcome', {}).get('name') == 'Goal' or kind == 'Own Goal For': score[tid] += 1
         elif kind == 'Own Goal Against':
             paired = any(g.get('team', {}).get('id') != tid and
                          (g.get('id') in (e.get('related_events') or []) or
@@ -172,7 +173,7 @@ def extract_context(events, metadata=None, is_sp=None):
         if e.get('possession') is not None: groups.setdefault((e.get('period'), e['possession']), []).append((i, e))
     previous = None
     for group in groups.values():
-        first_index, first = group[0]
+        _first_index, first = group[0]
         tid = (first.get('possession_team') or {}).get('id')
         acts = [(i, e) for i, e in group if e.get('team', {}).get('id') == tid and e.get('type', {}).get('name') in ONBALL and e.get('location')]
         if not acts or tid not in result: continue
@@ -183,20 +184,20 @@ def extract_context(events, metadata=None, is_sp=None):
         shots = [(i, e) for i, e in acts if e.get('type', {}).get('name') == 'Shot' and e.get('shot', {}).get('type', {}).get('name') != 'Penalty']
         for i, e in shots:
             end = period_seconds(e)
-            if regain and start is not None and end is not None and 0 <= end - start <= 10:
+            if regain and start is not None and end is not None and 0 <= end - start <= fw.TRANSITION_PHASE_S:
                 for c in buckets(tid, before[i]): c['transition_shots'] += 1
         # Pace is assigned to the first shot's state and requires a within-state possession.
         if shots and not (is_sp and is_sp([e for _, e in group])):
             i, shot = shots[0]
             j, action = acts[0]
             start, end = period_seconds(action), period_seconds(shot)
-            if start is not None and end is not None and end > start and state_for(before[j], tid) == state_for(before[i], tid):
-                pace = max(shot['location'][0] - action['location'][0], 0) / (end - start)
+            if start is not None and end is not None and end >= start and state_for(before[j], tid) == state_for(before[i], tid):
+                pace = max(shot['location'][0] - action['location'][0], 0) / max(end - start, fw.PACE_FLOOR_S)
                 for c in buckets(tid, before[i]): c['pace_sum'] += pace; c['pace_n'] += 1
     for team in result.values():
         for dim in team.values():
             for c in dim.values(): c['matches'] = int(c['events'] > 0 or c['seconds'] > 0 or c['opponent_actions'] > 0)
-    return result, dict(available=True, score_valid=score_valid, final_score={str(k): v for k, v in final.items()}, warnings=warnings)
+    return result, {'available': True, 'score_valid': score_valid, 'final_score': {str(k): v for k, v in final.items()}, 'warnings': warnings}
 
 
 def summarize_bucket(c):
@@ -235,7 +236,7 @@ def comparisons(context):
         for metric in ('possession_proxy', 'action_share', 'directness', 'pace', 'ppda', 'passes_per90', 'shots_per90', 'xg_per90', 'xga_per90', 'pressures_per90', 'recoveries_per90', 'losses_per90', 'transition_shots_per90'):
             x, y = a.get(metric), b.get(metric)
             delta = x - y if finite(x) and finite(y) else None
-            out.append(dict(dimension=dim, left=left, right=right, metric=metric, left_value=x, right_value=y,
-                            absolute_difference=delta, relative_difference=ratio(delta, abs(y)) if finite(y) else None,
-                            sufficient_sample=a['sufficient_sample'] and b['sufficient_sample']))
+            out.append({'dimension': dim, 'left': left, 'right': right, 'metric': metric, 'left_value': x, 'right_value': y,
+                            'absolute_difference': delta, 'relative_difference': ratio(delta, abs(y)) if finite(y) else None,
+                            'sufficient_sample': a['sufficient_sample'] and b['sufficient_sample']})
     return out

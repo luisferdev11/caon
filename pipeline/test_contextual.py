@@ -1,19 +1,26 @@
 import unittest
-from contextual import extract_context, context_summary, comparisons, defensive_action, period_seconds
+
+from contextual import (
+    comparisons,
+    context_summary,
+    defensive_action,
+    extract_context,
+    period_seconds,
+)
 
 
 def event(index, kind='Pass', tid=10, second=0, period=1, **extra):
-    e = dict(index=index, type={'name': kind}, team={'id': tid}, period=period,
-             timestamp=f'00:{second // 60:02d}:{second % 60:02d}.000',
-             possession=index, possession_team={'id': tid}, location=[60, 40],
-             play_pattern={'name': 'Regular Play'})
+    e = {'index': index, 'type': {'name': kind}, 'team': {'id': tid}, 'period': period,
+             'timestamp': f'00:{second // 60:02d}:{second % 60:02d}.000',
+             'possession': index, 'possession_team': {'id': tid}, 'location': [60, 40],
+             'play_pattern': {'name': 'Regular Play'}}
     if kind == 'Pass': e['pass'] = {'end_location': [80, 40], 'length': 20}
     e.update(extra)
     return e
 
 
 def metadata(h=1, a=0):
-    return dict(home_team={'home_team_id': 10}, away_team={'away_team_id': 20}, home_score=h, away_score=a)
+    return {'home_team': {'home_team_id': 10}, 'away_team': {'away_team_id': 20}, 'home_score': h, 'away_score': a}
 
 
 class ContextTests(unittest.TestCase):
@@ -101,4 +108,20 @@ class ContextTests(unittest.TestCase):
         self.assertFalse(row['sufficient_sample'])
 
 
-if __name__ == '__main__': unittest.main()
+
+
+class FrameworkAlignmentTests(unittest.TestCase):
+    def test_pace_uses_framework_floor(self):
+        import framework as fw
+        evs = [event(1, 'Half Start'), event(2, second=10, location=[60, 40]),
+               event(3, 'Shot', second=10, possession=2, location=[70, 40],
+                     shot={'outcome': {'name': 'Off T'}, 'statsbomb_xg': .1}),
+               event(4, tid=20, second=15), event(5, 'Half End', second=20)]
+        counts, _ = extract_context(evs, metadata(0, 0))
+        drawing = counts[10]['score_state']['drawing']
+        self.assertEqual(drawing['pace_n'], 1)
+        self.assertAlmostEqual(drawing['pace_sum'], 10 / fw.PACE_FLOOR_S)
+
+
+if __name__ == '__main__':
+    unittest.main()

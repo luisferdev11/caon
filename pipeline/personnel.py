@@ -9,7 +9,6 @@ import json
 import math
 import pathlib
 
-
 MIN_SAMPLE_MINUTES = 15
 
 
@@ -68,6 +67,13 @@ def _position_at(segments, moment):
     return None
 
 
+def _is_goal(kind, event):
+    """Goal shot or own goal credited to the event's team."""
+    if kind == 'Own Goal For':
+        return True
+    return kind == 'Shot' and (event.get('shot') or {}).get('outcome', {}).get('name') == 'Goal'
+
+
 def _state_before(events, moment, team_id):
     scores = collections.defaultdict(int)
     for event in events:
@@ -76,9 +82,7 @@ def _state_before(events, moment, team_id):
             break
         kind = (event.get('type') or {}).get('name')
         scoring_team = event.get('team', {}).get('id')
-        if kind == 'Shot' and (event.get('shot') or {}).get('outcome', {}).get('name') == 'Goal':
-            scores[scoring_team] += 1
-        elif kind == 'Own Goal For':
+        if _is_goal(kind, event):
             scores[scoring_team] += 1
     own = scores.get(team_id, 0)
     opponent = max((score for key, score in scores.items() if key != team_id), default=0)
@@ -97,9 +101,7 @@ def _states_at(events, moments, team_id):
                 break
             kind = (event.get('type') or {}).get('name')
             scoring_team = event.get('team', {}).get('id')
-            if kind == 'Shot' and (event.get('shot') or {}).get('outcome', {}).get('name') == 'Goal':
-                scores[scoring_team] += 1
-            elif kind == 'Own Goal For':
+            if _is_goal(kind, event):
                 scores[scoring_team] += 1
             event_index += 1
         own = scores.get(team_id, 0)
@@ -213,6 +215,30 @@ def _lineup_intervals(lineup, events, team_id, match_end, warnings):
     return players
 
 
+def players_minutes(lineup_data, events, team_id):
+    """Minutes and registered positions of every player of ``team_id`` who played (None if no lineup).
+
+    Returns [{player_id, name (nickname first), starter, minutes, positions: {position: minutes}}].
+    """
+    team_data = next((item for item in lineup_data or [] if item.get('team_id') == team_id), None)
+    if team_data is None:
+        return None
+    players = _lineup_intervals(team_data.get('lineup') or [], events, team_id, _match_end(events), [])
+    rows = []
+    for player in players.values():
+        positions = collections.Counter()
+        for segment in player['segments']:
+            if segment['to_seconds'] is not None:
+                positions[segment.get('position')] += max(segment['to_seconds'] - segment['from_seconds'], 0)
+        total = sum(positions.values())
+        if total <= 0:
+            continue
+        rows.append({'player_id': player['player_id'], 'name': player['name'], 'starter': player['starter'],
+                     'minutes': round(total / 60, 3),
+                     'positions': {pos: round(sec / 60, 3) for pos, sec in positions.items() if pos}})
+    return rows
+
+
 def _substitutions(events, players, team_id, venue, score):
     result = []
     warnings = []
@@ -263,7 +289,7 @@ def _composition_intervals(events, players, team_id, venue, match_end):
     ordered = sorted(boundaries)
     state_by_moment = _states_at(events, ordered, team_id)
     intervals = []
-    for start, end in zip(ordered, ordered[1:]):
+    for start, end in zip(ordered, ordered[1:]):  # noqa: RUF007 - Python 3.9 sin itertools.pairwise
         if end <= start:
             continue
         active = tuple(sorted(
@@ -301,18 +327,18 @@ def build_match_personnel(match_id, lineup_data, events, team_name, venue=None,
     events = sorted(events, key=lambda item: item.get('index', 0))
     team_data = next((item for item in lineup_data if item.get('team_name') == team_name), None)
     if team_data is None:
-        return None, ['equipo sin lineup: %s' % team_name]
+        return None, [f'equipo sin lineup: {team_name}']
     team_id = team_data.get('team_id')
     match_end = _match_end(events)
     players = _lineup_intervals(team_data.get('lineup') or [], events, team_id, match_end, warnings)
     if len(players) < 11:
-        warnings.append('lineup incompleto: %d jugadores identificables' % len(players))
+        warnings.append(f'lineup incompleto: {len(players)} jugadores identificables')
     active_start = [player_id for player_id, player in players.items()
                     if any(segment['from_seconds'] <= 0 and
                            (segment['to_seconds'] is None or segment['to_seconds'] > 0)
                            for segment in player['segments'])]
     if len(active_start) != 11:
-        warnings.append('alineación inicial observada con %d jugadores' % len(active_start))
+        warnings.append(f'alineación inicial observada con {len(active_start)} jugadores')
     substitutions, substitution_warnings = _substitutions(
         events, players, team_id, venue, score)
     warnings.extend(substitution_warnings)
@@ -453,13 +479,13 @@ def build_personnel(matches, loader, team_name, source='mx', match_cache=None):
             aggregate['positions'].update(position for position in player['positions'] if position)
     players = []
     for aggregate in player_stats.values():
-        players.append(dict(
-            player_id=aggregate['player_id'], name=aggregate['name'], team=aggregate['team'],
-            matches=aggregate['matches'], starts=aggregate['starts'],
-            minutes=round(aggregate['minutes'], 3),
-            positions=[{'name': name, 'appearances': count}
-                       for name, count in aggregate['positions'].most_common()],
-        ))
+        players.append({
+            'player_id': aggregate['player_id'], 'name': aggregate['name'], 'team': aggregate['team'],
+            'matches': aggregate['matches'], 'starts': aggregate['starts'],
+            'minutes': round(aggregate['minutes'], 3),
+            'positions': [{'name': name, 'appearances': count}
+                          for name, count in aggregate['positions'].most_common()],
+        })
     players.sort(key=lambda player: (-player['minutes'], -player['starts'], player['name'] or ''))
     lineup_counts = collections.Counter(tuple(sorted(row['starting_lineup'])) for row in match_rows)
     appearances, shared_minutes = _pairs(match_rows)
@@ -494,8 +520,8 @@ def build_personnel(matches, loader, team_name, source='mx', match_cache=None):
         'players': players,
         'starting_lineups': starting_lineups,
         'combinations': combinations,
-        'substitutions': [substitution | {'match_id': row['match_id'], 'date': row['date'],
-                                          'opponent': row['opponent']}
+        'substitutions': [{**substitution, 'match_id': row['match_id'], 'date': row['date'],
+                           'opponent': row['opponent']}
                          for row in match_rows for substitution in row['substitutions']],
         'matches': match_rows,
         'sample_note': 'Los resultados son descriptivos y no establecen causalidad.',

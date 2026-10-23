@@ -1,0 +1,105 @@
+/* Portal: solo distribución (cabecera, navegación, rejillas y piezas propias de las vistas).
+   Colores, tipografía y controles vienen de tokens.css y components.css. */
+.top { position: sticky; top: 0; z-index: 5; background: var(--surface); border-bottom: 1px solid var(--line); box-shadow: var(--shadow-1); }
+.top-in { max-width: 1280px; margin: 0 auto; padding: 10px var(--space-4); display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; }
+.brand { display: flex; flex-direction: column; gap: 3px; color: var(--ink); text-decoration: none; line-height: 1; }
+.brand .eyebrow { font-size: 11px; letter-spacing: 2px; }
+.brand b { font: 800 26px/1 var(--font-display); text-transform: uppercase; letter-spacing: 0.3px; }
+.tabs { display: flex; gap: 2px; flex: 1; min-width: 0; }
+.tabs a { padding: 8px 10px; border-radius: var(--radius-sm); color: var(--ink-2); text-decoration: none; font: 600 16px/1.2 var(--font-display); letter-spacing: 0.8px; text-transform: uppercase; white-space: nowrap; }
+.tabs a:hover { color: var(--ink); background: var(--surface-2); }
+.tabs a.on { color: var(--ink); box-shadow: inset 0 -3px 0 var(--ink); }
+.top-tools { display: flex; gap: var(--space-2); align-items: center; }
+.btn.icon { width: 36px; padding: 0; }
+main { max-width: 1280px; margin: 0 auto; padding: var(--space-5) var(--space-4) 60px; }
+
+/* vistas */
+.view { display: flex; flex-direction: column; gap: var(--space-4); min-width: 0; }
+.vhead h2 { font-size: clamp(26px, 4vw, 36px); line-height: 1.05; margin: 4px 0 6px; }
+.vhead p { color: var(--ink-2); max-width: 72ch; margin: 0; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr)); gap: 14px; }
+.toolbar { display: flex; flex-wrap: wrap; gap: var(--space-2); align-items: center; }
+.toolbar .search { flex: 1 1 240px; max-width: 420px; }
+.subhead { margin-top: var(--space-2); }
+.traits { margin: 0; padding-left: 18px; color: var(--ink-2); display: flex; flex-direction: column; gap: 2px; }
+dl.defs { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 3px 12px; font-size: 14px; margin: 0; }
+dl.defs dt { color: var(--muted); }
+dl.defs dd { margin: 0; overflow-wrap: anywhere; }
+.labframe { width: 100%; height: 80vh; border: 1px solid var(--line); border-radius: var(--radius-lg); background: var(--bg); display: block; }
+
+/* glosario (views/method.js): entradas de referencia en dos columnas */
+.deflist { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 420px), 1fr)); gap: 0 var(--space-6); }
+.def { padding: 14px 0; border-top: 1px solid var(--line); display: flex; flex-direction: column; gap: 6px; min-width: 0; scroll-margin-top: 120px; }
+.def > header { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px; align-items: baseline; }
+.def h3 { font-size: var(--fs-lg); }
+.def p { margin: 0; color: var(--ink-2); }
+.def.focus { border-top: 3px solid var(--ink); }
+
+/* hallazgos (js/cards.js) */
+.finding .fact, .finding .interp { margin: 0; }
+.finding .interp { color: var(--ink-2); border-left: 3px solid var(--line); padding-left: 10px; }
+.finding .action { margin: 0; color: var(--ink-2); font-size: var(--fs-sm); }
+.evid { margin: 6px 0 0; padding-left: 18px; }
+
+/* laboratorio de jugadas por texto (views/playlab.js) */
+.pl-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.35fr); gap: var(--space-4); align-items: start; }
+.pl-col { display: flex; flex-direction: column; gap: var(--space-3); min-width: 0; }
+.pl-form { gap: var(--space-3); }
+.pl-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end; }
+.pl-row .field { flex: 1 1 160px; }
+.pl-row .field select { width: 100%; }
+.pl-ex { align-items: center; }
+.pl-steps { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 4px; }
+.pl-view { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.pl-list { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 6px; color: var(--ink-2); }
+@media (max-width: 900px) { .pl-grid { grid-template-columns: minmax(0, 1fr); } }
+
+@media (max-width: 640px) {
+  .top-in { padding: 8px var(--space-4); gap: 8px 12px; }
+  .brand b { font-size: 22px; }
+  .tabs { order: 3; flex: 1 1 100%; overflow-x: auto; scrollbar-width: none; margin: 0 calc(-1 * var(--space-2)); }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tabs a { padding: 6px 8px; font-size: 15px; }
+  .top-tools { margin-left: auto; }
+  main { padding: var(--space-4) var(--space-4) 48px; }
+  .labframe { height: 70vh; }
+  .segmented > button, .segmented > a { padding: 6px 10px; }
+}
+
+/* historia: capítulos, navegación, gráficas en rejilla y dato curioso */
+.chapnav { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.chapter { display: flex; flex-direction: column; gap: var(--space-3); padding-top: var(--space-5); border-top: 1px solid var(--line); scroll-margin-top: 84px; min-width: 0; }
+.chapter.out { border-top-style: dashed; }
+.visual { display: flex; flex-direction: column; gap: var(--space-3); min-width: 0; }
+.chart-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); gap: var(--space-4); }
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); gap: var(--space-3); }
+.curioso { border-left: 3px solid var(--protag); }
+.curioso p { margin: 0; color: var(--ink-2); }
+.plays { display: flex; flex-direction: column; gap: var(--space-2); }
+.plays .grid { grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr)); }
+.findings { grid-template-columns: repeat(auto-fill, minmax(min(100%, 360px), 1fr)); }
+.warn-panel { border-left: 3px solid var(--warn); background: var(--warn-bg); }
+.warn-panel p { margin: 0; color: var(--ink-2); }
+
+/* partidos: filtros, momentos clave y gráfica de xG acumulado */
+.field { display: inline-flex; }
+.field select { min-height: 40px; padding: 0 var(--space-3); border-radius: var(--radius-md); border: 1px solid var(--line); background: var(--surface-2); }
+.moments { margin: var(--space-2) 0 0; padding-left: 18px; display: flex; flex-direction: column; gap: 6px; color: var(--ink-2); }
+.xgline { height: 160px; }
+.axis { display: flex; justify-content: space-between; color: var(--muted); font-size: var(--fs-xs); padding: 0 2%; }
+.verdict .kicker { margin-bottom: 2px; }
+.view > .btn { align-self: flex-start; }
+
+/* ficha de entrenador: línea de tiempo de su carrera */
+.timeline { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--space-3); }
+.tl { display: flex; flex-direction: column; gap: 6px; padding-left: var(--space-3); border-left: 2px solid var(--line); }
+.tl-head { display: flex; flex-wrap: wrap; gap: 4px var(--space-3); align-items: baseline; }
+.tl-bar { height: 8px; border-radius: 4px; background: var(--chart-protag); }
+.table.compact { width: 100%; table-layout: auto; }
+.table.compact th, .table.compact td { padding: 6px 8px; }
+.table.compact .sub { display: block; font-size: var(--fs-xs); font-weight: 400; }
+.table.compact { table-layout: fixed; width: 100%; }
+.table.compact th, .table.compact td { white-space: normal; overflow-wrap: anywhere; }
+.table.compact th:nth-child(1) { width: 32%; }
+.table.compact th:nth-child(2) { width: 38%; }
+.table.compact th:nth-child(3) { width: 30%; }

@@ -6,8 +6,8 @@ as stable or unstable.
 """
 import math
 import statistics
-from contextual import summarize_bucket
 
+from contextual import summarize_bucket
 
 PERIOD_SIZE = 8
 MIN_PERIOD_MATCHES = 5
@@ -56,7 +56,7 @@ def _context_rates(counter):
 
 def _context_period(rows):
     dimensions = {'score_state': {}, 'venue': {}}
-    for dimension in dimensions:
+    for dimension, rates in dimensions.items():
         keys = sorted({key for row in rows for key in (row['context'].get(dimension) or {})})
         for key in keys:
             counter = {}
@@ -67,7 +67,7 @@ def _context_period(rows):
                 _context_add(counter, values)
                 if 'matches' not in values:
                     counter['matches'] = counter.get('matches', 0) + int(values.get('seconds', 0) > 0)
-            dimensions[dimension][key] = _context_rates(counter)
+            rates[key] = _context_rates(counter)
     return dimensions
 
 
