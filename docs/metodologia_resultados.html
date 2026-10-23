@@ -1,11 +1,6 @@
 <!doctype html>
 <html lang="es">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Metodología y resultados de CAON según la rama overnight/jardine-historia, commit 4e44246.">
-  <title>CAON · Metodología y resultados · V2</title>
-  <style>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="Metodología, visualizaciones y resultados del estudio CAON sobre el América de Jardine."><title>CAON · Metodología y resultados</title><style>
     :root{
       color-scheme:dark;
       --bg:#07110f;--surface:#0d1b18;--surface2:#12251f;--line:#294139;
@@ -23,7 +18,7 @@
     nav a{display:block;padding:7px 10px;border-left:2px solid transparent;color:var(--muted);text-decoration:none;font-size:13px}nav a:hover{border-color:var(--mint);color:var(--text);background:#11231d}
     main{min-width:0;padding:0 38px 80px}.hero{min-height:76vh;display:grid;align-content:center;position:relative;padding:80px 0 60px;border-bottom:1px solid var(--line)}
     .eyebrow{color:var(--mint);font-size:12px;font-weight:800;letter-spacing:.16em;text-transform:uppercase}.hero h1{font:clamp(46px,8vw,92px)/.95 var(--serif);letter-spacing:-.045em;max-width:920px;margin:18px 0}.hero .lede{max-width:760px;color:#c7d4cc;font-size:clamp(18px,2.2vw,23px)}
-    .version{display:flex;gap:8px;flex-wrap:wrap;margin-top:24px}.pill,.tag{display:inline-flex;border:1px solid var(--line);border-radius:999px;padding:5px 10px;color:var(--muted);font-size:12px}.pill strong{color:var(--text);margin-right:5px}
+    .sample{display:flex;gap:8px;flex-wrap:wrap;margin-top:24px}.pill,.tag{display:inline-flex;border:1px solid var(--line);border-radius:999px;padding:5px 10px;color:var(--muted);font-size:12px}.pill strong{color:var(--text);margin-right:5px}
     section{padding:64px 0;border-bottom:1px solid var(--line)}h2{font:clamp(30px,4vw,50px)/1.05 var(--serif);letter-spacing:-.03em;margin:8px 0 20px}h3{margin:28px 0 10px;font-size:19px}p{max-width:82ch}.muted{color:var(--muted)}
     .grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:14px}.card{grid-column:span 4;background:linear-gradient(145deg,#11231e,#0d1b18);border:1px solid var(--line);border-radius:14px;padding:20px}.card.wide{grid-column:span 6}.card.full{grid-column:1/-1}.card h3{margin-top:0}.stat{font:40px/1 var(--serif);color:var(--lime);margin:10px 0}.stat small{font:14px var(--sans);color:var(--muted)}
     .callout{border-left:3px solid var(--gold);padding:14px 18px;background:#281f0c80;color:#f7e8c2;border-radius:0 10px 10px 0}.ok{border-color:var(--mint);background:#0d2b2080}.warn{border-color:var(--red);background:#33181580}
@@ -37,208 +32,403 @@
     .split{display:grid;grid-template-columns:1.1fr .9fr;gap:28px}.quote{font:28px/1.3 var(--serif);color:#eaf7ee;margin:0}.source{font-size:12px;color:var(--muted)}
     footer{padding:40px 0;color:var(--muted);font-size:13px}
     @media(max-width:1000px){.layout{display:block}aside{position:relative;height:auto;border-right:0;border-bottom:1px solid var(--line)}nav{columns:3}.hero{min-height:auto}.card{grid-column:span 6}.flow{grid-template-columns:repeat(3,1fr)}}
-    @media(max-width:680px){main{padding:0 18px 50px}aside{padding:18px}nav{columns:2}.hero{padding-top:56px}.card,.card.wide{grid-column:1/-1}.split{grid-template-columns:1fr}.flow{grid-template-columns:1fr}.step:not(:last-child)::after{content:"↓";right:50%;top:auto;bottom:-17px}.barrow{grid-template-columns:1fr 54px}.barrow>span:first-child{grid-column:1/-1}.version{gap:5px}}
+    @media(max-width:680px){main{padding:0 18px 50px}aside{padding:18px}nav{columns:2}.hero{padding-top:56px}.card,.card.wide{grid-column:1/-1}.split{grid-template-columns:1fr}.flow{grid-template-columns:1fr}.step:not(:last-child)::after{content:"↓";right:50%;top:auto;bottom:-17px}.barrow{grid-template-columns:1fr 54px}.barrow>span:first-child{grid-column:1/-1}.sample{gap:5px}}
     @media print{body{background:#fff;color:#111}.layout{display:block;max-width:none}aside{display:none}main{padding:0}.hero{min-height:auto}.card,details,.scroll{break-inside:avoid;background:#fff;color:#111;border-color:#aaa}.muted,td{color:#333}a{color:#064}.fill{background:#176}.step{background:#fff}.pill,.tag{color:#222}}
-  </style>
+
+figure{margin:24px 0;padding:22px;background:var(--surface);border:1px solid var(--line);border-radius:14px}figcaption{font-weight:700;margin-bottom:16px}.axis{display:flex;justify-content:space-between;margin:6px 84px 0 202px;color:var(--muted);font-size:12px}.figure-note{font-size:14px;color:var(--muted)}.metric-value{font:32px var(--serif);color:var(--lime)}.definition{padding:16px 0;border-bottom:1px solid var(--line)}.definition:last-child{border:0}.definition h3{margin:0 0 8px}.kpi-cards .card{grid-column:span 6}.pitch{width:100%;height:auto;max-height:350px}.track{height:14px}.fill.gold{background:var(--gold)}.fill.red{background:var(--red)}.fill.blue{background:var(--blue)}code{overflow-wrap:anywhere}pre{white-space:pre-wrap}caption{text-align:left;padding:12px;color:var(--text)}
+@media(max-width:680px){.kpi-cards .card{grid-column:1/-1}figure{padding:16px}.axis{margin-left:0;margin-right:65px}.barrow{grid-template-columns:minmax(0,1fr) 60px}}@media print{figure{background:#fff;break-inside:avoid}.metric-value,.stat,.eyebrow,code{color:#163e2b}.figure-note,.source{color:#333}}
+</style>
 </head>
-<body>
-<div class="layout">
-  <aside>
-    <div class="brand"><span class="mark">C</span><div><b>CAON</b><small>Trabajo Táctico</small></div></div>
-    <nav aria-label="Contenido">
-      <a href="#resumen">01 · Resumen</a><a href="#evidencia">02 · Evidencia</a><a href="#estado">03 · Estado V2</a>
-      <a href="#datos">04 · Datos</a><a href="#pipeline">05 · Pipeline</a><a href="#objetos">06 · Objetos</a>
-      <a href="#metodo">07 · Método</a><a href="#referencias">08 · Referencias</a><a href="#kpis">09 · KPIs</a>
-      <a href="#identidad">10 · Identidad</a><a href="#historia">11 · Historia</a><a href="#contexto">12 · Contexto</a>
-      <a href="#trazabilidad">13 · Trazabilidad</a><a href="#limites">14 · Límites</a><a href="#reproduccion">15 · Reproducción</a>
-      <a href="#fuentes">16 · Fuentes</a>
-    </nav>
-  </aside>
-
-  <main>
-    <section class="hero" id="resumen">
-      <div class="eyebrow">Metodología y resultados · V2</div>
-      <h1>La historia de un entrenador, trazada desde cada dato.</h1>
-      <p class="lede">CAON conecta posesiones, contexto, jugadores, 360, xG y resultados para describir la etapa de un equipo. Esta edición documenta la implementación real de <code>overnight/jardine-historia</code>.</p>
-      <div class="version">
-        <span class="pill"><strong>Commit</strong>4e44246</span><span class="pill"><strong>Modelo</strong>schema 2</span>
-        <span class="pill"><strong>Jardine</strong>91 partidos</span><span class="pill"><strong>Método</strong>77 definiciones</span>
-        <span class="pill"><strong>Historia</strong>12 capítulos</span>
-      </div>
-    </section>
-
-    <section id="evidencia">
-      <div class="eyebrow">01 · Regla de lectura</div><h2>Qué podemos afirmar</h2>
-      <div class="grid">
-        <article class="card"><h3>Fuente</h3><p>Evento, lineup, team-stat o frame 360 tal como llega del proveedor.</p></article>
-        <article class="card"><h3>Hecho</h3><p>Una regla determinista: entrada al área, pérdida costosa o vigilancia visible.</p></article>
-        <article class="card"><h3>Resumen</h3><p>Media, tasa, percentil, IQR o intervalo sobre hechos con cobertura.</p></article>
-        <article class="card wide"><h3>Interpretación</h3><p>Un texto respaldado por métricas. Describe una muestra; no atribuye causalidad al entrenador.</p></article>
-        <article class="card wide"><h3>Salida generada</h3><p>Replay, simulación o jugada desde texto. Sirve para explorar; no es observación del partido.</p></article>
-      </div>
-      <p class="callout">Unidad de análisis: <strong>equipo + entrenador + ventana</strong>. Rival, plantel, calendario, expulsiones y cobertura forman parte del contexto.</p>
-    </section>
-
-    <section id="estado">
-      <div class="eyebrow">02 · Versión de producto</div><h2>Lo que existe en la rama</h2>
-      <div class="grid">
-        <div class="card"><div class="stat">30</div><p>entidades en el modelo</p></div>
-        <div class="card"><div class="stat">28</div><p>con análisis, KPI y replay</p></div>
-        <div class="card"><div class="stat">411</div><p>fichas de partido</p></div>
-        <div class="card"><div class="stat">3,602</div><p>filas del explorador</p></div>
-        <div class="card"><div class="stat">19 <small>equipos</small></div><p>en la referencia ampliada</p></div>
-        <div class="card"><div class="stat">102 <small>DTs</small></div><p>en el explorador</p></div>
-      </div>
-      <p>La nueva arquitectura separa el modelo ligero, entidades, análisis temático, KPI, replays, partidos, historias y explorador. El portal tiene vistas de Historia, Almada, Partidos, Entrenador, Explorador, Laboratorio y Método.</p>
-    </section>
-
-    <section id="datos">
-      <div class="eyebrow">03 · Entradas</div><h2>Datos y cobertura</h2>
-      <div class="scroll"><table><caption class="sr-only">Fuentes de datos, aportaciones, usos y límites</caption><thead><tr><th>Fuente</th><th>Qué aporta</th><th>Uso</th><th>Límite</th></tr></thead><tbody>
-        <tr><td>Calendarios v6</td><td>fecha, temporada, equipos, localía</td><td>ventanas y selección</td><td>catalogado no significa descargado</td></tr>
-        <tr><td>Eventos v8</td><td>acción, posesión, ubicación, xG, OBV</td><td>secuencias y contexto</td><td>no ve todo movimiento sin balón</td></tr>
-        <tr><td>Lineups v4</td><td>jugadores, posiciones, intervalos</td><td>XI, minutos y cambios</td><td>no explica ausencias</td></tr>
-        <tr><td>Team-stats</td><td>14 señales de estilo</td><td>mapa, etiquetas, referencia</td><td>fórmulas externas al repo</td></tr>
-        <tr><td>360</td><td>jugadores y región visibles</td><td>bloque, vigilancias, packing</td><td>cota inferior de la toma</td></tr>
-        <tr><td>Open Data</td><td>Barcelona 2009–11</td><td>comparación</td><td>otra liga y época</td></tr>
-      </tbody></table></div>
-      <div class="split" style="margin-top:24px"><div><h3>Ventana oficial</h3><p>Apertura 2021 a Clausura 2025, hasta el 30 de junio de 2025. Las conclusiones principales usan esta población.</p></div><div><h3>Fuera de ventana</h3><p>Epílogo desde julio de 2025 y muestras tempranas. Se muestran con insignia y no se mezclan con la conclusión oficial.</p></div></div>
-    </section>
-
-    <section id="pipeline">
-      <div class="eyebrow">04 · Proceso</div><h2>Del evento a la historia</h2>
-      <div class="flow" aria-label="Pipeline">
-        <div class="step"><b>1 · Caché</b>eventos, lineups, team-stats, 360</div><div class="step"><b>2 · Extractos</b><code>mx_</code>, <code>an_</code>, <code>f360_</code></div>
-        <div class="step"><b>3 · Referencias</b>liga, A4 y 360</div><div class="step"><b>4 · Modelo</b>entidades, targets y validación</div><div class="step"><b>5 · Analítica</b>9 módulos por entidad</div>
-        <div class="step"><b>6 · Replay</b>partidos y rejilla xG</div><div class="step"><b>7 · KPI</b>7 indicadores y semáforo</div><div class="step"><b>8 · Story</b>hallazgos con evidencia</div>
-        <div class="step"><b>9 · Auditoría</b>IDs, valores, texto y ventana</div><div class="step"><b>10 · Portal</b>API y vistas modulares</div>
-      </div>
-      <p class="muted">Presupuestos: análisis por entidad ≤400 KB; partido ≤60 KB; modelo ligero ≤4 MB.</p>
-    </section>
-
-    <section id="objetos">
-      <div class="eyebrow">05 · Modelo conceptual</div><h2>Diecinueve objetos verificables</h2>
-      <div class="chips" aria-label="Objetos">
-        <code>O01 entidad</code><code>O02 partido</code><code>O03 equipo-partido</code><code>O04 evento</code><code>O05 posesión</code>
-        <code>O06 secuencia</code><code>O07 ventana</code><code>O08 referencia</code><code>O09 pérdida</code><code>O10 transición</code>
-        <code>O11 contexto</code><code>O12 jugador</code><code>O13 frame 360</code><code>O14 hecho</code><code>O15 KPI</code>
-        <code>O16 hallazgo</code><code>O17 replay</code><code>O18 etiqueta</code><code>O19 simulación</code>
-      </div>
-      <p>El contrato mínimo de un hecho es <code>id + value + n + unit + source + window</code>. Un hallazgo solo puede citar rutas existentes del análisis o de los KPI.</p>
-    </section>
-
-    <section id="metodo">
-      <div class="eyebrow">06 · Registro formal</div><h2>77 definiciones, una sola fuente</h2>
-      <p>La vista Método consume el mismo registro que genera <code>MARCO_ANALITICO.md</code>. Cada entrada tiene definición, unidad y límites; el modo DT añade fórmula, fuente y umbrales.</p>
-      <details open><summary>Espacio, posesión y progresión · 12</summary><div class="chips"><code>coord</code><code>zona</code><code>tercio</code><code>secuencia</code><code>origen</code><code>salida_limpia</code><code>progresion_limpia</code><code>creacion</code><code>entradas_area</code><code>prog</code><code>field_tilt</code><code>xg_origen</code></div></details>
-      <details><summary>Ocasiones, transiciones y pérdidas · 12</summary><div class="chips"><code>npxg_por_tiro</code><code>tiros_zona_remate</code><code>transicion</code><code>contraataque</code><code>perdida</code><code>perdida_costosa</code><code>perdida_letal</code><code>tipo_error</code><code>rec_tiro</code><code>jugada_peligrosa_concedida</code><code>xg_concedido</code><code>x_media_tiros_concedidos</code></div></details>
-      <details><summary>Presión y defensa · 6</summary><div class="chips"><code>fase_presion</code><code>ppda</code><code>contrapresion</code><code>contrapresion_efectiva</code><code>rec_campo_rival</code><code>rec_alta</code></div></details>
-      <details><summary>Jugador, contexto y resultados · 18</summary><div class="chips"><code>minutos_jugador</code><code>formacion</code><code>puntos</code><code>xg_dif</code><code>salida_portero</code><code>rival_tier</code><code>minuto</code><code>marcador</code><code>obv</code><code>ventana</code><code>encogimiento</code><code>consistencia</code><code>xpts</code><code>resultado_sorpresivo</code><code>xi_base</code><code>rotacion</code><code>cambios</code><code>impacto_cambio</code></div></details>
-      <details><summary>Balón parado · 4</summary><div class="chips"><code>bp_peligro</code><code>bp_ofensivo</code><code>bp_defensivo</code><code>bp_diferencial</code></div></details>
-      <details><summary>Estilo suministrado · 13 adicionales</summary><div class="chips"><code>posesion</code><code>verticalidad</code><code>ritmo</code><code>linea</code><code>volumen_presion</code><code>presion</code><code>saque_largo</code><code>centros</code><code>contragolpe</code><code>presion_alta_tiros</code><code>xg</code><code>xga</code><code>bp_xg</code></div><p class="muted"><code>contrapresion</code> ya aparece en Presión y completa las 14.</p></details>
-      <details><summary>Identidad · 3</summary><div class="chips"><code>vel_ataque</code><code>intensidad_presion</code><code>perfil_presion</code></div></details>
-      <details><summary>360 · 9</summary><div class="chips"><code>vigilancias</code><code>vigilancias_bajas</code><code>altura_linea</code><code>bloque_360</code><code>rompe_lineas</code><code>presion_360</code><code>corner_def</code><code>contexto_error</code><code>forma_cambio</code></div></details>
-      <p><a href="framework_metodologico.md">Abrir el framework completo con fórmulas, unidades y límites →</a></p>
-    </section>
-
-    <section id="referencias">
-      <div class="eyebrow">07 · Comparabilidad</div><h2>Ventanas, referencia y muestras</h2>
-      <div class="grid">
-        <article class="card"><h3>Referencia oficial</h3><p>Equipo-temporada con al menos 10 partidos válidos dentro de Ap21–Cl25.</p></article>
-        <article class="card"><h3>Explorador</h3><p>Referencia ampliada con temporadas descargadas, incluso fuera de ventana.</p></article>
-        <article class="card"><h3>Encogimiento</h3><p><code>(n·x̄+8·μ0)/(n+8)</code>, intervalo del 80%.</p></article>
-      </div>
-      <div class="legend"><span><i class="dot r"></i>muy baja &lt;5</span><span><i class="dot g"></i>baja 5–11</span><span><i class="dot g"></i>media 12–24</span><span><i class="dot m"></i>alta ≥25</span></div>
-      <h3>Geometría clave</h3>
-      <div class="scroll"><table><caption class="sr-only">Reglas geométricas y temporales principales</caption><thead><tr><th>Concepto</th><th>Regla</th><th>Concepto</th><th>Regla</th></tr></thead><tbody>
-        <tr><td>Campo</td><td>120×80 yd</td><td>Área</td><td>x≥102, y 18–62</td></tr><tr><td>Transición</td><td>10 s</td><td>Desenlace</td><td>15 s</td></tr>
-        <tr><td>Robo rival/alto</td><td>x≥60 / x≥80</td><td>PPDA</td><td>pase x&lt;72 / defensa x≥48</td></tr><tr><td>Progresiva</td><td>≥25% y ≥10 yd</td><td>Contrapresión</td><td>≤5 s</td></tr>
-      </tbody></table></div>
-    </section>
-
-    <section id="kpis">
-      <div class="eyebrow">08 · Tablero</div><h2>Siete KPI de identidad</h2>
-      <p><code>ref_pct</code> compara con la liga oficial. El semáforo usa los P33/P67 del propio equipo. Son escalas distintas.</p>
-      <div class="barrow"><span>Dominio territorial</span><div class="track"><div class="fill" style="--w:98.6%"></div></div><output>P98.6</output></div>
-      <div class="barrow"><span>Progresión limpia</span><div class="track"><div class="fill" style="--w:97.2%"></div></div><output>P97.2</output></div>
-      <div class="barrow"><span>Calidad de ocasión</span><div class="track"><div class="fill" style="--w:98.6%"></div></div><output>P98.6</output></div>
-      <div class="barrow"><span>Contrapresión efectiva</span><div class="track"><div class="fill" style="--w:45.8%"></div></div><output>P45.8</output></div>
-      <div class="barrow"><span>Pocas pérdidas costosas</span><div class="track"><div class="fill" style="--w:66.7%"></div></div><output>P66.7</output></div>
-      <div class="barrow"><span>Vigilancias 360</span><div class="track"><div class="fill" style="--w:33%"></div></div><output>P33</output></div>
-      <div class="barrow"><span>Diferencial balón parado</span><div class="track"><div class="fill" style="--w:56.8%"></div></div><output>+0.068</output></div>
-      <p class="callout ok">En partidos verdes de calidad de ocasión: 2.53 puntos/partido; en rojo: 1.13 (`n=30/30`). Es asociación descriptiva.</p>
-    </section>
-
-    <section id="identidad">
-      <div class="eyebrow">09 · Resultado central</div><h2>América de Jardine · ventana oficial</h2>
-      <div class="split"><div><p class="quote">“Posesión con pase vertical; línea alta que presiona mucho, pero deja jugar.”</p><p class="source">Identidad determinista de `labels.identity`, no redacción libre.</p></div><div><span class="tag">Directo pero paciente</span> <span class="tag">Muy sólido atrás</span> <span class="tag">Dueño del balón</span> <span class="tag">Línea muy alta</span></div></div>
-      <div class="grid" style="margin-top:28px">
-        <article class="card"><div class="stat">91</div><p>partidos oficiales</p></article><article class="card"><div class="stat">1.93</div><p>puntos por partido</p></article><article class="card"><div class="stat">1.83</div><p>xPts por partido</p></article>
-        <article class="card"><div class="stat">59.8%</div><p>field tilt</p></article><article class="card"><div class="stat">0.87</div><p>xG concedido/partido</p></article><article class="card"><div class="stat">4-2-3-1</div><p>formación modal</p></article>
-      </div>
-      <h3>Percentiles de estilo</h3>
-      <div class="scroll"><table><caption class="sr-only">Percentiles de las catorce métricas de estilo de América de Jardine</caption><thead><tr><th>Pos</th><th>Vert</th><th>Ritmo</th><th>Línea</th><th>Vol</th><th>PPDA↑</th><th>CP</th><th>GK largo</th><th>Centros</th><th>Contra</th><th>Robo</th><th>xG</th><th>Solidez</th><th>BP</th></tr></thead><tbody><tr><td>81</td><td>93</td><td>31</td><td>81</td><td>67</td><td>8</td><td>44</td><td>68</td><td>28</td><td>62</td><td>78</td><td>96</td><td>88</td><td>69</td></tr></tbody></table></div>
-    </section>
-
-    <section id="historia">
-      <div class="eyebrow">10 · Narrativa auditable</div><h2>12 capítulos, 46 hallazgos</h2>
-      <div class="grid chapters">
-        <article class="card chapter"><h3>Portada</h3><p>1.93 puntos frente a 1.83 xPts.</p></article><article class="card chapter"><h3>Identidad</h3><p>Sello con y sin balón.</p></article><article class="card chapter"><h3>Con balón</h3><p>Salida 46.5%; progresión 36.8%; 0.12 npxG/tiro.</p></article>
-        <article class="card chapter"><h3>Sin balón</h3><p>Presión, recuperación, xGA y bloque 360.</p></article><article class="card chapter"><h3>Transiciones</h3><p>51.6 pérdidas/partido y coste por tercio.</p></article><article class="card chapter"><h3>Lo que dolió</h3><p>10.7 posesiones rivales con tiro/partido.</p></article>
-        <article class="card chapter"><h3>Balón parado</h3><p>0.35 xG a favor; 0.28 en contra.</p></article><article class="card chapter"><h3>Contexto</h3><p>Localía, rival, marcador, minuto y liguilla.</p></article><article class="card chapter"><h3>Jugadores</h3><p>Núcleo, roles, formaciones y cambios.</p></article>
-        <article class="card chapter"><h3>Mereció ganar</h3><p>176 puntos contra 166.79 esperados.</p></article><article class="card chapter"><h3>KPIs</h3><p>4 de 7 destacan; 1 queda debajo.</p></article><article class="card chapter"><h3>Epílogo</h3><p>1.68 puntos y 1.70 xPts, fuera de ventana.</p></article>
-      </div>
-    </section>
-
-    <section id="contexto">
-      <div class="eyebrow">11 · Variación</div><h2>Cuándo cambia la señal</h2>
-      <div class="scroll"><table><caption class="sr-only">Resultados de Jardine por estrato contextual</caption><thead><tr><th>Estrato</th><th>En el estrato</th><th>Resto</th><th>Lectura permitida</th></tr></thead><tbody>
-        <tr><td>Localía</td><td>2.27 pts/partido</td><td>1.61</td><td>asociación; no controla rival</td></tr>
-        <tr><td>Rival débil</td><td>70.2% field tilt</td><td>56.1%</td><td>tier circular por xGD</td></tr>
-        <tr><td>Perdiendo</td><td>74.1% field tilt</td><td>57.4%</td><td>respuesta observada, no intención</td></tr>
-        <tr><td>Liguilla</td><td>1.06 xG/partido</td><td>1.61</td><td>muestras y rivales distintos</td></tr>
-      </tbody></table></div>
-      <div class="grid" style="margin-top:20px"><article class="card wide"><h3>Jugadores</h3><p>Solo cuatro superan 60% de los minutos; cuatro del XI base cambian de posición con frecuencia.</p></article><article class="card wide"><h3>Sustituciones</h3><p>4.6 por partido; primera cerca del minuto 57. La comparación antes/después excluye ±2 minutos y conserva marcador.</p></article></div>
-    </section>
-
-    <section id="trazabilidad">
-      <div class="eyebrow">12 · Producto</div><h2>Cada vista tiene un contrato</h2>
-      <div class="scroll"><table><caption class="sr-only">Trazabilidad entre vistas, artefactos y preguntas</caption><thead><tr><th>Vista</th><th>Artefactos</th><th>Pregunta</th></tr></thead><tbody>
-        <tr><td>Historia</td><td>story + analysis + glossary</td><td>¿qué pasó y con qué evidencia?</td></tr><tr><td>Almada</td><td>story/almada + entidades</td><td>¿qué cambió y qué vigilar?</td></tr>
-        <tr><td>Partidos</td><td>matches + replay + xg_grid</td><td>¿qué dijeron las ocasiones?</td></tr><tr><td>Entrenador</td><td>entity + analysis + kpis</td><td>¿qué identidad y contexto tiene?</td></tr>
-        <tr><td>Explorador</td><td>explorer.v3</td><td>¿cómo se compara con intervalos?</td></tr><tr><td>Laboratorio</td><td>model + parser</td><td>¿qué escena genera el modelo?</td></tr>
-        <tr><td>Método</td><td>/api/framework</td><td>¿cómo se mide cada número?</td></tr>
-      </tbody></table></div>
-    </section>
-
-    <section id="limites">
-      <div class="eyebrow">13 · Honestidad metodológica</div><h2>Límites y reproducibilidad</h2>
-      <div class="grid"><article class="card"><h3>No causal</h3><p>Los estratos describen asociaciones y no aíslan al entrenador.</p></article><article class="card"><h3>360 parcial</h3><p>Jugadores visibles son una cota inferior, no el equipo completo.</p></article><article class="card"><h3>Dos fuentes</h3><p>Team-stats y eventos pueden usar poblaciones y fórmulas distintas.</p></article></div>
-      <p class="callout warn"><strong>Prueba local:</strong> esta PC tenía 493 extractos <code>mx_</code> y 68 <code>od_</code>, pero no <code>an_</code> ni <code>f360_</code>. Se generaron 493 <code>an_</code>; sin frames no se reprodujo el 360 oficial. La historia local quedó en 44 hallazgos y la auditoría señaló 105 metadatos KPI faltantes. Por eso esta página conserva como resultados los artefactos versionados de <code>4e44246</code>.</p>
-      <p class="callout">Antes de sustituir artefactos: recuperar la cobertura fuente, guardar manifiesto de IDs/hashes, evitar bloqueos de OneDrive y exigir auditoría en verde.</p>
-    </section>
-
-    <section id="reproduccion">
-      <div class="eyebrow">14 · Ejecución</div><h2>Cómo reconstruir y aceptar</h2>
-      <details open><summary>Comandos</summary><div><pre><code>python -X utf8 pipeline/run.py extract
-python -X utf8 pipeline/run.py analysis
-python -X utf8 pipeline/check_model.py
-python -X utf8 -m unittest discover -s pipeline -p "test_*.py"
-node --test pipeline/test_*.js
-node pipeline/validate.js 100
-node pipeline/referee.js 3
-python -m uvicorn app.main:app --port 8010</code></pre></div></details>
-      <p>Orden de aceptación: extractos válidos → referencias no vacías → modelo válido → presupuestos → 7 KPI → historias con evidencia → auditoría → pruebas → HTTP → revisión visual.</p>
-    </section>
-
-    <section id="fuentes">
-      <div class="eyebrow">15 · Proveniencia</div><h2>Fuentes de esta edición</h2>
-      <p><code>frontend/views/method.js</code>, <code>pipeline/framework*.py</code>, <code>docs/MARCO_ANALITICO.md</code>, <code>pipeline/analytics/*</code>, <code>pipeline/kpis.py</code>, <code>pipeline/story*.py</code>, <code>pipeline/audit_coherence.py</code>, <code>model/model.json</code>, <code>model/analysis/ame_jardine.json</code>, <code>model/kpis/ame_jardine.json</code>, <code>model/story/*</code>, <code>model/explorer.json</code> y <code>app/main.py</code>.</p>
-      <p>Los resultados corresponden a `4e44246`. La prueba local se registra como observación de reproducibilidad y no reemplaza el artefacto oficial.</p>
-    </section>
-
-    <footer>CAON · Metodología y resultados V2 · Documento estático sin dependencias externas · <a href="framework_metodologico.md">Framework metodológico completo</a></footer>
-  </main>
-</div>
+<body><div class="layout">
+<aside><div class="brand"><span class="mark">C</span><div><b>CAON</b><small>Trabajo Táctico</small></div></div>
+<nav aria-label="Contenido"><a href="#resumen">01 · Inicio</a><a href="#pregunta">02 · Pregunta de estudio</a><a href="#metodologia">03 · Metodología</a><a href="#datos">04 · Datos</a><a href="#definiciones">05 · Definiciones</a><a href="#referencias">06 · Referencias y muestras</a><a href="#kpis">07 · Indicadores clave</a><a href="#resultados">08 · Resultados del caso</a><a href="#contexto">09 · Contexto</a><a href="#aplicacion">10 · Construcción del producto</a><a href="#limites">11 · Alcance</a><a href="#fuentes">12 · Trazabilidad</a>
+</nav>
+</aside>
+<main>
+<section class="hero" id="resumen"><div class="eyebrow">CAON · Metodología y resultados</div>
+<h1>Del dato de partido a la explicación del juego.
+</h1>
+<p class="lede">Cómo exploramos los datos, definimos indicadores y construimos una aplicación para describir el fútbol del América de Jardine.
+</p><div class="sample"><span class="pill"><strong>91</strong>partidos</span><span class="pill"><strong>7</strong>indicadores clave</span><span class="pill"><strong>77</strong>definiciones</span><span class="pill"><strong>12</strong>capítulos de análisis</span></div>
+<p class="source">Caso de estudio: 1 de julio de 2023–26 de mayo de 2025. Resultados observados y cálculos descriptivos sobre esa muestra.
+</p>
+</section>
+<section id="pregunta"><div class="eyebrow">Pregunta de estudio</div>
+<h2>¿Cómo juega un equipo y qué resultados acompañan ese juego?
+</h2>
+<p>CAON reúne acciones de partido, estadísticas y contexto para explicar cómo un equipo construye ataques, genera ocasiones, defiende y responde a la pérdida del balón. La unidad estudiada es <strong>equipo + entrenador + periodo</strong>.
+</p>
+<p>El caso principal es América durante la etapa de Jardine. Buscamos reconocer patrones repetidos y mostrar la evidencia que los sostiene. El plantel, los rivales y el marcador también influyen: los resultados describen al equipo en esa etapa y no aíslan un efecto causal del entrenador.
+</p><div class="grid">
+<article class="card">
+<h3>Con balón
+</h3>
+<p>¿Desde dónde empieza, cómo avanza y qué ocasiones consigue?
+</p>
+</article>
+<article class="card">
+<h3>Sin balón
+</h3>
+<p>¿Dónde presiona y cómo se protege cuando pierde?
+</p>
+</article>
+<article class="card">
+<h3>Con contexto
+</h3>
+<p>¿Qué cambia según el rival, la localía y el marcador?
+</p>
+</article></div>
+</section>
+<section id="metodologia"><div class="eyebrow">Metodología</div>
+<h2>Qué hicimos, paso a paso
+</h2>
+<p>Primero delimitamos la pregunta: describir cómo juega un equipo durante la etapa de un entrenador y relacionar ese comportamiento con sus resultados. Elegimos como caso principal al América de Jardine: 91 partidos entre el 1 de julio de 2023 y el 26 de mayo de 2025. La unidad de análisis combina equipo, entrenador y periodo; no pretende aislar el efecto personal del entrenador.
+</p>
+<p>Exploramos calendarios, eventos, alineaciones, estadísticas por equipo y cuadros 360. Revisamos identificadores, fechas, equipos, tipos de acción, campos disponibles y cobertura. El calendario permitió seleccionar encuentros; los eventos reconstruir posesiones; las alineaciones reconocer participantes y cambios; las estadísticas resumir estilo; y el 360 describir jugadores visibles alrededor del balón. La disponibilidad se comprobó por fuente: que un partido exista en el calendario no garantiza que tenga todas esas capas.
+</p>
+<p>Después organizamos las acciones en una cancha común, ordenamos las secuencias y separamos juego abierto, reanudaciones y contextos. Convertimos preguntas futbolísticas en reglas observables: alcanzar una zona conservando el balón, recuperar después de perder, permitir un tiro o mantener jugadores de resguardo. Establecimos coordenadas y tiempos explícitos para aplicar el mismo criterio a todos los casos.
+</p>
+<p>Agregamos los hechos como tasas, promedios y distribuciones. Elegimos el denominador según la pregunta: posesiones elegibles para progresión, tiros sin penal para calidad de ocasión, pérdidas para reacción defensiva y partidos para frecuencia. Comparamos contra referencias compatibles y dividimos por localía, rival, marcador y momento del juego. Los valores ausentes permanecen sin dato; no se reemplazan por cero.
+</p>
+<p>Construimos la aplicación separando cálculo y presentación. Los procesos Python preparan resúmenes y archivos JSON por entidad, partido e historia. FastAPI expone esos archivos mediante una API; las vistas HTML, CSS y JavaScript los convierten en tarjetas, tablas, canchas y gráficos. El registro de Método reúne las definiciones que consulta la interfaz. Los hallazgos narrativos enlazan métricas y evidencia, y el laboratorio utiliza un motor probabilístico para explorar estilos.
+</p><div class="flow"><div class="step"><b>1 · Explorar</b>Revisar fuentes, campos y cobertura.</div><div class="step"><b>2 · Organizar</b>Unir partidos, acciones y participantes.</div><div class="step"><b>3 · Definir</b>Traducir preguntas a reglas medibles.</div><div class="step"><b>4 · Comparar</b>Calcular tasas y analizar el contexto.</div><div class="step"><b>5 · Explicar</b>Mostrar cifras, gráficos y evidencia.</div></div>
+</section>
+<section id="datos"><div class="eyebrow">Datos</div>
+<h2>Qué obtuvimos y para qué lo usamos
+</h2><div class="scroll">
+<table><caption>Fuentes complementarias del análisis</caption>
+<thead>
+<tr><th scope="col">Fuente</th><th scope="col">Información obtenida</th><th scope="col">Uso en el estudio</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>Calendarios</td><td>Fecha, torneo, equipos, localía e identificadores.</td><td>Seleccionar encuentros y delimitar periodos.</td>
+</tr>
+<tr><td>Eventos</td><td>Pases, conducciones, pérdidas, presión y tiros con tiempo y ubicación.</td><td>Reconstruir posesiones y medir progresión, recuperación y peligro.</td>
+</tr>
+<tr><td>Alineaciones</td><td>Jugadores, posiciones, minutos y sustituciones.</td><td>Reconocer el once habitual, continuidad y cambios.</td>
+</tr>
+<tr><td>Estadísticas por equipo</td><td>14 medidas de estilo suministradas por StatsBomb.</td><td>Comparar posesión, ritmo, presión y ocasiones con otros equipos.</td>
+</tr>
+<tr><td>Cuadros 360</td><td>Jugadores visibles y zona que cubre la toma.</td><td>Estimar resguardo y forma del bloque alrededor del balón.</td>
+</tr>
+</tbody>
+</table></div>
+<p>No tratamos todas las fuentes como si midieran lo mismo. Los eventos describen acciones; el 360 añade posiciones visibles; las estadísticas por equipo aportan medidas ya calculadas por el proveedor. Cada resultado conserva su procedencia y su base de cálculo.
+</p><div class="grid">
+<article class="card wide">
+<h3>Barcelona 2009–11
+</h3>
+<p>Perfil histórico de contraste con <strong>68 partidos de StatsBomb Open Data</strong>. Existe y se puede seleccionar en «Equipos de validación» del laboratorio. Sus estimaciones calibradas son experimentales; algunas métricas aparecen sin dato.
+</p>
+</article>
+<article class="card wide">
+<h3>Autobús y contra
+</h3>
+<p><code>arq_autobus</code> también existe y se puede seleccionar. Es un <strong>arquetipo sintético</strong> de bloque bajo y contraataque, útil para comprobar que el simulador responde a un estilo configurado. No representa partidos observados del Atlético.
+</p>
+</article></div>
+<p class="source">Estos dos perfiles pertenecen al laboratorio. No se incorporan a la muestra principal de Jardine ni se presentan como fichas analíticas equivalentes.
+</p>
+</section>
+<section id="definiciones"><div class="eyebrow">Definiciones</div>
+<h2>Cómo convertimos el fútbol en medidas
+</h2>
+<p>Una definición útil debe indicar <strong>qué contamos, en qué situaciones y respecto a qué total</strong>. Construimos reglas observables para aplicar el mismo criterio a todos los partidos. Los cortes de espacio y tiempo son decisiones operativas: hacen repetible el análisis sin afirmar que todo el fútbol tenga fronteras exactas.
+</p>
+<figure>
+<figcaption>Figura 1 · El espacio de la progresión
+</figcaption><svg class="pitch" viewBox="0 0 720 320" role="img" aria-labelledby="pitch-title pitch-desc"><title id="pitch-title">Geometría que usamos para medir el avance</title><desc id="pitch-desc">Cancha dividida en tres tercios. El equipo ataca hacia la derecha. Salida limpia: del tercio propio a medio campo. Progresión limpia: de campo propio al último tercio.</desc><rect x="30" y="35" width="660" height="230" rx="3" fill="#102b21" stroke="#a8b8ae"/><rect x="470" y="35" width="220" height="230" fill="#65e0ad" opacity=".14"/><path d="M250 35V265 M470 35V265" stroke="#a8b8ae" stroke-dasharray="6 6"/><path d="M360 35V265 M30 85H125V215H30 M690 85H595V215H690" fill="none" stroke="#a8b8ae"/><circle cx="360" cy="150" r="45" stroke="#a8b8ae" fill="none"/><g fill="#f1f4e9" font-family="system-ui" font-size="16" text-anchor="middle"><text x="140" y="65">Tercio propio</text><text x="360" y="65">Tercio medio</text><text x="580" y="65">Tercio final</text><text x="30" y="292">0</text><text x="250" y="292">40</text><text x="360" y="292">60</text><text x="470" y="292">80</text><text x="680" y="292">120 yd</text></g><path d="M150 125H365L350 117M365 125L350 133" fill="none" stroke="#c8f06b" stroke-width="4"/><path d="M290 195H510L495 187M510 195L495 203" fill="none" stroke="#82b7ff" stroke-width="4"/><g font-family="system-ui" font-size="14"><text x="160" y="108" fill="#c8f06b">Salida limpia</text><text x="300" y="230" fill="#82b7ff">Progresión limpia</text></g></svg>
+<p class="figure-note">Esquema metodológico, no posiciones observadas. Campo de 120 × 80 yardas; el protagonista ataca a la derecha.
+</p>
+</figure><div class="grid">
+<article class="card wide">
+<h3>Conservar y avanzar
+</h3>
+<p>Definimos salida limpia como una posesión que nace en el tercio propio y alcanza medio campo sin perder. La progresión limpia llega desde campo propio al último tercio. Solo cuentan acciones completadas: intentar un pase y perderlo no significa haber avanzado.
+</p>
+</article>
+<article class="card wide">
+<h3>Perder y reaccionar
+</h3>
+<p>Una pérdida es costosa si el rival remata dentro de quince segundos en la posesión siguiente. Hay contrapresión efectiva cuando recuperamos dentro de cinco segundos. Los plazos delimitan la reacción inmediata y evitan mezclarla con un ataque posterior.
+</p>
+</article>
+<article class="card wide">
+<h3>Crear peligro
+</h3>
+<p>El xG o «goles esperados» asigna una probabilidad estimada a cada tiro. Un tiro con 0.10 xG representa aproximadamente un gol por cada diez ocasiones comparables según el modelo del proveedor; no asegura un gol cada diez tiros concretos. Sin penales se denomina npxG.
+</p>
+</article>
+<article class="card wide">
+<h3>Protegerse por detrás
+</h3>
+<p>Las vigilancias cuentan compañeros visibles detrás del balón cuando el rival recupera. Son una aproximación al resguardo disponible. La palabra «visibles» importa: los jugadores fuera de la toma no se inventan ni se cuentan como ausentes.
+</p>
+</article></div>
+<p>Para el detalle técnico, el <a href="framework_metodologico.md">framework metodológico</a> explica las 77 definiciones, sus fórmulas, fuentes, unidades y sentido futbolístico.
+</p>
+</section>
+<section id="referencias"><div class="eyebrow">Referencias y muestras</div>
+<h2>Qué estamos comparando
+</h2>
+<p>Separamos el <strong>valor observado</strong>, la <strong>posición frente a una referencia</strong> y la <strong>variación del propio equipo entre partidos</strong>. Responden preguntas distintas.
+</p><div class="grid">
+<article class="card">
+<h3>Valor observado
+</h3>
+<p>Por ejemplo, 36.8% de progresión: cerca de 37 de cada 100 posesiones elegibles alcanzan el último tercio sin perder.
+</p>
+</article>
+<article class="card">
+<h3>Percentil
+</h3>
+<p>Expresa una posición de 0 a 100 dentro de la referencia de esa métrica. P97.2 sitúa el resultado en la parte alta; no significa ganar el 97.2% de los partidos.
+</p>
+</article>
+<article class="card">
+<h3>Semáforo propio
+</h3>
+<p>Ordena los partidos del equipo y usa cortes cercanos a los tercios inferior y superior. Verde significa favorable para esa medida, no victoria.
+</p>
+</article></div>
+<h3>Poblaciones y cobertura
+</h3>
+<p>La referencia oficial de estilo utiliza equipos-temporada con al menos diez partidos válidos dentro de Apertura 2021–Clausura 2025. El explorador utiliza temporadas adicionales y declara una referencia ampliada. Los indicadores 360 usan una referencia condicionada por su cobertura, que incluye comparaciones con rivales observados.
+</p>
+<h3>Qué hacemos con muestras pequeñas
+</h3>
+<p>En el explorador acercamos el promedio de pocos partidos a la carrera previa del entrenador o a la liga. Esa referencia pesa como ocho partidos; conforme aumenta la muestra, gana peso lo observado. Un intervalo del 80% comunica variabilidad estimada y no asegura el resultado del siguiente encuentro.
+</p><div class="legend"><span>Menos de 5 partidos: muestra muy baja</span><span>5–11: baja</span><span>12–24: media</span><span>25 o más: alta</span></div>
+<p class="source">Son bandas operativas de tamaño. Los periodos posteriores al 30 de junio de 2025 se muestran como epílogo y se mantienen separados de las conclusiones principales.
+</p>
+</section>
+<section id="kpis"><div class="eyebrow">Indicadores clave</div>
+<h2>Siete KPI explicados
+</h2>
+<p>KPI significa «indicador clave»: elegimos siete medidas para resumir territorio, avance, ocasiones, reacción defensiva, riesgo tras pérdida, resguardo y balón parado. Cada una responde una pregunta concreta y tiene una base de cálculo diferente.
+</p><div class="grid kpi-cards">
+<article class="card">
+<h3>1 · Dominio territorial
+</h3><div class="metric-value">59.8%</div>
+<p>Cerca de seis de cada diez acciones de ambos equipos en sus respectivos últimos tercios fueron del América. Mide presencia territorial, no posesión total.
+</p>
+<p><strong>Cómo lo calculamos:</strong> Comparamos la actividad de ambos equipos cerca de la portería contraria. Un 60% significa que seis de cada diez acciones de ambos en sus respectivos últimos tercios fueron del protagonista; no que tuvo el balón el 60% del tiempo.
+</p>
+<p class="source">Base: 40,763 acciones en último tercio. Fuente: eventos. Periodo principal de Jardine.
+</p>
+</article>
+<article class="card">
+<h3>2 · Progresión limpia
+</h3><div class="metric-value">36.8%</div>
+<p>Alrededor de 37 de cada 100 posesiones en juego que nacieron en campo propio llegaron al último tercio sin perder. El resto no cumplió ese recorrido.
+</p>
+<p><strong>Cómo lo calculamos:</strong> Contamos cuántas posesiones nacidas en campo propio alcanzan el último tercio sin perderse. El denominador incluye solo las que podían hacer ese recorrido, por lo que una recuperación ya cerca del arco no cuenta como progresión desde atrás.
+</p>
+<p class="source">Base: 4,762 posesiones elegibles. Fuente: eventos. Periodo principal de Jardine.
+</p>
+</article>
+<article class="card">
+<h3>3 · Calidad de ocasión
+</h3><div class="metric-value">0.1153 xG/tiro</div>
+<p>Cada remate sin penal tuvo, en promedio, 0.1153 goles esperados. La medida describe calidad de las ocasiones, no porcentaje real de acierto.
+</p>
+<p><strong>Cómo lo calculamos:</strong> Dividimos la calidad estimada acumulada de las ocasiones entre los remates sin penal. Así distinguimos tirar mucho de elegir buenas posiciones; excluimos penales por ser una situación especial de alta probabilidad.
+</p>
+<p class="source">Base: 1,196 tiros sin penal. Fuente: eventos. Periodo principal de Jardine.
+</p>
+</article>
+<article class="card">
+<h3>4 · Contrapresión efectiva
+</h3><div class="metric-value">13.4%</div>
+<p>Aproximadamente 13 de cada 100 pérdidas en juego acabaron en recuperación propia dentro de cinco segundos. Reaccionar con presión no siempre termina en recuperar.
+</p>
+<p><strong>Cómo lo calculamos:</strong> Comprobamos si el equipo vuelve a recuperar en cinco segundos tras perder en juego. Dividir por las pérdidas permite comparar equipos con distintas oportunidades de reaccionar; es un resultado observado, no una demostración de intención táctica.
+</p>
+<p class="source">Base: 4,695 pérdidas en juego. Fuente: eventos. Periodo principal de Jardine.
+</p>
+</article>
+<article class="card">
+<h3>5 · Pérdidas costosas por partido
+</h3><div class="metric-value">2.76 por partido</div>
+<p>El equipo sufrió, en promedio, 2.76 pérdidas por partido seguidas de tiro rival en quince segundos. En esta medida, menos es favorable.
+</p>
+<p><strong>Cómo lo calculamos:</strong> Marcamos las pérdidas en juego que preceden a un tiro rival en la misma posesión y dentro de quince segundos. El plazo concentra el análisis en el riesgo inmediato; no prueba que toda la responsabilidad corresponda al jugador que perdió.
+</p>
+<p class="source">Base: 91 partidos. Fuente: eventos. Periodo principal de Jardine.
+</p>
+</article>
+<article class="card">
+<h3>6 · Vigilancias 360
+</h3><div class="metric-value">4.55 visibles</div>
+<p>Había una media de 4.55 compañeros visibles detrás del balón en las observaciones válidas tras pérdida. No es un conteo del equipo completo.
+</p>
+<p><strong>Cómo lo calculamos:</strong> Contamos compañeros visibles detrás del balón cuando el rival recupera para aproximar la protección ante la transición. Estar detrás aporta cobertura potencial, pero la cámara puede ocultar jugadores y el conteo no describe sus duelos ni distancias.
+</p>
+<p class="source">Base: 2,488 observaciones 360 válidas de 4,285 enlazadas. Fuente: 360. Periodo principal de Jardine.
+</p>
+</article>
+<article class="card">
+<h3>7 · Diferencial de balón parado
+</h3><div class="metric-value">+0.0676 xG/partido</div>
+<p>En balón parado de peligro, el equipo generó 0.3470 xG y concedió 0.2794 por partido. El saldo de ocasiones fue positivo; no equivale al saldo de goles reales.
+</p>
+<p><strong>Cómo lo calculamos:</strong> Restamos el peligro concedido al generado en esas reanudaciones. Un saldo positivo resume ventaja en ocasiones de balón parado, no una diferencia garantizada de goles.
+</p>
+<p class="source">Base: 91 partidos. Fuente: eventos. Periodo principal de Jardine.
+</p>
+</article></div>
+<figure>
+<figcaption>Figura 2 · Posición relativa de los cinco KPI de eventos
+</figcaption><div class="barrow"><span>Dominio territorial</span><div class="track" aria-hidden="true"><div class="fill " style="--w:98.6000%"></div></div><output>98.6</output></div><div class="barrow"><span>Progresión limpia</span><div class="track" aria-hidden="true"><div class="fill " style="--w:97.2000%"></div></div><output>97.2</output></div><div class="barrow"><span>Calidad de ocasión</span><div class="track" aria-hidden="true"><div class="fill " style="--w:98.6000%"></div></div><output>98.6</output></div><div class="barrow"><span>Contrapresión efectiva</span><div class="track" aria-hidden="true"><div class="fill " style="--w:45.8000%"></div></div><output>45.8</output></div><div class="barrow"><span>Pérdidas costosas por partido</span><div class="track" aria-hidden="true"><div class="fill " style="--w:66.7000%"></div></div><output>66.7</output></div><div class="axis"><span>0</span><span>50</span><span>100</span></div>
+<p class="figure-note">Escala de percentiles en orientación favorable, no valores brutos. En pérdidas costosas se invierte el P33.3 original y se muestra 66.7 porque menos pérdidas es favorable. No se mezclan aquí el 360 ni el saldo de balón parado, que tienen otro tratamiento de referencia.
+</p>
+</figure>
+<p>Las vigilancias tienen P33 en la referencia 360 disponible. El balance de balón parado no tiene percentil: se muestra en xG por partido en la figura 4.
+</p>
+</section>
+<section id="resultados"><div class="eyebrow">Resultados del caso</div>
+<h2>Qué encontramos en los 91 partidos
+</h2><div class="grid">
+<article class="card"><div class="stat">1.93</div>
+<p>puntos reales por partido
+</p>
+</article>
+<article class="card"><div class="stat">1.83</div>
+<p>puntos esperados por partido
+</p>
+</article>
+<article class="card"><div class="stat">46.5%</div>
+<p>de salida limpia en posesiones elegibles
+</p>
+</article></div>
+<h3>Un equipo con balón y avance vertical
+</h3>
+<p>El estilo combina posesión elevada (P81) con verticalidad elevada (P93) y ritmo más pausado (P31). Es coherente con la etiqueta «Posesión con pase vertical»: la dirección del avance y su velocidad son dimensiones diferentes.
+</p>
+<h3>Presionar mucho no asegura impedir pases
+</h3>
+<p>El volumen de presión se sitúa en P67, pero el PPDA orientado favorablemente está en P8 y la contrapresión en P44. La aplicación resume esa combinación como «Línea alta: presiona mucho, deja jugar». La lectura conjunta evita confundir actividad con eficacia.
+</p>
+<figure>
+<figcaption>Figura 3 · Resultado real y repetición de las ocasiones
+</figcaption><div class="barrow"><span>Puntos reales</span><div class="track" aria-hidden="true"><div class="fill " style="--w:88.0000%"></div></div><output>176</output></div><div class="barrow"><span>Puntos esperados</span><div class="track" aria-hidden="true"><div class="fill blue" style="--w:83.3950%"></div></div><output>166.79</output></div><div class="axis"><span>0</span><span>100</span><span>200 puntos</span></div>
+<p class="figure-note">Totales de la misma muestra de 91 partidos. Diferencia: +9.21 puntos. El replay hace 20,000 sorteos por partido a partir de las posesiones con tiro: es una interpretación de las ocasiones observadas, no un pronóstico. Fuente: resumen de replay de Jardine.
+</p>
+</figure>
+<figure>
+<figcaption>Figura 4 · Balance de ocasiones a balón parado
+</figcaption><div class="barrow"><span>A favor</span><div class="track" aria-hidden="true"><div class="fill " style="--w:86.7500%"></div></div><output>0.3470</output></div><div class="barrow"><span>En contra</span><div class="track" aria-hidden="true"><div class="fill gold" style="--w:69.8500%"></div></div><output>0.2794</output></div><div class="axis"><span>0</span><span>0.20</span><span>0.40 xG</span></div>
+<p class="figure-note">Goles esperados sin penal por partido. Saldo: +0.0676, con intervalo del 80% de +0.0070 a +0.1279. Incluye córners, faltas desde el último tercio y bandas cercanas al área según las reglas del estudio. Fuente: KPI 7 y sus medidas de apoyo.
+</p>
+</figure>
+<figure>
+<figcaption>Figura 5 · Calidad de ocasión y puntos obtenidos
+</figcaption><div class="barrow"><span>Calidad alta · 30 partidos</span><div class="track" aria-hidden="true"><div class="fill " style="--w:84.3333%"></div></div><output>2.53</output></div><div class="barrow"><span>Calidad intermedia · 31</span><div class="track" aria-hidden="true"><div class="fill gold" style="--w:71.0000%"></div></div><output>2.13</output></div><div class="barrow"><span>Calidad baja · 30</span><div class="track" aria-hidden="true"><div class="fill red" style="--w:37.6667%"></div></div><output>1.13</output></div><div class="axis"><span>0</span><span>1.5</span><span>3 puntos</span></div>
+<p class="figure-note">Puntos reales por partido, agrupados por los terciles propios de npxG/tiro: alta ≥0.1213; baja ≤0.0846; intermedia entre ambos cortes. Asociación descriptiva: no se controlan aquí rival, marcador u otras diferencias. Fuente: semáforo de calidad de ocasión.
+</p>
+</figure>
+<p class="callout">La relación no es igual para todos los indicadores. En dominio territorial, los partidos del tramo alto sumaron 1.73 puntos de media frente a 2.13 en el bajo, con 30 partidos por grupo. Ocupar más el último tercio puede acompañar situaciones como ir perdiendo; no garantiza ganar.
+</p>
+</section>
+<section id="contexto"><div class="eyebrow">Contexto</div>
+<h2>Cuándo cambia el comportamiento
+</h2><div class="scroll">
+<table><caption>Comparaciones contextuales de la historia de Jardine</caption>
+<thead>
+<tr><th scope="col">Situación</th><th scope="col">Resultado en esa situación</th><th scope="col">Resto de la muestra</th><th scope="col">Interpretación</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>Como local</td><td>2.27 puntos/partido</td><td>1.61</td><td>Mayor rendimiento observado en casa; no aísla el nivel rival.</td>
+</tr>
+<tr><td>Ante rivales de nivel bajo</td><td>70.2% de dominio territorial</td><td>56.1%</td><td>Más actividad relativa en campo rival; el nivel se define por balance de xG.</td>
+</tr>
+<tr><td>Con marcador adverso</td><td>74.1% de dominio territorial</td><td>57.4%</td><td>El equipo ocupa más arriba cuando pierde; describe una respuesta observada.</td>
+</tr>
+<tr><td>En liguilla</td><td>1.06 xG/partido</td><td>1.61</td><td>Menor creación de ocasiones en una selección de partidos y rivales distinta.</td>
+</tr>
+</tbody>
+</table></div>
+<p>«Resto» excluye la situación de la primera columna. Las unidades cambian entre filas y las poblaciones no son intercambiables; no sumamos estos contrastes como si fueran efectos independientes.
+</p><div class="grid">
+<article class="card wide">
+<h3>Continuidad de jugadores
+</h3>
+<p>Cuatro jugadores superaron el 60% de los minutos. El esquema 4-2-3-1 apareció en el 45% de los inicios, dentro de cinco formaciones registradas. Esto describe participación y estructura inicial, no posiciones constantes durante el juego.
+</p>
+</article>
+<article class="card wide">
+<h3>Gestión de los cambios
+</h3>
+<p>Se registraron 4.6 sustituciones por partido, con la primera alrededor del minuto 57. La comparación antes/después conserva el marcador y excluye los dos minutos inmediatos al cambio para reducir mezclas de contexto.
+</p>
+</article></div>
+</section>
+<section id="aplicacion"><div class="eyebrow">Construcción del producto</div>
+<h2>Cómo llevamos el análisis a la aplicación
+</h2>
+<p>Organizamos el producto en una capa de preparación, otra de cálculo y otra de consulta. Python transforma las fuentes en archivos analíticos; FastAPI sirve esos resultados; la interfaz permite pasar de una conclusión al indicador y al partido que la sustenta.
+</p><div class="scroll">
+<table><caption>Del cálculo a las preguntas del usuario</caption>
+<thead>
+<tr><th scope="col">Vista</th><th scope="col">Qué permite revisar</th><th scope="col">Datos que utiliza</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>Historia</td><td>Seguir doce capítulos sobre identidad, ataque, defensa, contexto y resultados.</td><td>Hallazgos enlazados con análisis y KPI.</td>
+</tr>
+<tr><td>Partidos</td><td>Consultar ocasiones, repetición de resultados y episodios relevantes.</td><td>Fichas de partido, tiros y replay.</td>
+</tr>
+<tr><td>Entrenador</td><td>Leer identidad, participación, contexto e indicadores de una etapa.</td><td>Entidad, análisis y siete KPI.</td>
+</tr>
+<tr><td>Explorador</td><td>Comparar equipos y entrenadores con muestras e intervalos.</td><td>Estadísticas agregadas y referencia ampliada.</td>
+</tr>
+<tr><td>Laboratorio</td><td>Contrastar estilos y explorar jugadas generadas.</td><td>Modelo de transiciones y formas de los equipos.</td>
+</tr>
+<tr><td>Método</td><td>Entender qué significa cada cifra y cómo se calcula.</td><td>Registro común de 77 definiciones.</td>
+</tr>
+</tbody>
+</table></div>
+<p>Al ejecutar la aplicación comprobamos el servicio de datos, los siete KPI, las 77 definiciones y la historia de doce capítulos. También seleccionamos Barcelona y el arquetipo en el laboratorio y verificamos sus tarjetas. Las cifras de este entregable se transcriben de las salidas analíticas disponibles; esta comprobación no implica volver a descargar ni recalcular todas las fuentes.
+</p>
+</section>
+<section id="limites"><div class="eyebrow">Alcance</div>
+<h2>Cómo interpretar las conclusiones
+</h2><div class="grid">
+<article class="card">
+<h3>Asociaciones
+</h3>
+<p>Los patrones describen qué ocurrió conjuntamente. No separan el efecto del entrenador del plantel, rival, marcador y calendario.
+</p>
+</article>
+<article class="card">
+<h3>Cobertura visible
+</h3>
+<p>El 360 no observa siempre a todos los jugadores. Las 2,488 observaciones válidas de vigilancias corresponden a 4,285 pérdidas enlazadas, no a toda acción del periodo.
+</p>
+</article>
+<article class="card">
+<h3>Fuentes distintas
+</h3>
+<p>Las estadísticas suministradas y los cálculos locales pueden tener reglas y denominadores diferentes. Se identifican por fuente y no se sustituyen automáticamente.
+</p>
+</article></div>
+<p>El replay mantiene las ocasiones observadas y explora resultados posibles. El simulador genera duelos de estilos. Ambos ayudan a explicar el modelo; sus resultados no son nuevos partidos observados ni predicciones del próximo encuentro.
+</p>
+</section>
+<section id="fuentes"><div class="eyebrow">Trazabilidad</div>
+<h2>De dónde salen las cifras
+</h2>
+<p>Los gráficos 2, 4 y 5 usan los KPI oficiales del caso Jardine; el gráfico 3 usa su resumen de replay. La geometría de la figura 1 ilustra las reglas del registro Método. Los contrastes de contexto proceden de la historia y el análisis de esa misma entidad.
+</p>
+<p class="source"><code>model/kpis/ame_jardine.json</code> · <code>model/replay/ame_jardine.json</code> · <code>model/analysis/ame_jardine.json</code> · <code>model/story/jardine.json</code> · <code>pipeline/framework_defs.py</code> · <code>pipeline/analytics/</code>.
+</p>
+<p>Las cifras se redondean para lectura; el <a href="framework_metodologico.md">framework técnico y futbolístico</a> conserva fórmulas, unidades, criterios, cobertura y valores detallados.
+</p>
+</section>
+<footer>CAON · Metodología y resultados · <a href="framework_metodologico.md">Framework metodológico completo</a>
+</footer>
+</main></div>
 </body>
 </html>
